@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>CNA&#39;s Blog</title>
+    <link>https://blog.libcna.com/</link>
+    <description>News, notes, and technical articles from the CNA project.</description>
+    <language>en</language>
+    <lastBuildDate>Sun, 04 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>What is CNA?</title>
+      <link>https://blog.libcna.com/2026/10/04/what-is-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2026/10/04/what-is-cna/</guid>
+      <pubDate>Sun, 04 Oct 2026 12:00:00 GMT</pubDate>
+      <description>An overview of CNA, its XNA-compatible programming model, modular runtime, graphics renderers, content pipeline, and language bindings.</description>
+    </item>
+  </channel>
+</rss>

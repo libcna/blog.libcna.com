@@ -1,5 +1,4 @@
-# Generated website
-/dist/
+# The generated dist/ website is intentionally committed for review and release.
 
 # Dependencies, caches, test output, and local preview
 /node_modules/

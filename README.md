@@ -26,8 +26,9 @@ npm run build
 npm run serve
 ```
 
-The generated website is written to `dist/`. The local preview is available at
-`http://localhost:8080`. Run the complete validation with:
+The generated website is written to `dist/` and committed together with its
+source so the exact release artifact can be reviewed. The local preview is
+available at `http://localhost:8080`. Run the complete validation with:
 
 ```bash
 npm test
@@ -115,11 +116,11 @@ copied to `dist/media/` without modification and are intentionally tracked by
 Git. Optimize large images before committing them; use external object storage
 or Git LFS for unusually large downloads.
 
-The `.gitignore` excludes generated output, dependencies, caches, logs, local
-environment files, and workspace metadata. It deliberately does not ignore
-`public/media/`, so article assets are included in commits. The CNA favicon is
-stored in `public/favicon.svg` and contains the same 32×32 logo used by the
-current `blog.libcna.com` site.
+The `.gitignore` excludes dependencies, caches, logs, local environment files,
+and workspace metadata. It deliberately does not ignore `dist/` or
+`public/media/`, so both the generated website and article assets are included
+in commits. The CNA favicon is stored in `public/favicon.svg` and contains the
+same 32×32 logo used by the current `blog.libcna.com` site.
 
 ## Updating an existing article
 
@@ -144,7 +145,8 @@ aliases:
 ```
 
 Do not edit anything under `dist/`; it is generated from `content/` and
-`public/` and is replaced by every build.
+`public/` and is replaced by every build. After changing content, run
+`npm test` and commit the updated source and generated `dist/` files together.
 
 ## Scheduling an article
 
@@ -196,17 +198,34 @@ public/               static files copied without modification
 scripts/build.mjs     static site generator
 scripts/check.mjs     generated-site validation
 scripts/serve.mjs     local preview server
-dist/                 generated website, ignored by Git
+dist/                 generated website, committed as the release artifact
 ```
 
-## Publishing
+## GitHub Pages publishing
 
 `dist/` is a complete static website suitable for GitHub Pages, Cloudflare
-Pages, Netlify, nginx, or ordinary static hosting. The build command is
-`npm run build` and the publishing directory is `dist`.
+Pages, Netlify, nginx, or ordinary static hosting. It contains a `CNAME` file
+with `blog.libcna.com`; the source copy is maintained at `public/CNAME` and is
+copied into every build.
 
-`.github/workflows/check.yml` verifies every push and pull request. Deployment
-is intentionally not enabled until a hosting provider is selected.
+`.github/workflows/check.yml` verifies every push and pull request.
+`.github/workflows/pages.yml` builds the site, validates it, uploads only the
+generated `dist/` directory, and deploys that artifact through GitHub Pages.
+
+The Pages workflow is deliberately **manual-only** while the existing
+ClassicPress blog remains online. Merely pushing this repository does not
+publish or replace the current website. After the content migration and final
+review are complete:
+
+1. In the repository settings, select **GitHub Actions** as the Pages source.
+2. Review the committed `dist/` output and DNS configuration.
+3. Run **Deploy GitHub Pages** manually from the Actions tab.
+4. Add `push` and daily `schedule` triggers to `pages.yml` only when automatic
+   deployments and scheduled articles should go live.
+
+The workflow runs `npm test` before deployment, so the uploaded artifact is a
+fresh build rather than an unchecked copy. A scheduled article still requires
+a workflow run on or after its publication date.
 
 ## License
 

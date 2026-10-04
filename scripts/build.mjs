@@ -513,7 +513,7 @@ function layout({ title, description, route, content, current = "", type = "webs
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapeHtml(fullTitle)}</title>
   <meta name="description" content="${escapeHtml(description)}">
-  ${noIndex ? '<meta name="robots" content="noindex">' : ""}
+${noIndex ? '  <meta name="robots" content="noindex">' : ""}
   <link rel="canonical" href="${escapeHtml(canonical)}">
   <link rel="alternate" type="application/rss+xml" title="${escapeHtml(site.title)}" href="/feed.xml">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -543,7 +543,7 @@ function layout({ title, description, route, content, current = "", type = "webs
       </nav>
     </div>
   </header>
-  ${hero}
+${hero}
   <div class="page-shell${single ? " single-layout" : ""}">
     <main class="main-content" id="content">${content}</main>
     ${sidebar()}
