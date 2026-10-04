@@ -5,19 +5,24 @@ part of the initial sample content.
 
 ## Recommended process
 
-1. Export posts and media from ClassicPress and keep a safe copy of the export
-   outside this repository.
-2. Convert each published post to its own UTF-8 Markdown file.
-3. Save it as `content/posts/YYYY/MM/DD/slug.md`, matching the original public
+1. Export posts and media from ClassicPress and keep a safe copy outside this
+   repository.
+2. Stage the source material under `import/` according to
+   [`import/README.md`](../import/README.md). This intake copy remains
+   versioned.
+3. Run `npm run check:import` and fix every invalid directory, metadata value,
+   or missing featured-media file.
+4. Convert each staged article to its own UTF-8 Markdown file.
+5. Save it as `content/posts/YYYY/MM/DD/slug.md`, matching the original public
    date and slug.
-4. Move media under `public/media/YYYY/` and update the Markdown references.
-5. Transfer title, date, author, description, categories, and tags to the front
-   matter.
-6. Add alternative historical paths to `aliases`, and keep the original full
+6. Copy media to `public/media/` and update the Markdown references.
+7. Transfer title, date, author, description, categories, and tags to the front
+   matter. For this import, the path date is also the initial `updated` date.
+8. Add alternative historical paths to `aliases`, and keep the original full
    URL in `originalUrl`.
-7. Run `npm test` and fix every duplicate URL, missing field, or broken local
+9. Run `npm test` and fix every duplicate URL, missing field, or broken local
    link.
-8. Before switching the domain, compare the old URL inventory with
+10. Before switching the domain, compare the old URL inventory with
    `dist/sitemap.xml` and manually inspect representative articles.
 
 ## Article metadata

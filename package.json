@@ -7,6 +7,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "node scripts/check.mjs",
+    "check:import": "node scripts/check-import.mjs",
     "test": "npm run build && npm run check",
     "serve": "node scripts/serve.mjs"
   },

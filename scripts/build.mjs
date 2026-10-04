@@ -644,7 +644,7 @@ async function build() {
   await cp(publicRoot, outputRoot, { recursive: true });
 
   const homePosts = allPosts.slice(0, site.postsOnHome);
-  const homeHero = `<section class="home-intro"><p class="eyebrow">CNA development blog</p><h1>News, notes, and technical articles from the CNA project.</h1><p>Follow the framework's development, architecture, graphics work, tools, releases, and related projects.</p></section>`;
+  const homeHero = `<section class="home-intro"><p class="eyebrow">CNA development blog</p><h1>${escapeHtml(site.description)}</h1><p>Follow the framework's development, architecture, graphics work, tools, releases, and related projects.</p></section>`;
   const homeContent = `<h2 class="section-heading">Latest articles</h2><div class="post-list">${homePosts.map((post) => postCard(post)).join("") || '<p class="empty-state">No articles have been published yet.</p>'}</div>`;
   await writeRoute("/", layout({ title: site.title, description: site.description, route: "/", content: homeContent, current: "/", hero: homeHero }), writtenRoutes);
 

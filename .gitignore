@@ -1,4 +1,5 @@
 # The generated dist/ website is intentionally committed for review and release.
+# The import/ staging tree is intentionally committed with its source material.
 
 # Dependencies, caches, test output, and local preview
 /node_modules/

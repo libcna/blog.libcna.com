@@ -174,6 +174,25 @@ BUILD_FUTURE=1 npm run build
 testing. The hosting service must run a new build on or after the publication
 date; date filtering does not itself trigger a deployment.
 
+## ClassicPress import staging
+
+Unconverted ClassicPress exports belong under the versioned `import/`
+directory. Each article uses a dated `year/month/day/slug_id` directory with
+an HTML body and a `key=value` metadata file. All source media initially stays
+in the flat `import/media/` directory.
+
+Copy `import/_templates/article/` when preparing an article, and validate a
+completed import batch with:
+
+```bash
+npm run check:import
+```
+
+The import date becomes both the publication date and initial last-modified
+date. Future dates remain scheduled and are excluded from a normal static
+build after conversion. See [`import/README.md`](import/README.md) for the
+complete directory layout, field definitions, media rules, and examples.
+
 ## Preserving old URLs
 
 - The default article permalink is `/year/month/day/slug/`.
@@ -194,9 +213,11 @@ content/
   posts/             articles arranged by year/month/day
   pages/             standalone pages
   _templates/        authoring templates, never generated
+import/               versioned ClassicPress HTML, metadata, and source media
 public/               static files copied without modification
 scripts/build.mjs     static site generator
 scripts/check.mjs     generated-site validation
+scripts/check-import.mjs  import layout and metadata validation
 scripts/serve.mjs     local preview server
 dist/                 generated website, committed as the release artifact
 ```

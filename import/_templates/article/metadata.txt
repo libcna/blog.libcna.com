@@ -1,0 +1,17 @@
+# Required values
+title=
+description=
+categories=[]
+tags=[]
+
+# Optional featured image from import/media/
+featured_media=
+featured_media_alt=
+featured_media_caption=
+
+# Optional article metadata
+author=Robert Vokac
+draft=false
+original_url=
+permalink=
+aliases=[]
