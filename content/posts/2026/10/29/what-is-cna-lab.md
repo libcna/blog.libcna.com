@@ -186,16 +186,6 @@ The experiment therefore tests how far the existing C# compatibility layer can n
 
 CNA Lab also contains several projects intended to push CNA through real gameplay rather than isolated framework tests.
 
-### Copper Boots
-
-**Copper Boots** is an original C++23 side-scrolling platform game.
-
-It exercises CNA's 2D rendering, input, audio, timing, storage, platform abstraction, software renderer, SDL renderer, and browser Canvas renderer while keeping the game code independent of the underlying graphics API.
-
-**You can play online at:**[https://demos.libcna.com/mario-cna/copper-boots.html](https://demos.libcna.com/mario-cna/copper-boots.html)
-
-![Screenshot](https://github.com/libcna/cna-lab/raw/develop/copper-boots/screenshot.png)
-
 ### Wolf CNA
 
 **Wolf CNA** is an original retro first-person shooter experiment.
