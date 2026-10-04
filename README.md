@@ -263,20 +263,18 @@ copied into every build.
 `.github/workflows/pages.yml` builds the site, validates it, uploads only the
 generated `dist/` directory, and deploys that artifact through GitHub Pages.
 
-The Pages workflow is deliberately **manual-only** while the existing
-ClassicPress blog remains online. Merely pushing this repository does not
-publish or replace the current website. After the content migration and final
-review are complete:
+The Pages workflow runs automatically after every push to `main`. It also runs
+shortly after midnight for both possible `Europe/Prague` UTC offsets, allowing
+scheduled articles to appear on their publication date across daylight-saving
+time changes. It can still be started manually from the Actions tab.
 
-1. In the repository settings, select **GitHub Actions** as the Pages source.
-2. Review the committed `dist/` output and DNS configuration.
-3. Run **Deploy GitHub Pages** manually from the Actions tab.
-4. Add `push` and daily `schedule` triggers to `pages.yml` only when automatic
-   deployments and scheduled articles should go live.
+GitHub Pages must use **GitHub Actions** as its publishing source, and the
+repository Pages settings must define `blog.libcna.com` as the custom domain.
+DNS should contain a `CNAME` record from `blog.libcna.com` to
+`libcna.github.io`.
 
-The workflow runs `npm test` before deployment, so the uploaded artifact is a
-fresh build rather than an unchecked copy. A scheduled article still requires
-a workflow run on or after its publication date.
+Every deployment runs `npm test`, so the uploaded artifact is a freshly built
+and validated copy of `dist/`.
 
 ## License
 

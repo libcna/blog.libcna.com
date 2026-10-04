@@ -1,8 +1,14 @@
 name: Deploy GitHub Pages
 
-# Manual only while the existing ClassicPress site remains live. Add push and
-# schedule triggers after blog.libcna.com is ready to move to GitHub Pages.
 on:
+  push:
+    branches:
+      - main
+  # Run shortly after midnight in both possible Europe/Prague UTC offsets.
+  # The build applies the Europe/Prague publication-date check, so the earlier
+  # winter run is harmless and the second summer run is a harmless rebuild.
+  schedule:
+    - cron: "15 22,23 * * *"
   workflow_dispatch:
 
 permissions:
