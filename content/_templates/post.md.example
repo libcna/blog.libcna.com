@@ -13,6 +13,10 @@ aliases:
   - /old-article-path/
 originalUrl: https://blog.libcna.com/old-article-path/
 classicpressId: 123
+# Optional featured image stored under public/
+featuredImage: /media/2026/article-slug/featured.webp
+featuredImageAlt: Accessible description of the featured image
+featuredImageCaption: Optional caption
 draft: true
 ---
 

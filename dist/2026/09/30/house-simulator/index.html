@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>House Simulator | CNA&#39;s Blog</title>
+  <meta name="description" content="House Simulator is one of the largest showcase applications built on CNA so far.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/09/30/house-simulator/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="House Simulator">
+  <meta property="og:description" content="House Simulator is one of the largest showcase applications built on CNA so far.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/09/30/house-simulator/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-09-30T18:31:57Z">September 30, 2026</time></span><span>Updated <time datetime="2026-10-02T14:24:59Z">October 2, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">House Simulator</h1>
+      <p class="article-description">House Simulator is one of the largest showcase applications built on CNA so far.</p>
+    </header>
+    <div class="article-body"><h2 id="house-simulator-exploring-a-complete-virtual-home-built-with-cna">House Simulator: Exploring a Complete Virtual Home Built with CNA</h2>
+<p>House Simulator is one of the largest showcase applications built on CNA so far. Instead of demonstrating a single graphics feature or a small test scene, it creates an entire property that can be explored in first person: a large house, garage, gardens, street and surrounding neighbourhood.</p>
+<p>The project is designed as an architectural and graphics showcase rather than a traditional game.</p>
+<p>There is no score, no win condition and no life-simulation system. The goal is simply to create a convincing place that can be walked through and experienced while exercising a large part of CNA&#39;s XNA-compatible API.</p>
+<p><strong>Play online:</strong> <a href="https://demos.libcna.com/house-simulator/index.html">https://demos.libcna.com/house-simulator/index.html</a></p>
+<p><img src="https://raw.githubusercontent.com/libcna/house-simulator/develop/tests/render/reference/representative-day-exterior-front.png" alt="Representative day exterior front" loading="lazy"></p>
+<h2 id="a-whole-house-to-explore">A Whole House to Explore</h2>
+<p>The house is much more than a few connected rooms. It contains a basement, ground floor, two upper floors and an attic, together with a garage and the exterior property.</p>
+<p>The current world contains 96 spatial cells, 90 of which are accessible to the player. Rooms are furnished according to their purpose, and the project includes areas such as living rooms, bedrooms, bathrooms, offices, a kitchen, library, games room, workshop, gym and even a basement cinema.</p>
+<p>Real staircases connect the floors, so exploring the building feels like moving through one continuous structure rather than loading a collection of unrelated scenes.</p>
+<p><img src="https://raw.githubusercontent.com/libcna/house-simulator/develop/tests/render/reference/representative-day-living-composition.png" alt="Representative day living composition" loading="lazy"></p>
+<p>The amount of interior variety is important for CNA as well. A single renderer has to deal with many different combinations of geometry, furniture, textures, lighting conditions and viewing distances while keeping the same XNA-style application code.</p>
+<h2 id="built-on-the-xna-4-0-api">Built on the XNA 4.0 API</h2>
+<p>One of the most interesting aspects of House Simulator is a restriction imposed on the project from the beginning: the runtime application is built exclusively on the XNA 4.0 API surface implemented by CNA.</p>
+<p>The House Simulator source code does not directly use OpenGL, OpenGL ES, Vulkan, WebGPU, Direct3D or Metal. It also does not rely on CNA-specific graphics extensions to bypass limitations in the XNA API.</p>
+<p>The project even builds with CNA&#39;s extension layer disabled.</p>
+<p>That makes House Simulator useful as more than a visual demo. It is also a practical test of an important CNA goal: allowing substantial applications to be written against the familiar <code>Microsoft.Xna.Framework</code> programming model without requiring application code to know which graphics API ultimately renders the scene.</p>
+<p>Where something cannot be obtained through the XNA API, House Simulator either implements the required behaviour inside its own application code or goes without it.</p>
+<h2 id="more-than-a-static-architectural-model">More Than a Static Architectural Model</h2>
+<p>The house is not frozen under one lighting setup. House Simulator contains a complete environmental system.</p>
+<p>Time can advance automatically, with a default 24-minute day, or it can be selected manually. The sun moves through the sky, the moon changes according to the calendar, stars appear at night and the visual environment changes with the weather.</p>
+<p>Clear weather, overcast conditions, rain and a snow state are supported. Rain is kept out of covered areas, wet surfaces react to weather, fog changes with atmospheric conditions and interior lighting follows its own schedule.</p>
+<p><img src="https://raw.githubusercontent.com/libcna/house-simulator/develop/tests/render/reference/environment-front-rain-noon.png" alt="Environment front rain noon" loading="lazy"></p>
+<p>These systems are particularly useful for testing a renderer because the same property can be observed under radically different conditions without replacing the level.</p>
+<p>A bright exterior scene, a dark basement, an artificially lit room and a rainy garden all exercise different parts of the rendering pipeline.</p>
+<h2 id="from-the-basement-cinema-to-the-library">From the Basement Cinema to the Library</h2>
+<p>Some rooms receive considerably more detail than would be necessary for a basic graphics test. The intention is to make House Simulator feel like an actual property rather than a collection of benchmark scenes.</p>
+<p>The basement, for example, includes its own cinema.</p>
+<p><img src="https://raw.githubusercontent.com/libcna/house-simulator/develop/tests/render/reference/representative-day-basement-cinema.png" alt="Representative day basement cinema" loading="lazy"></p>
+<p>Higher in the house, rooms such as the library provide another combination of furniture, lighting, windows and interior materials.</p>
+<p><img src="https://raw.githubusercontent.com/libcna/house-simulator/develop/tests/render/reference/representative-day-library.png" alt="Representative day library" loading="lazy"></p>
+<p>The environment is also accompanied by audio. House Simulator has footsteps for multiple surface categories, interior room tone, exterior daytime and nighttime ambience, rain and wind layers, and spatial differences between indoor and outdoor sound.</p>
+<h2 id="linux-web-and-android">Linux, Web and Android</h2>
+<p>House Simulator 1.1.0 expanded the showcase from its original Linux desktop version to three targets:</p>
+<p><strong>Linux desktop, Web and Android.</strong></p>
+<p>The browser version runs as a WebGL 2 application produced through CNA&#39;s Web toolchain. The Android version uses the same game code with touch controls for movement, camera control and menus.</p>
+<p>This is an important part of what the project demonstrates. The house itself is not rewritten for each platform. The same XNA-style application sits above CNA while the framework handles the platform and rendering differences underneath it.</p>
+<p>The Web package is currently around 97 MB compressed, while the Android APK is around 100 MB. The Android release has been validated on a GPU-accelerated Android emulator; physical-phone validation remains a separate step.</p>
+<h2 id="a-41-minute-tour-of-the-property">A 41-Minute Tour of the Property</h2>
+<p>Because the property became so large, House Simulator also contains an automatic filming tour.</p>
+<p>Pressing <code>C</code> on the desktop starts a predefined walk through the accessible parts of the property. The complete route takes approximately 41 minutes and covers the house and grounds without teleporting between locations.</p>
+<p>The feature was originally intended to make systematic visual inspection and video recording easier, but it also illustrates the scale the project eventually reached. What began as a CNA graphics showcase now contains enough space for a guided tour approaching the length of a television episode.</p>
+<h2 id="what-house-simulator-means-for-cna">What House Simulator Means for CNA</h2>
+<p>House Simulator is valuable to CNA precisely because it is not a tiny framework sample.</p>
+<p>Small samples are excellent for proving that an individual API works. House Simulator asks a different question:</p>
+<p><strong>Can those APIs work together for a large application for an extended period of time?</strong></p>
+<p>It exercises content loading, models, textures, effects, input, audio, storage, UI, first-person movement, environmental simulation, rendering, platform integration and application lifecycle behaviour inside one project.</p>
+<p>It also has unit tests, GPU integration tests, reference-image rendering tests and fixed performance scenarios. Visual reference images cover representative rooms during the day and night as well as different weather conditions.</p>
+<p>The result is both a virtual house and a practical CNA stress test.</p>
+<p>House Simulator shows the type of application CNA is intended to support: a substantial C++ program written using the XNA programming model, while CNA takes responsibility for running it across different modern platforms.</p>
+<h2 id="project">Project</h2>
+<p>Source code and additional screenshots are available on GitHub:</p>
+<p><strong>GitHub:</strong> <a href="https://github.com/libcna/house-simulator">https://github.com/libcna/house-simulator</a></p>
+<p><strong>Play online:</strong> <a href="https://demos.libcna.com/house-simulator/index.html">https://demos.libcna.com/house-simulator/index.html</a></p>
+<p><strong>YouTube video:</strong> <a href="https://www.youtube.com/watch?v=errSKcxLpeY">https://www.youtube.com/watch?v=errSKcxLpeY</a></p>
+<p>House Simulator is built with <strong>CNA — XNA 4.0 in C++</strong> and <strong>sharp-runtime</strong>.</p>
+<p>Learn more about CNA at:</p>
+<p><a href="https://libcna.com/">**https://libcna.com/**</a></p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/tag/3d/">#3D</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li><li><a href="/2026/09/27/32/">Platform API in CNA</a></li><li><a href="/2026/09/24/how-cna-can-survive-sdl/">How CNA can survive SDL</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">2</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">2</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">3</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl2/">SDL2</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

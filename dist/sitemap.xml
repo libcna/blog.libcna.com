@@ -2,15 +2,78 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://blog.libcna.com/</loc></url>
   <url><loc>https://blog.libcna.com/2026/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/13/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/13/hello-this-is-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/17/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/17/how-large-is-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/20/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/20/renderers-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/22/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/22/cna-street-a-living-city-built-with-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/24/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/24/how-cna-can-survive-sdl/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/27/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/27/32/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/30/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/09/30/house-simulator/</loc></url>
   <url><loc>https://blog.libcna.com/2026/10/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/10/01/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/</loc></url>
   <url><loc>https://blog.libcna.com/2026/10/04/</loc></url>
-  <url><loc>https://blog.libcna.com/2026/10/04/what-is-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/10/04/renderer-api-in-cna/</loc></url>
   <url><loc>https://blog.libcna.com/about/</loc></url>
   <url><loc>https://blog.libcna.com/archive/</loc></url>
   <url><loc>https://blog.libcna.com/categories/</loc></url>
   <url><loc>https://blog.libcna.com/category/about/</loc></url>
-  <url><loc>https://blog.libcna.com/tag/c-23/</loc></url>
-  <url><loc>https://blog.libcna.com/tag/cna/</loc></url>
-  <url><loc>https://blog.libcna.com/tag/xna/</loc></url>
+  <url><loc>https://blog.libcna.com/category/development/</loc></url>
+  <url><loc>https://blog.libcna.com/category/graphics/</loc></url>
+  <url><loc>https://blog.libcna.com/category/projects/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/3d/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/architecture/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/bindings/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/c-api/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/c/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/capabilities/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/cna-street/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/cnaext/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/cnb/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/cocoa/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/common-lisp/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/directx/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/emscripten/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/gltf/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/go/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/graphics-apis/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/graphicsdevice/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/hdr/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/java/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/online-demo/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/opengl/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/pbr/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/platform-api/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/platforms/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/portability/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/python/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/refactoring/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/renderer-api/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/renderers/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/ruby/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/rust/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/sdl/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/sdl2/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/sdl3/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/simulation/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/software-preservation/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/software-rendering/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/swift/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/typescript/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/vulkan/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/wayland/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/webassembly/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/webgl2/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/webgpu/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/win32/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/x11/</loc></url>
   <url><loc>https://blog.libcna.com/tags/</loc></url>
 </urlset>

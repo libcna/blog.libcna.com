@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How CNA can survive SDL | CNA&#39;s Blog</title>
+  <meta name="description" content="SDL is one of the most important technologies used by CNA today.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/09/24/how-cna-can-survive-sdl/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="How CNA can survive SDL">
+  <meta property="og:description" content="SDL is one of the most important technologies used by CNA today.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/09/24/how-cna-can-survive-sdl/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-09-24T11:21:36Z">September 24, 2026</time></span><span>Updated <time datetime="2026-10-02T14:16:22Z">October 2, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">How CNA can survive SDL</h1>
+      <p class="article-description">SDL is one of the most important technologies used by CNA today.</p>
+    </header>
+    <div class="article-body"><p>SDL is one of the most important technologies used by CNA today.</p>
+<ul><li>It provides window management, events, input, platform integration and many other services that would otherwise require separate implementations for Windows, Linux, macOS and other systems.</li></ul>
+<p>For a cross-platform framework, that is enormously useful.</p>
+<p>But CNA is built around the  principle: <strong>SDL should be an implementation choice, not something CNA applications fundamentally depend on.</strong></p>
+<p>CNA has working native <strong>Win32, X11 and Wayland</strong> platform backends, which allow CNA applicaations to run without SDL.</p>
+<h2 id="sdl-is-still-important-to-cna">SDL is still important to CNA</h2>
+<p>CNA currently uses <strong>SDL3 as its default platform backend</strong>.</p>
+<p>There are also Headless and POSIX Terminal backends.</p>
+<p>SDL solves many difficult portability problems:</p>
+<ul><li>windows</li><li>events</li><li>keyboard and mouse input</li><li>game controllers</li><li>displays</li><li>clipboard access</li><li>platform integration</li><li>timing</li><li>many operating-system differences</li></ul>
+<p>SDL provides a mature, portable implementation that CNA can continue using for as long as it remains useful.</p>
+<h2 id="cna-applications-depend-on-cna">CNA Applications depend on CNA</h2>
+<p>CNA applications care about things such as:</p>
+<ul><li><code>Game</code></li><li><code>GraphicsDevice</code></li><li><code>Keyboard</code></li><li><code>Mouse</code></li><li><code>GamePad</code></li><li>windows</li><li>displays</li><li>audio</li><li>storage</li></ul>
+<p>They do not need to know whether CNA implements those concepts using SDL, Win32, X11, Wayland or some future platform technology.</p>
+<p>CNA talks to the operating system or platform library.</p>
+<h2 id="the-platform-and-renderer-are-separate">The platform and renderer are separate</h2>
+<p>The platform is responsible for things such as:</p>
+<ul><li>window creation</li><li>events</li><li>input</li><li>display information</li><li>clipboard integration</li><li>native operating-system services</li></ul>
+<p>The renderer is responsible for graphics.</p>
+<p>This means SDL3 can create the window while Vulkan performs rendering.</p>
+<p>The graphics renderer does not have to be the Vulkan.</p>
+<p>And the platform implementation does not have to be SDL 3.</p>
+<h2 id="cna-already-has-multiple-platform-backends">CNA already has multiple platform backends</h2>
+<h3 id="sdl3">SDL3</h3>
+<p>SDL3 remains CNA&#39;s default general-purpose platform backend.</p>
+<p>It provides the most convenient portable path across multiple operating systems and remains an important part of normal CNA configurations.</p>
+<h3 id="win32">Win32</h3>
+<p>It implements the platform layer directly using Windows APIs rather than routing windowing and input through SDL.</p>
+<p>The Win32 backend covers areas such as:</p>
+<ul><li>native window creation</li><li>Windows event processing</li><li>keyboard and mouse input</li><li>text input</li><li>DPI handling</li><li>fullscreen state</li><li>system services</li><li>graphics-surface integration</li></ul>
+<p>This makes a fully native Windows platform path possible.</p>
+<p>For example: <strong>Win32 + Direct3D 12 </strong>does not require SDL to provide the application&#39;s window or event loop.</p>
+<h3 id="x11">X11</h3>
+<p>It provides a Linux/X11 path without requiring SDL for the core platform implementation.</p>
+<p>The backend covers native X11 windowing, events, keyboard and mouse handling, clipboard-related functionality, graphics-surface integration and other platform services.</p>
+<p>CNA&#39;s X11 work also has an important architectural role: <strong>it provides a real SDL-free Linux configuration.</strong></p>
+<h3 id="wayland">Wayland</h3>
+<p>Wayland requires a substantially different architecture from X11.</p>
+<p>The CNA implementation includes native Wayland concepts such as:</p>
+<ul><li>registry discovery</li><li>surfaces</li><li>seats</li><li>keyboard and pointer input</li><li>outputs</li><li>clipboard and drag-and-drop</li><li>text input</li><li>window states</li><li>fractional scaling</li><li>relative pointer support</li><li>pointer constraints</li><li>presentation timing</li></ul>
+<p>Supporting both X11 and Wayland is valuable because it prevents CNA&#39;s Linux platform abstraction from becoming tied to one particular window-system architecture.</p>
+<h3 id="headless">Headless</h3>
+<p>The Headless platform implementation is intended for environments where a normal graphical desktop is unnecessary.</p>
+<p>It is useful for:</p>
+<ul><li>automated tests</li><li>CI</li><li>servers</li><li>non-interactive workloads</li></ul>
+<p>It also helps verify that application and framework code do not accidentally depend on normal desktop functionality.</p>
+<h3 id="posix-terminal">POSIX Terminal</h3>
+<p>POSIX Terminal provides a very different platform implementation for terminal-oriented POSIX environments.</p>
+<p>Its existence is architecturally useful because it demonstrates that CNA&#39;s platform interface is not simply an SDL wrapper with another name.</p>
+<h2 id="what-happens-when-sdl4-appears">What happens when SDL4 appears?</h2>
+<p>CNA will add an SDL4 platform backend.</p>
+<p>Existing CNA applications can continue using CNA&#39;s platform-facing APIs.</p>
+<p>Most of the migration work belongs inside CNA.</p>
+<h2 id="what-if-sdl-disappears-completely">What if SDL disappears completely?</h2>
+<p>If SDL were no longer maintained decades from now, that would not automatically mean: CNA is dead.</p>
+<p>On Windows, CNA has Win32.</p>
+<p>On Linux, CNA has X11 and Wayland.</p>
+<p>On macOS, a native Cocoa platform backend is planned.</p>
+<p>Other environments can have their own platform implementations.</p>
+<h2 id="long-lived-applications-need-replaceable-foundations">Long-lived applications need replaceable foundations</h2>
+<p>Imagine a CNA application created in 2026. Perhaps somebody wants to run it in 2046 or 2066.</p>
+<p>The exact versions of SDL, Windows, Linux, graphics drivers, GPU APIs and compilers available today may be irrelevant by then.</p>
+<p>That is what CNA&#39;s architecture is trying to make possible.</p>
+<p>SDL3 today. Perhaps SDL4 tomorrow.</p>
+<p>Win32, X11 and Wayland already available as native alternatives.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/sdl/">#SDL</a><a href="/tag/sdl3/">#SDL3</a><a href="/tag/platforms/">#Platforms</a><a href="/tag/portability/">#Portability</a><a href="/tag/architecture/">#Architecture</a><a href="/tag/software-preservation/">#Software Preservation</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li><li><a href="/2026/09/27/32/">Platform API in CNA</a></li><li><a href="/2026/09/24/how-cna-can-survive-sdl/">How CNA can survive SDL</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">2</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">2</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">3</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl2/">SDL2</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

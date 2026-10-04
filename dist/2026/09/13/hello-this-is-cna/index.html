@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What is CNA? | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA is an open-source C++23 reimplementation of the Microsoft XNA 4.0 programming model.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/09/13/hello-this-is-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="What is CNA?">
+  <meta property="og:description" content="CNA is an open-source C++23 reimplementation of the Microsoft XNA 4.0 programming model.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/09/13/hello-this-is-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-09-13T10:46:24Z">September 13, 2026</time></span><span>Updated <time datetime="2026-10-02T13:23:22Z">October 2, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/about/">About</a></span></div>
+      <h1 class="article-title">What is CNA?</h1>
+      <p class="article-description">CNA is an open-source C++23 reimplementation of the Microsoft XNA 4.0 programming model.</p>
+    </header>
+    <div class="article-body"><p>CNA is an open-source C++23 reimplementation of the Microsoft XNA 4.0 programming model.</p>
+<p>It combines an XNA-style framework with a modular runtime, 18 graphics renderers, a content system, audio, input, networking, platform abstractions and language bindings.</p>
+<h2 id="xna-rebuilt-in-c">XNA, rebuilt in C++</h2>
+<p>CNA preserves XNA concepts such as Game, GameTime, GraphicsDevice, SpriteBatch, ContentManager, SoundEffect, GamePad, vectors, matrices, effects, models and render targets.</p>
+<p>It is not limited to native C++ applications. CNA C# binding can serve XNA C# applications.</p>
+<p>CNA applications use the familiar high-level XNA API and do not care how the windows and input is actually implemented (SDL, Win32, X11 or Wayland) and how the graphics is rendered (OpenGL, Vulkan, Direct3D, WebGPU, Metal, software rendering or another renderer).</p>
+<h2 id="a-modular-framework">A modular framework</h2>
+<p>CNA contains separate systems for: framework and runtime functionality, mathematics, graphics, input, audio, media, video, content, content processing, storage, devices, device extensions, phone, gamer services, networking, platform integration, renderers and the C ABI.</p>
+<p>An important architectural principle is that <strong>platforms and renderers are separate</strong>.</p>
+<p>SDL3 remains the default platform implementation, headless and POSIX terminal implementations. Native <strong>Win32, X11 and Wayland</strong> platform implementations allows to use the operating system&#39;s native windowing and input facilities instead of SDL.</p>
+<p>A native <strong>Cocoa</strong> backend for macOS is planned for the future.</p>
+<p>The CNA dependencies should be replaceable.</p>
+<ul><li>Games and applications built on CNA should be able to live for decades.</li><li>If SDL 3 becomes obsolete, CNA can move to SDL 4, SDL 5, native platform backends, or something else.</li></ul>
+<h2 id="18-graphics-renderers">18 graphics renderers</h2>
+<p>CNA now contains <strong>18 renders</strong> implemented through 14 renderer families.</p>
+<p>The shared EasyGL family provides <code>OpenGLES2</code>, <code>OpenGLES3</code>, <code>OpenGL33</code>, <code>WebGL1</code> and <code>WebGL2</code>.</p>
+<p>Other renderer identities cover Vulkan, WebGPU, Direct3D 9, Direct3D 11, Direct3D 12, Metal, SDL Renderer, SDL GPU and FNA3D.</p>
+<p>There are also specialized approaches such as the CPU-based Software renderer; browser-oriented Canvas renderer; and Headless and Stub implementations for cases where normal visual output is unnecessary.</p>
+<p>Not all 18 renderers are equally complete. Some are broad 2D and 3D implementations, some intentionally support a narrower subset of functionality, some are specialized for a particular operating system or environment, and others remain experimental.</p>
+<h2 id="compatibility-through-real-xna-4-0-c-samples">Compatibility through real XNA 4.0 C# samples</h2>
+<p>CNA relies heavily on automated tests, reference behavior, pixel comparisons and real XNA samples.</p>
+<p>Roughly <strong>one hundred XNA samples have already been ported</strong> as part of CNA development.</p>
+<p>These samples can be run directly in the browser through WebAssembly at <a href="https://samples.libcna.com">https://samples.libcna.com</a>.</p>
+<p>These samples have uncovered many CNA issues.</p>
+<p>When necessary, behavior is compared directly with the original XNA 4.0 runtime.</p>
+<p>The objective is to make that code behave correctly. No workarounds are used in these ported samples. Their source code stays as close as possible to the original C# implementations.</p>
+<p><strong>Sharp Runtime</strong> is the C++ reimplementation of the .NET runtime, which makes this level of source compatibility possible:</p>
+<p><a href="https://sharpruntime.com">https://sharpruntime.com</a> <a href="https://github.com/libcna/sharp-runtime">https://github.com/libcna/sharp-runtime</a></p>
+<h2 id="content-and-assets">Content and assets</h2>
+<p>CNA can import glTF 2.0 assets with geometry, materials, animation, skinning and many other features.</p>
+<p>The CNA Content Pipeline follows the familiar importer → processor → writer model and can build assets into two compiled formats.</p>
+<p>CNA has a native C++ XNB writer, which can produce XNA-style compiled content without depending on XNA Game Studio or MonoGame&#39;s build tools.</p>
+<p>CNA can consume supported existing XNB assets through its content-pipeline compatibility path.</p>
+<p><strong>CNB</strong> is CNA&#39;s own native compiled content format.</p>
+<p>Native assets can be processed by CNA too.</p>
+<h2 id="more-than-c">More than C++</h2>
+<p>CNA itself is implemented in C++23, but C++ is not the only language that can use it.</p>
+<p>CNA officially maintains bindings for C and C#.</p>
+<p>The C binding provides a native boundary between CNA and other runtimes.</p>
+<p>The C# binding is important because it makes it possible to run XNA 4.0 C# applications on CNA.</p>
+<p>These eight bindings are now archived and no longer actively maintained: Java, TypeScript, Python, Rust, Swift, Go, Ruby and Common Lisp. Their source code and Git history are preserved in CNA Lab ( <a href="https://github.com/libcna/cna-lab">https://github.com/libcna/cna-lab</a> ).</p>
+<p>Each language binding exposes different assumptions about ownership, callbacks, type systems, APIs and runtime behavior, helping to uncover weaknesses and compatibility issues in CNA itself.</p>
+<h2 id="where-cna-goes-next">Where CNA goes next</h2>
+<p>CNA is currently still an <strong>alpha-stage project</strong>.</p>
+<p>The next planned CNA release is <code>0.1.0</code>.</p>
+<p>Future CNA releases are planned to use numeric versions such as <code>0.1.0</code>, <code>0.1.1</code>, <code>0.1.2</code>, <code>0.2.0</code>.</p>
+<p>A <code>1.0.0</code> release will be reserved for the point at which CNA is stable and mature enough. Given the scope of the project, that may still be several years away.</p>
+<p>There is a great deal of work remaining on compatibility, renderer parity, testing, documentation, native platform support, the content pipeline, XNB interoperability, the C ABI, language bindings and long-term maintainability.</p>
+<h2 id="summary">Summary</h2>
+<p>CNA is a native, cross-platform C++ framework, that has has 18 graphics renderers, a modular runtime, native Win32, X11 and Wayland platform backends, XNA Design support, a growing CNB/XNB content pipeline, modern graphics experiments, language bindings and around one hundred sample ports.</p>
+<p>Feature expansion in CNA is slowing down. The current priority is stability.</p></div>
+    <footer class="taxonomy-links"><a href="/category/about/">About</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li><li><a href="/2026/09/27/32/">Platform API in CNA</a></li><li><a href="/2026/09/24/how-cna-can-survive-sdl/">How CNA can survive SDL</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">2</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">2</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">3</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl2/">SDL2</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

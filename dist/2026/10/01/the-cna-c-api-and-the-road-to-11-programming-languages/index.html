@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA is written in C++23.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings">
+  <meta property="og:description" content="CNA is written in C++23.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-10-01T12:07:15Z">October 1, 2026</time></span><span>Updated <time datetime="2026-10-02T14:42:54Z">October 2, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</h1>
+      <p class="article-description">CNA is written in C++23.</p>
+    </header>
+    <div class="article-body"><p>CNA is written in C++23.</p>
+<p>That remains its native implementation language.</p>
+<p>But C++ is not the only language in which applications can be built on top of CNA.</p>
+<p>Today, the CNA language ecosystem has an active support surface:</p>
+<ul><li><strong>C++</strong> - the native CNA implementation</li><li><strong>C</strong> - active binding</li><li><strong>C#</strong> - active binding</li></ul>
+<p>Eight additional language bindings were developed during CNA&#39;s evolution and reached substantial levels of functionality and are archived now under CNA Lab:</p>
+<ul><li>Java</li><li>TypeScript</li><li>Python</li><li>Rust</li><li>Go</li><li>Swift</li><li>Ruby</li><li>Common isp</li></ul>
+<p>The revival can happen for any of these eight archived binding if there is an interest.</p>
+<p>That means CNA has reached eleven programming languages during its development, while deliberately committing to long-term maintenance of a much smaller set.</p>
+<h2 id="current-language-status">Current language status</h2>
+<div class="table-wrap"><table><thead><tr><th>Language</th><th>Status</th><th>Role</th></tr></thead><tbody><tr><td>C++</td><td>Core</td><td>Native CNA implementation</td></tr><tr><td>C</td><td>Active</td><td>Official C binding and native ABI consumer</td></tr><tr><td>C#</td><td>Active</td><td>Official .NET/XNA-oriented binding</td></tr><tr><td>Java</td><td>Archived</td><td>Preserved in CNA Lab</td></tr><tr><td>TypeScript</td><td>Archived</td><td>Preserved in CNA Lab</td></tr><tr><td>Python</td><td>Archived</td><td>Preserved in CNA Lab</td></tr><tr><td>Rust</td><td>Archived</td><td>Preserved in CNA Lab</td></tr><tr><td>Go</td><td>Archived</td><td>Preserved in CNA Lab</td></tr><tr><td>Swift</td><td>Archived</td><td>Preserved in CNA Lab</td></tr><tr><td>Ruby</td><td>Archived</td><td>Preserved in CNA Lab</td></tr><tr><td>Common Lisp</td><td>Archived</td><td>Preserved in CNA Lab</td></tr></tbody></table></div>
+<p>Archived does not mean that these projects never worked or that their development was wasted.</p>
+<p>It means CNA no longer promises to keep them synchronized with every future change to the framework.</p>
+<h2 id="one-c-framework-multiple-languages">One C++ framework, multiple languages</h2>
+<p>CNA is not reimplemented separately for every programming language.</p>
+<p>There is one canonical framework:</p>
+<p><strong>CNA in C++.</strong></p>
+<p>A native C++ application talks directly to it:</p>
+<pre><code class="language-text">C++ application
+      ↓
+    CNA C++
+      ↓
+platform / renderer / audio</code></pre>
+<p>The language bindings ultimately reach the same implementation through CNA&#39;s native C ABI:</p>
+<pre><code class="language-text">C / C#
+      ↓
+language binding / FFI
+      ↓
+    CNA C ABI
+      ↓
+     CNA C++
+      ↓
+platform / renderer / audio</code></pre>
+<p>The archived bindings were built around the same architecture.</p>
+<h2 id="why-the-c-api-matters">Why the C API matters</h2>
+<p>Exposing the C++ ABI directly to several different programming languages would be difficult and fragile.</p>
+<p>The CNA C API translates C++ concepts into constructs that foreign-function interfaces can consume:</p>
+<div class="table-wrap"><table><thead><tr><th>C++ concept</th><th>C API</th></tr></thead><tbody><tr><td>Object/resource</td><td>opaque CNA_Handle</td></tr><tr><td>Value type</td><td>fixed-layout CNA_* structure</td></tr><tr><td>Constructor</td><td>create function</td></tr><tr><td>Method</td><td>C function</td></tr><tr><td>Property</td><td>get/set functions</td></tr><tr><td>Overload</td><td>explicitly named function variant</td></tr><tr><td>Exception</td><td>CNA_Result + error information</td></tr><tr><td>Event/delegate</td><td>function pointer + context</td></tr><tr><td>Collection</td><td>query/copy operations</td></tr></tbody></table></div>
+<p>The public C API uses C17-compatible headers and deliberately avoids exposing C++ implementation details.</p>
+<p>It also defines ownership explicitly.</p>
+<p>A handle can be owned, borrowed, retained or transferred rather than forcing another language runtime to guess how a C++ object&#39;s lifetime works.</p>
+<h2 id="the-c-api-is-a-cna-subsystem-of-its-own">The C API is a CNA subsystem of its own</h2>
+<p>The C API is not a tiny wrapper containing a handful of functions required by a demonstration.</p>
+<p>It lives directly inside the CNA repository and evolves together with the C++ framework.</p>
+<p>It covers large parts of CNA&#39;s public surface and provides the interoperability foundation on which the maintained higher-level bindings depend.</p>
+<h2 id="a-versioned-abi">A versioned ABI</h2>
+<p>The C ABI is versioned so that a language binding can identify native library generations it has actually been qualified against.</p>
+<p>A binding should not simply load an arbitrary version of <code>libcna_c_api</code> and hope that its assumptions remain valid.</p>
+<p>Bindings can maintain explicit compatibility policies and reject ABI generations they have not reviewed.</p>
+<h2 id="the-two-active-bindings">The two active bindings</h2>
+<p>The actively maintained language-binding set is deliberately limited to C and C#.</p>
+<p>Together they cover several very different environments while keeping CNA&#39;s long-term maintenance surface manageable.</p>
+<h2 id="c">C</h2>
+<p><a href="https://github.com/libcna/cna-c-template">https://github.com/libcna/cna-c-template</a></p>
+<p>C is the most direct consumer of CNA&#39;s public C API.</p>
+<p>There is no additional high-level runtime between the application and the ABI:</p>
+<pre><code class="language-text">C application
+    ↓
+ CNA C API
+    ↓
+  CNA C++</code></pre>
+<p>If CNA concepts can be expressed cleanly through a strict C boundary, those same concepts become much easier to expose to other runtimes.</p>
+<p>C therefore serves two roles:</p>
+<ul><li>it is a useful application interface in its own right</li><li>it continuously tests whether CNA&#39;s interoperability boundary remains understandable without C++ language features.</li></ul>
+<h2 id="c">C#</h2>
+<p><a href="https://github.com/libcna/cna-cs">https://github.com/libcna/cna-cs</a></p>
+<p><a href="https://github.com/libcna/cna-cs-template">https://github.com/libcna/cna-cs-template</a></p>
+<p><a href="https://github.com/libcna/cna-cs-samples">https://github.com/libcna/cna-cs-samples</a></p>
+<p>C# has a special place in CNA because <strong>XNA itself was primarily a C# framework</strong>.</p>
+<p>The CNA.NET / <code>cna-cs</code> stack can expose the familiar XNA programming model while eventually reaching the native CNA implementation:</p>
+<pre><code class="language-text">C# XNA application
+        ↓
+CNA.XnaCompat
+Microsoft.Xna.Framework facade
+        ↓
+CNA.Framework
+        ↓
+CNA.Interop / PInvoke
+        ↓
+CNA C ABI
+        ↓
+CNA C++</code></pre>
+<p>One of the goals is source compatibility with software written around the original XNA 4.0 programming model.</p>
+<p>That also creates a useful testing strategy.</p>
+<p>Original XNA C# samples can be run against the CNA C# binding.</p>
+<p>When a sample does not work, the failure can expose a problem in the C# projection, the C API or CNA itself.</p>
+<p>Instead of modifying the sample merely to hide the difference, the framework can be improved.</p>
+<p>Old XNA software therefore becomes a compatibility test suite for the entire stack.</p>
+<h2 id="the-eight-archived-bindings">The eight archived bindings</h2>
+<p>Java, TypeScript, Python, Rust, Go, Swift, Ruby and Common Lisp are different from abandoned prototypes.</p>
+<p>Substantial implementations were created for all eight languages.</p>
+<p>The decision to archive them is primarily a decision about <strong>future maintenance scope</strong>.</p>
+<p>Their code remains available in CNA Lab together with their Git history.</p>
+<h2 id="java-archived">Java - archived</h2>
+<p>The Python binding is preserved in CNA Lab.</p>
+<p>CNA-Java uses a private JNI adapter over the C ABI:</p>
+<pre><code class="language-text">Java application
+       ↓
+Microsoft.Xna.Framework.*
+       ↓
+private Java/JNI layer
+       ↓
+    CNA C ABI
+       ↓
+      CNA C++</code></pre>
+<p>The project is intended to expose recognizable XNA concepts as Java objects rather than forcing normal application code to manipulate native handles.</p>
+<p>Java also gives CNA a path into the JVM ecosystem and provides a very different runtime environment from C++ and .NET.</p>
+<h2 id="typescript-archived">TypeScript - archived</h2>
+<p>The Python binding is preserved in CNA Lab.</p>
+<p>CNA-TypeScript is particularly interesting because it can bridge the desktop/native and browser worlds.</p>
+<p>Its TypeScript source also produces JavaScript that can be consumed without requiring application developers to write TypeScript themselves.</p>
+<p>The project has two fundamentally different runtime paths.</p>
+<p>A native application can use a bridge into CNA:</p>
+<pre><code class="language-text">TypeScript
+    ↓
+native bridge
+    ↓
+ CNA C ABI
+    ↓
+ native CNA</code></pre>
+<p>A browser application can instead use WebAssembly:</p>
+<pre><code class="language-text">TypeScript / JavaScript
+          ↓
+      WebAssembly
+          ↓
+          CNA
+          ↓
+browser graphics / platform</code></pre>
+<p>This makes TypeScript an important part of CNA&#39;s maintained binding set because it covers an environment very different from C, C# and Java.</p>
+<h2 id="python-archived">Python - archived</h2>
+<p>The Python binding is preserved in CNA Lab.</p>
+<p>Its architecture used a private <code>ctypes</code> layer:</p>
+<pre><code class="language-text">Python
+  ↓
+Microsoft.Xna.Framework.*
+  ↓
+private ctypes layer
+  ↓
+CNA C ABI
+  ↓
+CNA C++</code></pre>
+<p>The project grew far beyond a small experimental wrapper.</p>
+<p>It projected a large XNA-style object model into Python and exercised lifecycle, graphics, textures, <code>SpriteBatch</code>, content, effects, models, audio, media and other CNA functionality.</p>
+<p>Python is no longer part of CNA&#39;s actively maintained binding matrix, but that work remains preserved as part of CNA&#39;s development history.</p>
+<h2 id="rust-archived">Rust - archived</h2>
+<p>The Rust binding is preserved in CNA Lab.</p>
+<p>CNA-Rust placed a safer Rust layer over a lower-level native interface:</p>
+<pre><code class="language-text">Rust game
+   ↓
+safe CNA Rust layer
+   ↓
+low-level interop
+   ↓
+CNA C ABI
+   ↓
+CNA C++</code></pre>
+<p>Rust was an especially useful language for testing CNA&#39;s ownership model.</p>
+<p>Questions around owned and borrowed handles, deterministic resource release and lifetime rules become much harder to ignore when the consumer language has a strong ownership system of its own.</p>
+<p>Even though the binding is archived, those lessons remain useful to the active C API.</p>
+<h2 id="go-archived">Go - archived</h2>
+<p>The Go binding and its template are preserved in CNA Lab.</p>
+<p>Its architecture used a private cgo boundary:</p>
+<pre><code class="language-text">Go
+ ↓
+Microsoft/Xna/Framework
+ ↓
+internal interop
+ ↓
+CNA C ABI
+ ↓
+CNA C++</code></pre>
+<p>The project developed a substantial measured projection of the XNA-style API and exercised real CNA lifecycle, graphics and input functionality.</p>
+<p>It is no longer an active CNA binding and receives no forward compatibility guarantee.</p>
+<h2 id="swift-archived">Swift - archived</h2>
+<p>The Swift binding is preserved in CNA Lab.</p>
+<p>It projected XNA-style concepts over the CNA C ABI using Swift&#39;s native interoperability mechanisms.</p>
+<p>Swift was useful not only as another language experiment but also because it exercised CNA from an ecosystem closely associated with Apple platforms.</p>
+<p>Its archived state separates preservation of that work from the obligation to continuously qualify it against every future CNA change.</p>
+<h2 id="ruby-archived">Ruby - archived</h2>
+<p>The Ruby binding and template are preserved in CNA Lab.</p>
+<p>CNA-Ruby used Ruby&#39;s <code>Fiddle</code> FFI over the CNA C ABI.</p>
+<p>It was developed as a measured projection of the selected XNA-style API rather than merely as a handful of hand-written demonstration wrappers.</p>
+<p>Like the other archived bindings, it remains useful as a reference implementation and as evidence of how broadly the C API was exercised during CNA&#39;s development.</p>
+<h2 id="common-lisp-archived">Common Lisp - archived</h2>
+<p>The Common Lisp binding and template are preserved in CNA Lab.</p>
+<h2 id="one-programming-model-across-eleven-languages">One programming model across eleven languages</h2>
+<p>The eleven-language effort demonstrated something important even though CNA no longer intends to actively maintain all eleven paths.</p>
+<p><strong>Game → GraphicsDeviceManager → GraphicsDevice → Draw → rendering.</strong></p>
+<p>A tiny XNA-style game might simply create a game object and clear the screen to Cornflower Blue.</p>
+<p>In C++, that can look like this:</p>
+<pre><code class="language-cpp">#include &quot;Microsoft/Xna/Framework/Game.hpp&quot;
+#include &quot;Microsoft/Xna/Framework/Color.hpp&quot;
+#include &quot;Microsoft/Xna/Framework/GraphicsDeviceManager.hpp&quot;
+
+using namespace Microsoft::Xna::Framework;
+
+class BlueGame final : public Game {
+public:
+    BlueGame() : graphics_(this) {}
+
+protected:
+    void Draw(const GameTime&amp; time) override {
+        getGraphicsDeviceProperty().Clear(Color::CornflowerBlue);
+        Game::Draw(time);
+    }
+
+private:
+    GraphicsDeviceManager graphics_;
+};
+
+int main() {
+    BlueGame game;
+    game.Run();
+}</code></pre>
+<p>The C# equivalent preserves the programming model familiar to XNA developers:</p>
+<pre><code class="language-csharp">using Microsoft.Xna.Framework;
+
+sealed class BlueGame : Game
+{
+    private readonly GraphicsDeviceManager graphics;
+
+    public BlueGame()
+    {
+        graphics = new GraphicsDeviceManager(this);
+    }
+
+    protected override void Draw(GameTime gameTime)
+    {
+        GraphicsDevice.Clear(Color.CornflowerBlue);
+        base.Draw(gameTime);
+    }
+}
+
+using var game = new BlueGame();
+game.Run();</code></pre>
+<p>Java expresses the same basic structure using its own object model:</p>
+<pre><code class="language-java">import Microsoft.Xna.Framework.Color;
+import Microsoft.Xna.Framework.Game;
+import Microsoft.Xna.Framework.GameTime;
+import Microsoft.Xna.Framework.GraphicsDeviceManager;
+
+public final class BlueGame extends Game {
+    private final GraphicsDeviceManager graphics;
+
+    public BlueGame() {
+        graphics = new GraphicsDeviceManager(this);
+    }
+
+    @Override
+    protected void Draw(GameTime gameTime) {
+        getGraphicsDevice().Clear(Color.CornflowerBlue);
+        super.Draw(gameTime);
+    }
+
+    public static void main(String[] args) {
+        try (BlueGame game = new BlueGame()) {
+            game.Run();
+        }
+    }
+}</code></pre>
+<p>And TypeScript can preserve the same recognizable concepts:</p>
+<pre><code class="language-typescript">import {
+    Color,
+    Game,
+    type GameTime,
+    GraphicsDeviceManager
+} from &quot;cna-ts&quot;;
+
+class BlueGame extends Game {
+    public constructor() {
+        super();
+        new GraphicsDeviceManager(this);
+    }
+
+    protected override Draw(gameTime: GameTime): void {
+        this.GraphicsDevice.Clear(Color.CornflowerBlue);
+        super.Draw(gameTime);
+    }
+}
+
+const game = new BlueGame();
+game.Run();</code></pre>
+<p>The archived bindings explored equivalent models in Python, Rust, Go, Swift, Ruby and Common Lisp.</p>
+<h2 id="cna-cross-language-3d-demo">CNA Cross-Language 3D Demo?</h2>
+<p><a href="https://github.com/libcna/cna-multi-language-3d-demo">https://github.com/libcna/cna-multi-language-3d-demo</a></p>
+<p>The <strong>CNA Cross-Language 3D Demo</strong> was created as a much stronger test than simply clearing a screen.</p>
+<p>Its game, <strong>CNA Starfield Courier</strong>, is a small third-person 3D application with:</p>
+<ul><li>multiple sectors</li><li>a controllable player craft</li><li>collectibles</li><li>moving hazards</li><li>a chase camera</li><li>perspective 3D rendering</li><li>a HUD</li><li>collision detection</li><li>score and timers</li><li>win and loss states</li><li>sound effects</li><li>background music</li></ul>
+<p>The reference implementation uses CNA&#39;s public XNA-style API rather than OpenGL directly, SDL rendering or renderer internals.</p>
+<p>Future work should primarily target the native C++ implementation and the two actively maintained bindings:</p>
+<pre><code class="language-text">Starfield Courier — C++
+Starfield Courier — C
+Starfield Courier — C#</code></pre></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/tag/c-api/">#C API</a><a href="/tag/bindings/">#Bindings</a><a href="/tag/c/">#C#</a><a href="/tag/java/">#Java</a><a href="/tag/typescript/">#TypeScript</a><a href="/tag/python/">#Python</a><a href="/tag/rust/">#Rust</a><a href="/tag/go/">#Go</a><a href="/tag/swift/">#Swift</a><a href="/tag/ruby/">#Ruby</a><a href="/tag/common-lisp/">#Common Lisp</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li><li><a href="/2026/09/27/32/">Platform API in CNA</a></li><li><a href="/2026/09/24/how-cna-can-survive-sdl/">How CNA can survive SDL</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">2</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">2</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">3</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl2/">SDL2</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -17,6 +17,7 @@ favicon as the current ClassicPress blog.
 - Generated category, tag, year, month, and day archives
 - Generated RSS, sitemap, canonical URLs, redirects, and a 404 page
 - A small Node.js preview server and an internal-link validator
+- A dependency-free importer for ClassicPress/MariaDB SQL dumps
 - GitHub Actions for clean-build validation on pushes and pull requests
 
 ## Quick start
@@ -122,6 +123,11 @@ and workspace metadata. It deliberately does not ignore `dist/` or
 in commits. The CNA favicon is stored in `public/favicon.svg` and contains the
 same 32×32 logo used by the current `blog.libcna.com` site.
 
+Migrated ClassicPress media keeps its historical path below
+`public/wp-content/uploads/YYYY/MM/`. This makes existing media URLs continue
+to work. The migration retains both original files and ClassicPress-generated
+size variants until all historical references have been audited.
+
 ## Updating an existing article
 
 Edit its existing Markdown file and run `npm test`. Keep the original `date`
@@ -170,31 +176,53 @@ Preview scheduled articles locally with:
 BUILD_FUTURE=1 npm run build
 ```
 
+Build and validate all scheduled articles in one command with:
+
+```bash
+npm run test:future
+```
+
 `BUILD_DATE=YYYY-MM-DD npm run build` overrides today's date for reproducible
 testing. The hosting service must run a new build on or after the publication
 date; date filtering does not itself trigger a deployment.
 
-## ClassicPress import staging
+## ClassicPress migration
 
-Unconverted ClassicPress exports belong under the versioned `import/`
-directory. Each article uses a dated `year/month/day/slug_id` directory with
-an HTML body and a `key=value` metadata file. Source media retains its
-ClassicPress hierarchy under `import/media/wp-content/uploads/YYYY/MM/`,
-including original images and generated size variants.
+The repository includes a dependency-free importer that reads a standard
+MariaDB/MySQL SQL dump directly, including gzip-compressed dumps. Keep the raw
+database and ClassicPress installation outside this repository because they
+can contain passwords, e-mail addresses, salts, and plugin secrets.
 
-Copy `import/_templates/article/` when preparing an article, and validate a
-completed import batch with:
+Audit a backup without changing the repository:
 
 ```bash
-npm run check:import
+node scripts/import-classicpress.mjs \
+  --database /safe/path/database.sql.gz \
+  --uploads /safe/path/classicpress/wp-content/uploads \
+  --report
 ```
 
-The import date becomes both the publication date and initial last-modified
-date. Future dates remain scheduled and are excluded from a normal static
-build after conversion. See [`import/README.md`](import/README.md) for the
-complete directory layout, field definitions, media-retention rules, and
-examples. The supplied media is preserved losslessly until the real article
-HTML reveals which generated variants and historical URLs are referenced.
+Perform the conversion with `--write`. This deliberately replaces
+`content/posts/`, so use it only with the authoritative backup:
+
+```bash
+node scripts/import-classicpress.mjs \
+  --database /safe/path/database.sql.gz \
+  --uploads /safe/path/classicpress/wp-content/uploads \
+  --write
+```
+
+The importer replaces `content/posts/`, copies the supplied upload tree to
+`public/wp-content/uploads/`, selects `publish` and `future` posts, converts
+ClassicPress HTML to Markdown, restores categories and tags, resolves featured
+images, preserves the numeric post ID and original URL, and validates every
+local media reference. `date` comes from `post_date`; `updated` comes from the
+actual `post_modified` value. Scheduled posts remain in source but are omitted
+from a normal build until their publication date.
+
+The completed 2026 migration produced 29 Markdown articles: 8 with ClassicPress
+status `publish` and 21 with status `future`. See
+[`docs/MIGRATION.md`](docs/MIGRATION.md) for implementation details.
 
 ## Preserving old URLs
 
@@ -216,11 +244,10 @@ content/
   posts/             articles arranged by year/month/day
   pages/             standalone pages
   _templates/        authoring templates, never generated
-import/               versioned ClassicPress HTML, metadata, and source media
 public/               static files copied without modification
 scripts/build.mjs     static site generator
 scripts/check.mjs     generated-site validation
-scripts/check-import.mjs  import layout and metadata validation
+scripts/import-classicpress.mjs  SQL-to-Markdown migration tool
 scripts/serve.mjs     local preview server
 dist/                 generated website, committed as the release artifact
 ```

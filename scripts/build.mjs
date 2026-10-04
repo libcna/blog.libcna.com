@@ -231,8 +231,14 @@ async function loadPosts() {
 
     const updatedSource = String(data.updated || data.date);
     const updatedDate = data.updated ? parseDate(updatedSource, "updated", relative) : date;
-    if (updatedSource.slice(0, 10) < publicationDate) {
-      throw new Error(`${relative}: updated date must not be earlier than publication date`);
+
+    const featuredImage = String(data.featuredImage || "");
+    if (featuredImage && (!featuredImage.startsWith("/") || featuredImage.includes("..") ||
+        featuredImage.includes("?") || featuredImage.includes("#"))) {
+      throw new Error(`${relative}: featuredImage must be a root-relative path without query, fragment, or '..'`);
+    }
+    if (featuredImage && !data.featuredImageAlt) {
+      throw new Error(`${relative}: featuredImageAlt is required with featuredImage`);
     }
 
     posts.push({
@@ -253,6 +259,9 @@ async function loadPosts() {
       categories: asList(data.categories, "categories", relative),
       tags: asList(data.tags, "tags", relative),
       aliases: asList(data.aliases, "aliases", relative).map((alias) => normalizeRoute(alias, "alias")),
+      featuredImage,
+      featuredImageAlt: String(data.featuredImageAlt || ""),
+      featuredImageCaption: String(data.featuredImageCaption || ""),
       body,
       sourcePath: relative
     });
@@ -503,7 +512,7 @@ function navLink(route, label, current) {
   return `<a href="${route}"${current === route ? ' aria-current="page"' : ""}>${label}</a>`;
 }
 
-function layout({ title, description, route, content, current = "", type = "website", noIndex = false, hero = "", single = false }) {
+function layout({ title, description, route, content, current = "", type = "website", noIndex = false, hero = "", single = false, image = "" }) {
   const fullTitle = title === site.title ? site.title : `${title} | ${site.title}`;
   const canonical = absoluteUrl(route);
   return `<!doctype html>
@@ -523,6 +532,7 @@ ${noIndex ? '  <meta name="robots" content="noindex">' : ""}
   <meta property="og:description" content="${escapeHtml(description)}">
   <meta property="og:url" content="${escapeHtml(canonical)}">
   <meta property="og:site_name" content="${escapeHtml(site.title)}">
+${image ? `  <meta property="og:image" content="${escapeHtml(absoluteUrl(image))}">` : ""}
 </head>
 <body>
   <a class="skip-link" href="#content">Skip to content</a>
@@ -570,16 +580,19 @@ async function writeRoute(route, html, writtenRoutes) {
 function renderPost(post) {
   const categoryLinks = post.categories.map((name) => `<a href="/category/${slugify(name)}/">${escapeHtml(name)}</a>`);
   const tagLinks = post.tags.map((name) => `<a href="/tag/${slugify(name)}/">#${escapeHtml(name)}</a>`);
+  const featuredImage = post.featuredImage
+    ? `<figure class="featured-image"><img src="${escapeHtml(post.featuredImage)}" alt="${escapeHtml(post.featuredImageAlt)}">${post.featuredImageCaption ? `<figcaption>${escapeHtml(post.featuredImageCaption)}</figcaption>` : ""}</figure>`
+    : "";
   const content = `<article class="article">
     <header class="article-header">
       ${postMeta(post)}
       <h1 class="article-title">${escapeHtml(post.title)}</h1>
       <p class="article-description">${escapeHtml(post.description)}</p>
     </header>
-    <div class="article-body">${renderMarkdown(post.body)}</div>
+${featuredImage ? `    ${featuredImage}\n` : ""}    <div class="article-body">${renderMarkdown(post.body)}</div>
     ${(categoryLinks.length || tagLinks.length) ? `<footer class="taxonomy-links">${[...categoryLinks, ...tagLinks].join("")}</footer>` : ""}
   </article>`;
-  return layout({ title: post.title, description: post.description, route: post.route, content, type: "article", single: true });
+  return layout({ title: post.title, description: post.description, route: post.route, content, type: "article", single: true, image: post.featuredImage });
 }
 
 function renderArchivePage({ title, description, route, posts, current = "/archive/" }) {

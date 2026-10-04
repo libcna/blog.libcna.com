@@ -7,8 +7,9 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "node scripts/check.mjs",
-    "check:import": "node scripts/check-import.mjs",
+    "import:classicpress": "node scripts/import-classicpress.mjs",
     "test": "npm run build && npm run check",
+    "test:future": "BUILD_FUTURE=1 npm run build && npm run check",
     "serve": "node scripts/serve.mjs"
   },
   "engines": {

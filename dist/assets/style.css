@@ -370,6 +370,22 @@ button:focus-visible {
   font-size: 1.03rem;
 }
 
+.featured-image {
+  margin: 0 0 34px;
+}
+
+.featured-image img {
+  display: block;
+  width: 100%;
+  border-radius: 10px;
+}
+
+.featured-image figcaption {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
 .taxonomy-links {
   margin-top: 24px;
   padding-top: 24px;

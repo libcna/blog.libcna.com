@@ -1,5 +1,9 @@
 # The generated dist/ website is intentionally committed for review and release.
-# The import/ staging tree is intentionally committed with its source material.
+
+# Raw migration sources can contain database credentials and private data.
+/migration-source/
+/*.sql
+/*.sql.gz
 
 # Dependencies, caches, test output, and local preview
 /node_modules/

@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNA Street - A Living City Built with CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA Street is a large real-time 3D city demonstration built with the CNA framework.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/09/22/cna-street-a-living-city-built-with-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNA Street - A Living City Built with CNA">
+  <meta property="og:description" content="CNA Street is a large real-time 3D city demonstration built with the CNA framework.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/09/22/cna-street-a-living-city-built-with-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-09-22T17:30:30Z">September 22, 2026</time></span><span>Updated <time datetime="2026-10-02T14:04:10Z">October 2, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">CNA Street - A Living City Built with CNA</h1>
+      <p class="article-description">CNA Street is a large real-time 3D city demonstration built with the CNA framework.</p>
+    </header>
+    <div class="article-body"><p><strong>CNA Street</strong> is a large real-time 3D city demonstration built with the CNA framework.</p>
+<p>It represents a continental-European inner-city crossroads with buildings, shops, moving traffic, pedestrians, street furniture, vegetation, physically based materials, an analytic sky, local reflection probes and spatial audio.</p>
+<p><strong>Play CNA Street online: </strong><a href="https://demos.libcna.com/cna-street/cna-street.html">https://demos.libcna.com/cna-street/cna-street.html</a></p>
+<p><strong>GitHub: </strong><a href="https://github.com/libcna/cna-street">https://github.com/libcna/cna-street</a></p>
+<p><strong>YouTube Video:</strong> <a href="https://www.youtube.com/watch?v=hWiBU46D6h8">https://www.youtube.com/watch?v=hWiBU46D6h8</a></p>
+<p><img src="https://raw.githubusercontent.com/libcna/cna-street/develop/docs/screenshots/01-footway-looking-south-to-the-junction.png" alt="CNA Street — footway looking south to the junction" loading="lazy"></p>
+<p>CNA Street is designed as a substantial real-world workload for CNA rather than a small isolated graphics sample. It combines rendering, content loading, procedural generation, animation, simulation, audio and WebAssembly inside one C++ application</p>
+<h2 id="a-living-city-street">A living city street</h2>
+<p>The central scene is a four-arm signalised junction surrounded by dense urban development.</p>
+<p>It contains:</p>
+<ul><li>roads and pavements</li><li>zebra crossings</li><li>traffic lights</li><li>parking spaces</li><li>shops</li><li>apartment buildings</li><li>street furniture</li><li>trees</li><li>parked cars</li><li>moving traffic</li><li>pedestrians</li><li>signs</li><li>bicycles</li><li>bus shelter</li><li>distant city blocks</li></ul>
+<p>The street is not a static architectural model.</p>
+<p>Traffic moves through the junction and reacts to signals and other vehicles. Pedestrians follow the pavements, wait at crossings and cross according to the pedestrian signals.</p>
+<p>The result is a small simulated urban environment that can be explored freely.</p>
+<h2 id="procedural-city-generation">Procedural city generation</h2>
+<p>Much of CNA Street is generated directly by C++ code from a deterministic seed.</p>
+<p>Generated content includes large parts of the:</p>
+<pre><code class="language-text">street geometry
+building layout
+facades
+windows
+shop fronts
+road markings
+street furniture
+materials
+traffic layout
+signage</code></pre>
+<p>The street uses dimensions based on real-world measurements rather than arbitrary visual proportions.</p>
+<p>Road widths, parking spaces, pavements, storeys, windows and many smaller architectural details are therefore designed in metres and kept at consistent scale throughout the scene.</p>
+<h2 id="buildings-and-shops">Buildings and shops</h2>
+<p>Buildings contain considerably more geometry than simple textured boxes.</p>
+<p>Their facades include features such as:</p>
+<pre><code class="language-text">recessed windows
+frames and mullions
+sills
+doors
+balconies
+cornices
+gutters
+downpipes
+awnings
+shop fronts</code></pre>
+<p>Many ground-floor shops also contain generated interiors.</p>
+<p>Depending on the shop, a window can reveal shelves, counters, products, posters, tables, lighting and other furniture rather than a flat texture behind the glass.</p>
+<p>One of the more detailed interiors is a bakery-cafe with its own counter, display case, bread shelving, tables, fittings and decorative details.</p>
+<h2 id="a-larger-city-around-the-crossroads">A larger city around the crossroads</h2>
+<p>The highest detail is concentrated around the area the player can inspect closely.</p>
+<p>Farther from the main junction, the scene uses progressively cheaper geometry and distance-based culling. This allows the city to continue beyond the immediate crossroads without giving distant objects the same cost as objects directly beside the camera.</p>
+<p>Repeated objects such as street furniture and vegetation can also be drawn using GPU instancing when the selected CNA renderer supports it.</p>
+<h2 id="rendering-with-cna">Rendering with CNA</h2>
+<p>CNA Street uses CNA&#39;s 3D graphics APIs directly.</p>
+<p>The application&#39;s rendering code is organised around components such as:</p>
+<pre><code class="language-text">SceneRenderer
+SkySystem
+EnvironmentBaker
+MaterialLibrary
+GpuMesh
+InstancedMesh
+SkinnedGpuMesh</code></pre>
+<p>CNA provides the graphics primitives used underneath them, including:</p>
+<pre><code class="language-text">PbrEffect
+SkinnedPbrEffect
+ImageBasedLightEXT
+ShaderEffect
+TextureTransformEXT</code></pre>
+<p>The renderer handles static geometry, moving vehicles, skinned characters, transparent surfaces, material application, visibility testing and instanced batches.</p>
+<p>Its feature set includes:</p>
+<pre><code class="language-text">physically based materials
+image-based lighting
+local reflection probes
+analytic sky and clouds
+distance fog
+hardware instancing
+GPU skinning
+frustum culling
+distance culling
+level-of-detail selection
+sRGB output</code></pre>
+<p>CNA Street can also report limitations of the selected renderer at runtime. For example, repeated geometry can fall back to ordinary draws when hardware instancing is unavailable.</p>
+<h2 id="physically-based-materials">Physically based materials</h2>
+<p>The street uses CNA&#39;s <code>PbrEffect</code> material model.</p>
+<p>Materials can provide:</p>
+<pre><code class="language-text">base colour
+normal map
+roughness
+metalness
+occlusion
+emissive contribution
+alpha mode
+double-sided state
+texture transforms</code></pre>
+<p>The same material system is used for generated geometry and imported models.</p>
+<h2 id="sky-and-image-based-lighting">Sky and image-based lighting</h2>
+<p>CNA Street contains its own <code>SkySystem</code> built on CNA&#39;s shader APIs.</p>
+<p>The sky responds to the configured sun elevation and azimuth and includes atmospheric colouring and procedural clouds.</p>
+<p>It is also used as a lighting source.</p>
+<p>CNA Street generates the image-based-lighting data needed by <code>PbrEffect</code>, including irradiance and prefiltered environment data. The same environment therefore influences both the visible sky and the appearance of PBR surfaces.</p>
+<p>The sun can be moved interactively, making it possible to inspect the scene under different lighting directions without rebuilding it.</p>
+<h2 id="local-reflection-probes">Local reflection probes</h2>
+<p>A single sky environment cannot describe everything reflected by objects inside a street canyon.</p>
+<p>CNA Street therefore places local reflection probes through the environment.</p>
+<p>During scene construction, the static street is captured into cube maps from a number of positions. <code>EnvironmentBaker</code> then prepares those captures for image-based lighting.</p>
+<p>Nearby surfaces can use the local probe instead of only the global sky environment.</p>
+<p>This allows a car to respond to the facade beside it and a shop window to respond to the street in front of it.</p>
+<h2 id="gltf-and-the-cna-content-pipeline">glTF and the CNA content pipeline</h2>
+<p>External models use CNA&#39;s own glTF content path.</p>
+<p>Source <code>.glb</code> files are compiled by CNA&#39;s content tools and can be loaded at runtime through:</p>
+<pre><code class="language-cpp">ContentManager::Load&lt;Model&gt;()</code></pre>
+<p>The resulting model parts are translated into CNA Street&#39;s material representation and drawn by the same renderer as the generated city geometry.</p>
+<p>The pipeline is therefore:</p>
+<pre><code class="language-text">glTF / GLB
+    │
+    ▼
+CNA content tools
+    │
+    ▼
+CNB
+    │
+    ▼
+ContentManager
+    │
+    ▼
+Model
+    │
+    ▼
+CNA Street</code></pre>
+<p>CNA Street also exercises imported skinning data, skeletons and animation clips through CNA&#39;s model and animation APIs.</p>
+<h2 id="generated-and-external-assets">Generated and external assets</h2>
+<p>The application does not require the optional external asset collection in order to run.</p>
+<p>Procedural versions are available for the basic scene, while optional downloaded assets add higher-detail models and scanned surfaces.</p>
+<p>The external manifest currently covers models, PBR surfaces, character assets and sound samples. Their sources, licences and checksums are recorded in the repository.</p>
+<p>External content includes items such as:</p>
+<pre><code class="language-text">vehicles
+trees
+hydrants
+benches
+planters
+cafe furniture
+covered car
+shop-window objects
+building details
+scanned road and facade surfaces</code></pre>
+<h2 id="cars-and-traffic">Cars and traffic</h2>
+<p>The scene contains parked and moving vehicles.</p>
+<p>Traffic follows defined lanes through the crossroads and interacts with the traffic-signal system.</p>
+<p>Authored vehicle models can contain separate wheels whose rotation and orientation are handled independently. CNA Street also accounts for the actual axle orientation found in imported models rather than assuming that every wheel was authored around exactly the same local axis.</p>
+<p>Moving vehicles can include drivers rendered through the same skinned-character path used by pedestrians.</p>
+<p>The simulation and rendering systems remain separate: the traffic system determines where a vehicle is, while the scene converts that state into the geometry submitted for rendering.</p>
+<h2 id="pedestrians">Pedestrians</h2>
+<p>Pedestrians populate the pavements and crossing routes around the junction.</p>
+<p>They can:</p>
+<pre><code class="language-text">follow pavement routes
+walk at different speeds
+turn corners
+wait at crossings
+cross when allowed
+play walking and idle animations</code></pre>
+<p>Characters use a skeleton and animation clips and are rendered through CNA&#39;s <code>SkinnedPbrEffect</code> path.</p>
+<p>CNA Street can use its generated characters and also supports character data originating from the content pipeline.</p>
+<h2 id="street-level-detail">Street-level detail</h2>
+<p>The city contains many smaller objects that are easy to omit from a conventional graphics demonstration but important when the camera is allowed to walk through the scene.</p>
+<p>Examples include:</p>
+<pre><code class="language-text">bollards
+bins
+hydrants
+bicycle stands
+planters
+benches
+bus shelter
+traffic signs
+street-name signs
+house numbers
+cafe tables
+deliveries
+security cameras
+air-conditioning units</code></pre>
+<p>These objects help give the environment the density expected from a real street.</p>
+<p><img src="https://raw.githubusercontent.com/libcna/cna-street/develop/docs/screenshots/17-pavement-cafe.png" alt="CNA Street — pavement cafe" loading="lazy"></p>
+<h2 id="spatial-audio">Spatial audio</h2>
+<p>CNA Street also exercises CNA&#39;s XNA-style audio implementation.</p>
+<p>Its soundscape can include:</p>
+<pre><code class="language-text">vehicle engines
+footsteps
+voices
+birds
+wind
+other street sounds</code></pre>
+<p>Many sounds are positioned in 3D relative to the camera.</p>
+<p>Vehicle engines follow their vehicles, footsteps follow the player while walking and bird ambience is placed around nearby trees. Wind is treated as non-positional ambience.</p>
+<h2 id="day-and-night">Day and night</h2>
+<p>The position of the sun controls the lighting environment.</p>
+<p>CNA Street can also be started with:</p>
+<pre><code class="language-text">--night</code></pre>
+<p>which places the scene at civil twilight.</p>
+<p>At low sun elevations the city activates its night lighting, including street lamps and illuminated building elements.</p>
+<h2 id="walking-through-the-street">Walking through the street</h2>
+<p>CNA Street supports flying, walking and cinematic camera modes.</p>
+<div class="table-wrap"><table><thead><tr><th>Control</th><th>Action</th></tr></thead><tbody><tr><td>W A S D</td><td>Move</td></tr><tr><td>Mouse</td><td>Look around</td></tr><tr><td>Arrow keys</td><td>Look around without a mouse</td></tr><tr><td>Q / E</td><td>Move down / up while flying</td></tr><tr><td>Shift</td><td>Move faster</td></tr><tr><td>Ctrl</td><td>Move slower</td></tr><tr><td>Mouse wheel</td><td>Change movement speed</td></tr><tr><td>Tab</td><td>Switch between walking and flying</td></tr><tr><td>C</td><td>Toggle cinematic camera</td></tr><tr><td>1–8</td><td>Jump to saved viewpoints</td></tr><tr><td>R</td><td>Return to the starting viewpoint</td></tr><tr><td>F1</td><td>Toggle diagnostics</td></tr><tr><td>F5</td><td>Toggle fog</td></tr><tr><td>F6</td><td>Toggle clouds</td></tr><tr><td>F9</td><td>Save a screenshot</td></tr><tr><td>[ / ]</td><td>Change sun azimuth</td></tr><tr><td>- / =</td><td>Change sun elevation</td></tr><tr><td>Esc</td><td>Release captured mouse</td></tr></tbody></table></div>
+<p>Walking mode keeps the camera on the ground and applies collision against buildings, vehicles and other obstacles rather than allowing the viewer to pass through them.</p>
+<h2 id="diagnostics-and-performance">Diagnostics and performance</h2>
+<p>The F1 diagnostics overlay exposes the current renderer and useful performance information.</p>
+<p>It includes:</p>
+<pre><code class="language-text">FPS and frame time
+culling time
+sky time
+opaque rendering time
+transparent rendering time
+draw calls
+instanced draw calls
+triangle count
+visible batches
+visible instances
+camera position and direction
+sun position
+exposure
+scene geometry size
+texture count and memory
+scene build time</code></pre>
+<p>CNA Street also contains fixed benchmark viewpoints and command-line benchmark support</p>
+<h2 id="testing-cna-street">Testing CNA Street</h2>
+<p>The repository contains a dedicated C++ test suite covering areas such as:</p>
+<pre><code class="language-text">city layout
+geometry
+camera behaviour
+pedestrians
+traffic
+traffic signals
+appearance
+settings
+content pipeline
+character formats
+benchmarks
+realism checks</code></pre>
+<p>The normal test suite can be run through CTest.</p>
+<p>CNA Street also maintains eighteen fixed reference screenshots. Its screenshot workflow renders the same viewpoints and compares them against those references, making large visual changes easier to detect.</p>
+<p>The reference images are stored in:</p>
+<p><a href="https://github.com/libcna/cna-street/tree/develop/docs/screenshots">https://github.com/libcna/cna-street/tree/develop/docs/screenshots</a></p>
+<h2 id="cna-street-in-the-browser">CNA Street in the browser</h2>
+<p>CNA Street can also be built for the web with Emscripten and WebAssembly.</p>
+<p>The browser build uses CNA&#39;s <code>WEBGL2</code> renderer and can be played directly at:</p>
+<p><a href="https://demos.libcna.com/cna-street/cna-street.html">https://demos.libcna.com/cna-street/cna-street.html</a></p>
+<p>The complete compiled content collection is intentionally not embedded in the web package because it is very large.</p>
+<p>Instead, the browser package contains the application configuration and CNA Street generates the surfaces it needs at startup. Optional imported assets that depend on the external compiled content are replaced by the generated scene content.</p>
+<h2 id="more-screenshots">More screenshots</h2>
+<h3 id="shop-window">Shop window</h3>
+<p><img src="https://raw.githubusercontent.com/libcna/cna-street/develop/docs/screenshots/11-shop-window.png" alt="CNA Street — shop window" loading="lazy"></p>
+<h3 id="street-tree">Street tree</h3>
+<p><img src="https://raw.githubusercontent.com/libcna/cna-street/develop/docs/screenshots/13-street-tree.png" alt="CNA Street — street tree" loading="lazy"></p>
+<h3 id="corner-to-corner">Corner to corner</h3>
+<p><img src="https://raw.githubusercontent.com/libcna/cna-street/develop/docs/screenshots/16-corner-to-corner.png" alt="CNA Street — corner to corner" loading="lazy"></p>
+<p>The repository contains eighteen canonical screenshots covering the scene from fixed viewpoints.</p>
+<h2 id="more-than-a-visual-demo">More than a visual demo</h2>
+<p>CNA Street brings many CNA systems together in one application:</p>
+<pre><code class="language-text">3D rendering
+PBR materials
+image-based lighting
+reflection probes
+glTF
+CNB content
+GPU skinning
+instancing
+procedural geometry
+traffic simulation
+pedestrian simulation
+spatial audio
+WebAssembly</code></pre>
+<p>That makes it useful not only as a city demonstration but also as an integration workload for CNA.</p>
+<p>Small samples can verify individual APIs. CNA Street tests what happens when a large number of those APIs are used together in a continuously running application.</p>
+<h2 id="play-cna-street">Play CNA Street</h2>
+<p>The easiest way to experience CNA Street is directly in a browser:</p>
+<p><strong>Play online:</strong></p>
+<p><a href="https://demos.libcna.com/cna-street/cna-street.html">https://demos.libcna.com/cna-street/cna-street.html</a></p>
+<p>The complete source code is available on GitHub:</p>
+<p><strong>GitHub:</strong></p>
+<p><a href="https://github.com/libcna/cna-street">https://github.com/libcna/cna-street</a></p>
+<p>CNA Street is a procedural city built with CNA: a single C++ application combining rendering, content, simulation, animation, audio and WebAssembly.</p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/tag/cnaext/">#CNAEXT</a><a href="/tag/3d/">#3D</a><a href="/tag/gltf/">#glTF</a><a href="/tag/cnb/">#CNB</a><a href="/tag/pbr/">#PBR</a><a href="/tag/webassembly/">#WebAssembly</a><a href="/tag/emscripten/">#Emscripten</a><a href="/tag/hdr/">#HDR</a><a href="/tag/cna-street/">#cna-street</a><a href="/tag/webgl2/">#WebGL2</a><a href="/tag/simulation/">#Simulation</a><a href="/tag/online-demo/">#Online Demo</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li><li><a href="/2026/09/27/32/">Platform API in CNA</a></li><li><a href="/2026/09/24/how-cna-can-survive-sdl/">How CNA can survive SDL</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">2</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">2</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">3</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl2/">SDL2</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

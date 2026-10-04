@@ -1,6 +1,6 @@
 name: Deploy GitHub Pages
 
-# Manual only while the ClassicPress migration is in progress. Add push and
+# Manual only while the existing ClassicPress site remains live. Add push and
 # schedule triggers after blog.libcna.com is ready to move to GitHub Pages.
 on:
   workflow_dispatch:
