@@ -71,6 +71,13 @@ function validCalendarDate(year, month, day) {
     String(date.getUTCDate()).padStart(2, "0") === day;
 }
 
+function validMediaReference(value) {
+  if (!value || value.startsWith("/") || value.includes("\\") || value.includes("\0")) return false;
+  const normalized = path.posix.normalize(value);
+  return normalized === value && normalized !== ".." && !normalized.startsWith("../") &&
+    normalized.startsWith("wp-content/uploads/");
+}
+
 const files = await walk(importRoot);
 const articleDirectories = new Set();
 
@@ -131,13 +138,14 @@ for (const articleDirectory of [...articleDirectories].sort()) {
     failures.push(`${relativeMetadata}: permalink must begin with /`);
   }
   if (metadata.featured_media) {
-    if (path.basename(metadata.featured_media) !== metadata.featured_media) {
-      failures.push(`${relativeMetadata}: featured_media must contain a filename only`);
+    if (!validMediaReference(metadata.featured_media)) {
+      failures.push(`${relativeMetadata}: featured_media must be a safe path below wp-content/uploads/`);
     }
     if (!metadata.featured_media_alt) {
       failures.push(`${relativeMetadata}: featured_media_alt is required with featured_media`);
     }
-    if (!await exists(path.join(mediaRoot, metadata.featured_media))) {
+    if (validMediaReference(metadata.featured_media) &&
+        !await exists(path.join(mediaRoot, ...metadata.featured_media.split("/")))) {
       failures.push(`${relativeMetadata}: featured media '${metadata.featured_media}' does not exist in import/media`);
     }
   }
@@ -148,10 +156,28 @@ const mediaFiles = files.filter((filePath) => {
   return relative.startsWith("media/") && !path.basename(filePath).startsWith(".");
 });
 
+for (const filePath of mediaFiles) {
+  const relative = path.relative(mediaRoot, filePath).split(path.sep).join("/");
+  const parts = relative.split("/");
+  const year = parts[2];
+  const month = parts[3];
+  if (parts.length < 5 || parts[0] !== "wp-content" || parts[1] !== "uploads" ||
+      !/^\d{4}$/.test(year ?? "") || !/^(?:0[1-9]|1[0-2])$/.test(month ?? "")) {
+    failures.push(`media/${relative}: media files must use wp-content/uploads/YYYY/MM/filename`);
+  }
+}
+
+const generatedSizePattern = /-\d+x\d+(?=\.[^.]+$)/i;
+const generatedSizeFiles = mediaFiles.filter((filePath) => generatedSizePattern.test(path.basename(filePath)));
+const sourceCandidates = mediaFiles.length - generatedSizeFiles.length;
+
 if (failures.length) {
   console.error(`Import validation failed (${failures.length}):`);
   for (const failure of failures) console.error(`- ${failure}`);
   process.exitCode = 1;
 } else {
-  console.log(`Import validation passed: ${articleDirectories.size} article directories and ${mediaFiles.length} media files.`);
+  console.log(
+    `Import validation passed: ${articleDirectories.size} article directories and ${mediaFiles.length} media files ` +
+    `(${sourceCandidates} source candidates, ${generatedSizeFiles.length} generated-size variants).`,
+  );
 }

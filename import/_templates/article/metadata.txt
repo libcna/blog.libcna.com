@@ -4,7 +4,8 @@ description=
 categories=[]
 tags=[]
 
-# Optional featured image from import/media/
+# Optional featured image path relative to import/media/
+# Example: wp-content/uploads/2026/09/article-image.jpg
 featured_media=
 featured_media_alt=
 featured_media_caption=

@@ -15,7 +15,9 @@ part of the initial sample content.
 4. Convert each staged article to its own UTF-8 Markdown file.
 5. Save it as `content/posts/YYYY/MM/DD/slug.md`, matching the original public
    date and slug.
-6. Copy media to `public/media/` and update the Markdown references.
+6. Copy `import/media/wp-content/uploads/` to
+   `public/wp-content/uploads/`. Keep article references rooted at
+   `/wp-content/uploads/` so existing media URLs remain valid.
 7. Transfer title, date, author, description, categories, and tags to the front
    matter. For this import, the path date is also the initial `updated` date.
 8. Add alternative historical paths to `aliases`, and keep the original full
@@ -24,6 +26,11 @@ part of the initial sample content.
    link.
 10. Before switching the domain, compare the old URL inventory with
    `dist/sitemap.xml` and manually inspect representative articles.
+
+Keep both original images and ClassicPress-generated size variants during the
+initial conversion. Once every imported HTML file, `srcset`, featured image,
+and historical URL has been audited, generated `-WIDTHxHEIGHT` files that are
+truly unreferenced may be removed. Originals are never pruned automatically.
 
 ## Article metadata
 

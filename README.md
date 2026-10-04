@@ -178,8 +178,9 @@ date; date filtering does not itself trigger a deployment.
 
 Unconverted ClassicPress exports belong under the versioned `import/`
 directory. Each article uses a dated `year/month/day/slug_id` directory with
-an HTML body and a `key=value` metadata file. All source media initially stays
-in the flat `import/media/` directory.
+an HTML body and a `key=value` metadata file. Source media retains its
+ClassicPress hierarchy under `import/media/wp-content/uploads/YYYY/MM/`,
+including original images and generated size variants.
 
 Copy `import/_templates/article/` when preparing an article, and validate a
 completed import batch with:
@@ -191,7 +192,9 @@ npm run check:import
 The import date becomes both the publication date and initial last-modified
 date. Future dates remain scheduled and are excluded from a normal static
 build after conversion. See [`import/README.md`](import/README.md) for the
-complete directory layout, field definitions, media rules, and examples.
+complete directory layout, field definitions, media-retention rules, and
+examples. The supplied media is preserved losslessly until the real article
+HTML reveals which generated variants and historical URLs are referenced.
 
 ## Preserving old URLs
 
