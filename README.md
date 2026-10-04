@@ -5,7 +5,8 @@ Markdown source and a dependency-free static site generator for
 
 The presentation follows the current **CNA Light 1.0.2** ClassicPress theme:
 the same light palette, typography, content width, article cards, sidebar,
-navigation, and responsive behavior.
+navigation, and responsive behavior. The generated site also uses the same CNA
+favicon as the current ClassicPress blog.
 
 ## Technology
 
@@ -67,17 +68,26 @@ required. The date must agree with the source directory. `categories` and
 
 ```yaml
 ---
-title: First game with CNA
-date: 2012-07-16
-description: A concise summary used in article lists, feeds, and metadata.
+title: Article title
+date: 2026-10-05
+updated: 2026-10-05
+description: Short article description.
 categories:
   - Development
 tags:
   - CNA
-  - C++
+  - XNA
 draft: false
 ---
 ```
+
+After creating the article, build and validate the entire site:
+
+```bash
+npm test
+```
+
+## Images and attachments
 
 Store images and downloads under `public/media/`. Reference them from the site
 root. For example, an article can use this layout:
@@ -105,11 +115,11 @@ copied to `dist/media/` without modification and are intentionally tracked by
 Git. Optimize large images before committing them; use external object storage
 or Git LFS for unusually large downloads.
 
-After creating the article, build and validate the entire site:
-
-```bash
-npm test
-```
+The `.gitignore` excludes generated output, dependencies, caches, logs, local
+environment files, and workspace metadata. It deliberately does not ignore
+`public/media/`, so article assets are included in commits. The CNA favicon is
+stored in `public/favicon.svg` and contains the same 32×32 logo used by the
+current `blog.libcna.com` site.
 
 ## Updating an existing article
 
@@ -118,6 +128,11 @@ and dated directory unchanged so the public URL remains stable. Set the
 optional `updated` field after a substantial revision. Article cards, archive
 lists, and full article pages display the last-update date; when `updated` is
 omitted, they use the original publication date.
+
+```yaml
+date: 2026-10-05
+updated: 2026-10-12
+```
 
 If a slug or permalink must change, place the old path in `aliases` so the
 generator creates a redirect:
