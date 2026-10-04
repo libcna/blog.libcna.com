@@ -1,0 +1,34 @@
+# Generated website
+/dist/
+
+# Dependencies, caches, test output, and local preview
+/node_modules/
+/.npm/
+/.cache/
+/coverage/
+/.nyc_output/
+/.preview/
+*.tsbuildinfo
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Local environment files (keep documented examples)
+.env
+.env.*
+!.env.example
+
+# Workspace-local agent metadata
+.agents/
+.codex/
+.aws

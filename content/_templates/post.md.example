@@ -1,0 +1,29 @@
+---
+title: Article title
+date: 2026-10-04
+updated: 2026-10-04
+description: Summarize what the reader will learn in one or two sentences.
+author: Robert Vokac
+categories:
+  - Development
+tags:
+  - CNA
+  - C++
+aliases:
+  - /old-article-path/
+originalUrl: https://blog.libcna.com/old-article-path/
+classicpressId: 123
+draft: true
+---
+
+Opening paragraph.
+
+## First section
+
+Text can contain **bold type**, *emphasis*, [links](https://libcna.com), and
+inline `code`.
+
+```cpp
+// Code example
+std::cout << "CNA\n";
+```

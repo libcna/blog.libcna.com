@@ -1,0 +1,17 @@
+{
+  "name": "blog.libcna.com",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Markdown source and dependency-free static site generator for blog.libcna.com",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/check.mjs",
+    "test": "npm run build && npm run check",
+    "serve": "node scripts/serve.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}
