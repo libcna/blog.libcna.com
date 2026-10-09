@@ -6,14 +6,14 @@
   <title>Platform API in CNA | CNA&#39;s Blog</title>
   <meta name="description" content="SDL3 is currently one of the most important dependencies underneath CNA. But the rest of CNA is not supposed to be an SDL3 application.">
 
-  <link rel="canonical" href="https://blog.libcna.com/2026/09/27/32/">
+  <link rel="canonical" href="https://blog.libcna.com/2026/09/27/platform-api-in-cna/">
   <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/assets/style.css">
   <meta property="og:type" content="article">
   <meta property="og:title" content="Platform API in CNA">
   <meta property="og:description" content="SDL3 is currently one of the most important dependencies underneath CNA. But the rest of CNA is not supposed to be an SDL3 application.">
-  <meta property="og:url" content="https://blog.libcna.com/2026/09/27/32/">
+  <meta property="og:url" content="https://blog.libcna.com/2026/09/27/platform-api-in-cna/">
   <meta property="og:site_name" content="CNA&#39;s Blog">
 
 </head>
@@ -40,7 +40,7 @@
   <div class="page-shell single-layout">
     <main class="main-content" id="content"><article class="article">
     <header class="article-header">
-      <div class="meta"><span>Published <time datetime="2026-09-27T11:26:04Z">September 27, 2026</time></span><span>Updated <time datetime="2026-10-02T14:24:04Z">October 2, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <div class="meta"><span>Published <time datetime="2026-09-27T11:26:04Z">September 27, 2026</time></span><span>Updated <time datetime="2026-10-09T18:08:54Z">October 9, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
       <h1 class="article-title">Platform API in CNA</h1>
       <p class="article-description">SDL3 is currently one of the most important dependencies underneath CNA. But the rest of CNA is not supposed to be an SDL3 application.</p>
     </header>
@@ -48,8 +48,7 @@
 <p>Between the framework and the operating system sits a CNA-owned <strong>Platform API</strong>.</p>
 <p>Its purpose is to isolate windowing, events, input, system services, native window handles, timing and other host-specific functionality from the rest of the framework.</p>
 <p>Today CNA has several platform implementations:</p>
-<ul><li><strong>SDL3</strong></li><li><strong>Win32</strong></li><li><strong>X11</strong></li><li><strong>Wayland</strong></li><li><strong>Headless</strong></li><li><strong>Terminal</strong></li></ul>
-<p>A native <strong>Cocoa</strong> implementation for macOS is planned.</p>
+<ul><li><strong>SDL3</strong></li><li><strong>Headless</strong></li><li><strong>Terminal</strong></li></ul>
 <h2 id="what-does-platform-mean-in-cna">What does &quot;platform&quot; mean in CNA?</h2>
 <p>A CNA platform implementation is the layer that communicates with the environment in which the application is running.</p>
 <p>Conceptually, the architecture looks like this:</p>
@@ -59,7 +58,7 @@ CNA framework
         ↓
 CNA::Platform
         ↓
-SDL3 | Win32 | X11 | Wayland | Headless | Terminal
+SDL3 | Headless | Terminal
         ↓
 Operating system / host environment</code></pre>
 <p>The central interface is <code>IPlatform</code>.</p>
@@ -68,7 +67,8 @@ Operating system / host environment</code></pre>
 <ul><li>window creation and management</li><li>event delivery</li><li>high-resolution timing</li><li>keyboard and mouse</li><li>gamepads and joysticks</li><li>text input and IME</li><li>haptics and sensors</li><li>displays</li><li>clipboard access</li><li>native dialogs</li><li>system tray integration</li><li>cameras</li><li>filesystem paths</li><li>system information</li><li>native window handles</li><li>OpenGL context creation</li><li>Vulkan surface creation</li><li>presentation of CPU-rendered frames</li></ul>
 <p>The rest of CNA consumes these CNA-owned interfaces rather than directly depending on whichever native library happens to implement them.</p>
 <h2 id="sdl3-is-behind-the-boundary">SDL3 is behind the boundary</h2>
-<p>SDL3 remains CNA&#39;s default platform implementation.</p>
+<p>SDL3 remains CNA&#39;s default platform implementation and its only implementation for graphical windows.</p>
+<p>Windows, X11, Wayland, macOS, iOS, Android and browser environments are reached through SDL&#39;s own video drivers.</p>
 <p>Its implementation lives inside the Platform module and translates between SDL and CNA.</p>
 <p>SDL events become <code>PlatformEvent</code> values.</p>
 <p>SDL windows become <code>IPlatformWindow</code> objects.</p>
@@ -80,16 +80,13 @@ Operating system / host environment</code></pre>
 <p>There are deliberate exceptions, such as renderers that are themselves explicitly built on SDL, but unrelated CNA systems should not need to know that SDL exists.</p>
 <h2 id="events-are-platform-neutral">Events are platform-neutral</h2>
 <p>Native events are translated at the platform boundary.</p>
-<p>Several completely different event systems can therefore feed the same CNA runtime:</p>
+<p>Different event systems can therefore feed the same CNA runtime:</p>
 <pre><code class="language-text">SDL3 event ─────┐
-SDL2 event ─────┤
-Win32 message ──┤
-X11 event ──────┼──→ PlatformEvent ──→ CNA runtime
-Wayland event ──┤
+               ├──→ PlatformEvent ──→ CNA runtime
 Terminal input ─┘</code></pre>
 <p><code>PlatformEvent</code> can represent window changes, keyboard input, text input, mouse movement, touch, device connections, sensors, controllers, application lifecycle events and other host events.</p>
 <p>Events are collected at the platform boundary and exposed through CNA&#39;s own event model.</p>
-<p>The rest of CNA does not need separate event-processing code for SDL, Win32, X11 or Wayland.</p>
+<p>The rest of CNA does not need separate event-processing code for SDL3 and Terminal.</p>
 <p>That is one of the most important responsibilities of the Platform API.</p>
 <h2 id="platform-and-renderer-are-separate">Platform and renderer are separate</h2>
 <p>One of CNA&#39;s most important architectural decisions is that <strong>platform and renderer are two independent axes</strong>.</p>
@@ -99,36 +96,27 @@ Terminal input ─┘</code></pre>
 <blockquote><p>How are the pixels produced?</p></blockquote>
 <p>For example:</p>
 <pre><code class="language-text">SDL3 platform + Vulkan renderer
-SDL3 platform + Direct3D 12 renderer
+SDL3 platform + Direct3D 11 renderer
 SDL3 platform + OpenGL renderer
 SDL3 platform + Software renderer</code></pre>
-<p>But CNA can now also use native combinations such as:</p>
-<pre><code class="language-text">Win32 platform + Direct3D 11 renderer
-Win32 platform + Direct3D 12 renderer
-Win32 platform + Vulkan renderer
-
-X11 platform + OpenGL renderer
-X11 platform + Vulkan renderer
-
-Wayland platform + OpenGL renderer
-Wayland platform + Vulkan renderer</code></pre>
-<p>And in the future:</p>
-<pre><code class="language-text">Cocoa platform + Metal renderer</code></pre>
+<p>Other combinations include:</p>
+<pre><code class="language-text">SDL3 platform + Metal renderer
+Headless platform + Headless renderer
+Terminal platform + Software renderer</code></pre>
 <p>Changing the platform implementation does not imply changing the application&#39;s XNA-facing API.</p>
 <p>The renderer and operating-system integration remain separate concerns.</p>
-<h2 id="renderers-do-not-need-an-sdl-window">Renderers do not need an SDL window</h2>
+<h2 id="renderers-can-use-native-window-handles">Renderers can use native window handles</h2>
 <p>This separation goes deeper than simply placing SDL behind an interface.</p>
 <p>CNA has a platform-neutral <code>NativeWindowHandle</code> describing what kind of native window actually exists.</p>
 <p>It can represent environments including:</p>
 <ul><li>Win32</li><li>X11</li><li>Wayland</li><li>Cocoa</li><li>Android</li><li>Web</li><li>Headless</li><li>Terminal</li></ul>
 <p>An SDL3-created window on Windows can expose its underlying <code>HWND</code>.</p>
-<p>The native Win32 platform naturally exposes the same kind of Windows handle.</p>
-<p>On X11, CNA can expose the native X11 display and window information.</p>
+<p>On X11, the SDL3 platform exposes the native X11 display and window information.</p>
 <p>On Wayland, it can expose the corresponding display and surface.</p>
-<p>On macOS, the abstraction is prepared to represent a Cocoa window.</p>
-<p>A renderer consumes CNA&#39;s native-window representation rather than requiring an <code>SDL_Window*</code>.</p>
-<p>That means a Direct3D renderer should not care whether an <code>HWND</code> came from SDL3 or directly from the Win32 backend.</p>
-<p>Likewise, Vulkan should not need one implementation simply because a window came from SDL and another because it came directly from X11 or Wayland.</p>
+<p>On macOS, it exposes the underlying Cocoa <code>NSWindow*</code>.</p>
+<p>Direct3D, Metal and WebGPU consume CNA&#39;s native-window representation. SDL Renderer, SDL GPU and FNA3D use the SDL window directly.</p>
+<p>That means a Direct3D renderer receives the underlying <code>HWND</code> through CNA&#39;s platform contract.</p>
+<p>Likewise, Vulkan obtains its presentation surface through the platform contract.</p>
 <h2 id="narrow-graphics-services">Narrow graphics services</h2>
 <p>Not every renderer needs direct access to a raw native window handle.</p>
 <p>CNA therefore provides narrower platform services for specific graphics integration needs.</p>
@@ -140,7 +128,7 @@ Wayland platform + Vulkan renderer</code></pre>
 <h3 id="vulkan">Vulkan</h3>
 <p>Vulkan uses <code>IPlatformVulkanSurface</code>.</p>
 <p>The platform knows how to create a Vulkan presentation surface appropriate for its window system.</p>
-<p>That may mean SDL, Win32, X11, Wayland or another implementation.</p>
+<p>The SDL3 platform creates that surface through SDL for the active window system.</p>
 <p>The Vulkan renderer does not need to own the entire operating-system integration layer itself.</p>
 <h3 id="cpu-rendering">CPU rendering</h3>
 <p>Software and other CPU-oriented renderers can use <code>IPlatformSurfacePresenter</code>.</p>
@@ -151,7 +139,7 @@ Wayland platform + Vulkan renderer</code></pre>
 <p>Together these seams allow very different host environments to participate in the same graphics architecture.</p>
 <h2 id="capabilities-are-explicit">Capabilities are explicit</h2>
 <p>Different platform implementations cannot honestly provide identical functionality.</p>
-<p>A terminal does not behave like Win32.</p>
+<p>A terminal does not behave like a graphical desktop.</p>
 <p>Headless execution has no physical desktop.</p>
 <p>Wayland has a different architecture from X11.</p>
 <p>SDL can expose functionality through abstractions that do not map one-to-one onto every native platform.</p>
@@ -161,7 +149,7 @@ Wayland platform + Vulkan renderer</code></pre>
 <p>Capabilities begin from a conservative state.</p>
 <p>A platform implementation must explicitly advertise functionality that it really supports.</p>
 <p>Unsupported functionality should <strong>fail clearly rather than silently pretend to work</strong>.</p>
-<p>This matters especially when comparing portable and native backends.</p>
+<p>This matters especially when comparing graphical, headless and terminal backends.</p>
 <p>A backend does not need to implement every possible CNA platform feature before it can be useful.</p>
 <p>It can expose the capabilities it actually implements and expand over time.</p>
 <h2 id="sdl3-platform">SDL3 platform</h2>
@@ -172,43 +160,6 @@ Wayland platform + Vulkan renderer</code></pre>
 <p>SDL3 therefore remains extremely valuable to CNA.</p>
 <p>The purpose of the Platform API is not to remove SDL3.</p>
 <p>It is to make SDL3 <strong>replaceable</strong>.</p>
-<h2 id="win32-platform">Win32 platform</h2>
-<p>CNA now has a native <strong>Win32 platform backend</strong>.</p>
-<p>Instead of:</p>
-<pre><code class="language-text">CNA
- ↓
-SDL3
- ↓
-Win32
- ↓
-Windows</code></pre>
-<p>CNA can use:</p>
-<pre><code class="language-text">CNA
- ↓
-Win32 platform
- ↓
-Windows</code></pre>
-<p>The Win32 implementation communicates directly with Windows APIs and provides CNA&#39;s platform contract without requiring SDL in between.</p>
-<p>Its responsibilities include areas such as:</p>
-<ul><li>native windows</li><li>Windows message processing</li><li>keyboard and mouse input</li><li>text input</li><li>DPI integration</li><li>fullscreen and window state</li><li>native handles</li><li>system services</li><li>graphics integration</li></ul>
-<p>This gives CNA a real SDL-free Windows path.</p>
-<p>It is also an important architectural test.</p>
-<p>If CNA works through both SDL3 and native Win32, then the abstraction is being exercised against two independent implementations of the same operating-system environment.</p>
-<h2 id="x11-platform">X11 platform</h2>
-<p>CNA also has a native <strong>X11 platform backend</strong>.</p>
-<p>It communicates directly with X11 rather than requiring SDL to provide the Linux desktop platform layer.</p>
-<p>The backend handles areas such as:</p>
-<ul><li>X11 windows</li><li>event processing</li><li>keyboard and mouse input</li><li>text handling</li><li>display integration</li><li>clipboard functionality</li><li>native X11 handles</li><li>graphics-surface integration</li></ul>
-<p>This gives CNA a native SDL-free path on X11 systems.</p>
-<p>It also means CNA can test the same higher-level platform contract against SDL and direct X11 independently.</p>
-<h2 id="wayland-platform">Wayland platform</h2>
-<p>CNA also has a native <strong>Wayland platform backend</strong>.</p>
-<p>Wayland is not simply a newer version of X11.</p>
-<p>Its architecture is substantially different, which makes a direct implementation particularly useful for validating CNA&#39;s abstractions.</p>
-<p>The Wayland backend includes support around concepts such as:</p>
-<ul><li>registry discovery</li><li>surfaces</li><li>seats</li><li>pointer input</li><li>keyboard input</li><li>outputs</li><li>clipboard</li><li>drag and drop</li><li>text input</li><li>window states</li><li>fractional scaling</li><li>relative pointer input</li><li>pointer constraints</li><li>presentation timing</li></ul>
-<p>The native Wayland backend gives CNA another SDL-free Linux path.</p>
-<p>More importantly, supporting both X11 and Wayland forces CNA&#39;s Linux-facing abstractions to work across two fundamentally different window-system designs.</p>
 <h2 id="headless-platform">Headless platform</h2>
 <p>The <strong>Headless platform</strong> is very different from the normal desktop implementations.</p>
 <p>It has no SDL dependency and no physical graphical window.</p>
@@ -233,55 +184,18 @@ Windows</code></pre>
 <p>Yet it still participates in the same Platform API.</p>
 <p>That makes Terminal one of the strongest demonstrations that CNA&#39;s platform abstraction is not inherently shaped around SDL — or even around conventional graphical desktops.</p>
 <p>It also enables unusual environments such as SSH sessions, terminal multiplexers and machines without a normal graphical desktop.</p>
-<h2 id="one-selected-desktop-backend">One selected desktop backend</h2>
+<h2 id="one-selected-default-platform">One selected default platform</h2>
 <p>The primary platform implementation is selected at build time through <code>CNA_PLATFORM</code>.</p>
 <p>Current selections include:</p>
 <pre><code class="language-text">CNA_PLATFORM=SDL3
-CNA_PLATFORM=WIN32
-CNA_PLATFORM=X11
-CNA_PLATFORM=WAYLAND
 CNA_PLATFORM=HEADLESS
 CNA_PLATFORM=TERMINAL</code></pre>
 <p>Not every value is valid on every operating system.</p>
-<p>For example, Win32 belongs to Windows, while X11 and Wayland belong to compatible Unix/Linux environments.</p>
+<p>For example, Terminal requires a POSIX environment and is unavailable on Windows.</p>
 <p><code>PlatformFactory</code> creates the platform implementation selected for that build.</p>
-<p>Headless is compiled broadly because it is valuable for testing the contract.</p>
+<p>Headless is compiled in every build because it is valuable for testing the contract.</p>
 <p>Terminal is also available on POSIX builds.</p>
-<p>Native desktop backends are compiled only when selected, which prevents their platform-specific dependencies from leaking into unrelated CNA builds.</p>
-<h2 id="native-backends-do-not-primarily-add-new-operating-systems">Native backends do not primarily add new operating systems</h2>
-<p>This distinction is important.</p>
-<p>Win32, X11 and Wayland are not mainly about reaching operating systems that CNA could not reach before.</p>
-<p>SDL already provided portable access to Windows and Linux.</p>
-<p>The purpose of native implementations is different:</p>
-<p><strong>to provide multiple independent paths to the same host systems.</strong></p>
-<p>Conceptually:</p>
-<pre><code class="language-text">Windows
- ├── SDL3
- ├── SDL2
- └── Win32
-
-Linux / X11
- ├── SDL3
- ├── SDL2
- └── X11
-
-Linux / Wayland
- ├── SDL3
- ├── SDL2
- └── Wayland
-
-macOS / Cocoa
- ├── SDL3
- ├── SDL2
- └── Cocoa      (planned)</code></pre>
-<p>This is valuable for portability, testing and long-term independence.</p>
-<h2 id="cocoa-is-still-planned">Cocoa is still planned</h2>
-<p>The major native desktop backend still missing from this group is <strong>Cocoa</strong> for macOS.</p>
-<p>Today CNA can reach macOS through SDL.</p>
-<p>A future Cocoa platform backend would communicate with Apple&#39;s native desktop frameworks directly.</p>
-<p>CNA&#39;s native-window abstraction is already designed to represent Cocoa windows, which is also useful to graphics renderers such as Metal.</p>
-<p>Cocoa would be another alternative implementation, not a replacement users would be forced to adopt.</p>
-<p>A CNA application could continue using SDL3 whenever that remains the better choice.</p>
+<p>The SDL3 platform implementation is compiled only when selected. SDL chooses its window-system driver at runtime; <code>SDL_VIDEODRIVER</code> can select one explicitly.</p>
 <h2 id="other-portable-platform-backends-are-possible">Other portable platform backends are possible</h2>
 <p>The Platform API is not limited to SDL or native operating-system backends.</p>
 <p>Another portable window/input library could also be placed behind the same contract.</p>
@@ -301,6 +215,7 @@ Win32 / Cocoa / X11 / Wayland</code></pre>
 <p>A platform provides the host environment.</p>
 <p>A renderer produces graphics.</p>
 <p>An audio backend communicates with the audio system.</p>
+<p>A build with <code>CNA_ENABLE_SDL=OFF</code> uses Headless or Terminal, a Headless, Software or Stub renderer, and NULL or Linux ALSA audio. Graphical window builds require SDL3.</p>
 <h2 id="dependencies-should-be-replaceable">Dependencies should be replaceable</h2>
 <p>An application can use CNA while Vulkan, Direct3D, OpenGL, Metal, WebGPU or another graphics implementation exists underneath it.</p>
 <h2 id="the-application-stays-above-the-platform">The application stays above the platform</h2>
@@ -314,26 +229,26 @@ CNA Platform API
 selected implementation
      ↓
 host environment</code></pre>
-<p>The selected implementation may be SDL3, Win32, X11, Wayland, Headless or Terminal.</p>
-<p>In the future it may be Cocoa or another portable implementation.</p></div>
-    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/sdl3/">#SDL3</a><a href="/tag/portability/">#Portability</a><a href="/tag/architecture/">#Architecture</a><a href="/tag/platform-api/">#Platform API</a><a href="/tag/sdl2/">#SDL2</a><a href="/tag/win32/">#Win32</a><a href="/tag/x11/">#X11</a><a href="/tag/wayland/">#Wayland</a><a href="/tag/cocoa/">#Cocoa</a></footer>
+<p>The selected implementation may be SDL3, Headless or Terminal.</p>
+<p>The same contract can support additional implementations in the future.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/sdl3/">#SDL3</a><a href="/tag/portability/">#Portability</a><a href="/tag/architecture/">#Architecture</a><a href="/tag/platform-api/">#Platform API</a><a href="/tag/win32/">#Win32</a><a href="/tag/x11/">#X11</a><a href="/tag/wayland/">#Wayland</a><a href="/tag/cocoa/">#Cocoa</a></footer>
   </article></main>
     <aside class="sidebar" aria-label="Additional information">
     <section class="sidebar-card">
       <h2>Recent Posts</h2>
-      <ul><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li><li><a href="/2026/09/27/32/">Platform API in CNA</a></li><li><a href="/2026/09/24/how-cna-can-survive-sdl/">How CNA can survive SDL</a></li></ul>
+      <ul><li><a href="/2026/10/08/cna-repositories-at-github-com/">CNA repositories at github.com</a></li><li><a href="/2026/10/05/cna-goes-online-gamer-services-avatars-and-networking/">CNA Goes Online: Gamer Services, Avatars and Networking</a></li><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li></ul>
     </section>
     <section class="sidebar-card">
       <h2>Archives</h2>
-      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">2</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">4</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
     </section>
     <section class="sidebar-card">
       <h2>Categories</h2>
-      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">2</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">3</span></a></li></ul>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">3</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">4</span></a></li></ul>
     </section>
     <section class="sidebar-card">
       <h2>Tags</h2>
-      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl2/">SDL2</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
+      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/github/">GitHub</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/projects/">Projects</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
     </section>
   </aside>
   </div>

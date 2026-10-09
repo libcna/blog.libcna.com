@@ -40,34 +40,30 @@
   <div class="page-shell single-layout">
     <main class="main-content" id="content"><article class="article">
     <header class="article-header">
-      <div class="meta"><span>Published <time datetime="2026-09-20T11:12:53Z">September 20, 2026</time></span><span>Updated <time datetime="2026-10-02T13:45:15Z">October 2, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/graphics/">Graphics</a></span></div>
+      <div class="meta"><span>Published <time datetime="2026-09-20T11:12:53Z">September 20, 2026</time></span><span>Updated <time datetime="2026-10-09T17:49:00Z">October 9, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/graphics/">Graphics</a></span></div>
       <h1 class="article-title">Renderers in CNA</h1>
       <p class="article-description">Graphics rendering is one of the largest parts of CNA.</p>
     </header>
     <div class="article-body"><p>Graphics rendering is one of the largest parts of CNA.</p>
-<p>CNA has <strong>18 renderers (14 implementation families)</strong>.</p>
-<p>They range from OpenGL ES, WebGL and Direct3D 9 to Vulkan, Direct3D 12, Metal and WebGPU.</p>
+<p>CNA has <strong>14 renderers (12 implementation families)</strong>.</p>
+<p>They range from OpenGL ES, WebGL and Direct3D 9 to Vulkan, Direct3D 11, Metal and WebGPU.</p>
 <p>CNA also includes a CPU renderer, browser-native rendering paths, 2D backends, translation layers and diagnostic renderers that deliberately produce no pixels.</p>
 <p>They are not all intended for the same purpose.</p>
 <p>The maturity of renderers is classified as:</p>
-<ul><li><strong>8 Production</strong></li><li><strong>7 Supported</strong></li><li><strong>3 Experimental</strong></li></ul>
+<ul><li><strong>6 Production</strong></li><li><strong>5 Supported</strong></li><li><strong>3 Experimental</strong></li></ul>
 <p>The implementation technology of renderers is classified as:</p>
-<ul><li><strong>8 Native</strong></li><li><strong>4 TranslationLayer</strong></li><li><strong>1 Software</strong></li><li><strong>3 Web</strong></li><li><strong>2 Diagnostic</strong></li></ul>
+<ul><li><strong>6 Native</strong></li><li><strong>4 TranslationLayer</strong></li><li><strong>1 Software</strong></li><li><strong>1 Web</strong></li><li><strong>2 Diagnostic</strong></li></ul>
 <p>A renderer can, for example, be a native graphics backend while still being Supported rather than Production</p>
 <h2 id="why-cna-has-many-renderers">Why CNA has many renderers</h2>
 <p>CNA applications do not depend on Vulkan, Direct3D, OpenGL, Metal, SDL GPU, WebGPU or any other single graphics technology.</p>
 <ul><li>They depend on CNA.</li></ul>
-<p>Every technology like Direct3D 12, OpenGL, Vulkan, Metal, WebGPU and SDL may be an important today. Decades from now, it may not be.</p>
+<p>Every technology like OpenGL, Vulkan, Metal, WebGPU and SDL may be an important today. Decades from now, it may not be.</p>
 <p>If a future platform introduces another graphics API, CNA should be able to gain a new renderer underneath the framework without requiring applications to rewrite their high-level graphics code.</p>
-<h2 id="18-renderers-does-not-mean-18-separate-codebases">18 renderers does not mean 18 separate codebases</h2>
-<p>Five renderers share he same implementation. This implementation is named EasyGL, which is the CNA&#39;s shared OpenGL-family renderer.</p>
-<ul><li>OpenGL ES 2</li><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>WebGL 1</li><li>WebGL 2</li></ul>
-<p>These five renderers expose different graphics profiles, shader languages, capabilities and platform requirements.</p>
+<h2 id="14-renderers-does-not-mean-14-separate-codebases">14 renderers does not mean 14 separate codebases</h2>
+<p>Three renderers share he same implementation. This implementation is named EasyGL, which is the CNA&#39;s shared OpenGL-family renderer.</p>
+<ul><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>WebGL 2</li></ul>
+<p>These three renderers expose different graphics profiles, shader languages, capabilities and platform requirements.</p>
 <h2 id="easygl">EasyGL</h2>
-<h3 id="opengl-es-2-production">OpenGL ES 2 - Production</h3>
-<p>OpenGL ES 2 is the narrowest shader-based EasyGL profile.</p>
-<p>It targets the OpenGL ES 2.0 generation and GLSL ES 1.00.</p>
-<p>This makes it useful not only for older or constrained OpenGL ES environments, but also as an important test of how much of CNA&#39;s XNA-style graphics contract can fit into a relatively limited programmable graphics API.</p>
 <h3 id="opengl-es-3-production">OpenGL ES 3 - Production</h3>
 <p>OpenGL ES 3 is one of CNA&#39;s primary EasyGL renderer profiles.</p>
 <p>It provides a more capable modern OpenGL ES path and acts as an important reference implementation for the shared EasyGL architecture.</p>
@@ -76,34 +72,24 @@
 <p>OpenGL 3.3 is CNA&#39;s main EasyGL desktop OpenGL profile.</p>
 <p>It provides a programmable desktop OpenGL baseline while remaining available across a broad range of systems, drivers and hardware.</p>
 <p>Because it shares most of its implementation with the OpenGL ES and WebGL profiles, improvements to EasyGL can benefit several CNA targets at once.</p>
-<h3 id="webgl-1-supported">WebGL 1 - Supported</h3>
-<p>WebGL 1 is the browser-oriented equivalent of the OpenGL ES 2 EasyGL path.</p>
-<p>It allows CNA applications compiled through WebAssembly to target the WebGL 1 graphics model.</p>
-<p>Its limitations are naturally different from those of a desktop graphics API, which makes it useful both as a deployment target and as another test of CNA&#39;s abstraction boundaries.</p>
 <h3 id="webgl-2-supported">WebGL 2 - Supported</h3>
-<p>WebGL 2 is the more capable WebGL EasyGL profile.</p>
+<p>WebGL 2 is CNA&#39;s browser-oriented EasyGL profile.</p>
 <p>It maps closely to the OpenGL ES 3 generation and provides CNA with a conventional GPU-accelerated graphics path inside modern browsers.</p>
 <h2 id="directx-and-windows-graphics">DirectX and Windows graphics</h2>
-<p>CNA supports three Direct3D generations on Windows.</p>
-<p>Together they span the XNA-era Direct3D 9 model, the mature programmable Direct3D 11 architecture and the explicit resource-management model of Direct3D 12.</p>
+<p>CNA supports two Direct3D generations on Windows.</p>
+<p>Together they span the XNA-era Direct3D 9 model and the mature programmable Direct3D 11 architecture.</p>
 <h3 id="direct3d-9-production">Direct3D 9 - Production</h3>
 <p>Direct3D 9 is especially important to CNA because it belongs to the graphics generation from which XNA itself emerged.</p>
 <p>XNA 4.0 used Direct3D 9 on Windows, so CNA&#39;s Direct3D 9 renderer is useful for more than simply providing another backend.</p>
 <p>It provides a particularly valuable reference point when investigating XNA rendering behavior.</p>
 <h3 id="direct3d-11-production">Direct3D 11 - Production</h3>
 <p>Direct3D 11 is one of CNA&#39;s primary Windows renderers.</p>
-<p>It provides a mature programmable GPU model while remaining considerably simpler than the explicit resource and command-management architecture of Direct3D 12.</p>
+<p>It provides a mature programmable GPU model.</p>
 <p>That makes it an important practical renderer as well as a useful comparison point for other CNA backends.</p>
-<h3 id="direct3d-12-production">Direct3D 12 - Production</h3>
-<p>Direct3D 12 is CNA&#39;s modern explicit Direct3D renderer.</p>
-<p>It represents a very different GPU programming model from the environment in which XNA was originally designed.</p>
-<p>Explicit resource lifetime, command submission, descriptor management and synchronization put much more responsibility on the renderer implementation.</p>
-<p>Making the same XNA-facing API work correctly over Direct3D 9, Direct3D 11 and Direct3D 12 is therefore a strong test of CNA&#39;s graphics architecture.</p>
 <h2 id="cna-does-not-target-only-the-newest-graphics-apis">CNA does not target only the newest graphics APIs</h2>
-<p>Direct3D 9 is very different from Direct3D 12.</p>
 <p>SDL Renderer is very different from Vulkan.</p>
 <p>A CPU rasterizer is very different from Metal or WebGPU.</p>
-<p>XNA 4.0 was designed in a graphics environment very different from Vulkan, Direct3D 12, Metal or WebGPU.</p>
+<p>XNA 4.0 was designed in a graphics environment very different from Vulkan, Metal or WebGPU.</p>
 <p>Supporting both XNA-era and modern rendering architectures helps CNA preserve the high-level programming model while replacing the implementation underneath it.</p>
 <h2 id="modern-gpu-apis">Modern GPU APIs</h2>
 <h3 id="vulkan-production">Vulkan - Production</h3>
@@ -162,14 +148,9 @@
 <p>It provides an independent implementation against which GPU-backed renderers can be compared.</p>
 <p>A CNA application therefore does not fundamentally require a hardware graphics accelerator to produce pixels.</p>
 <h2 id="browser-native-renderers">Browser-native renderers</h2>
-<p>CNA currently has four renderer identities in its <strong>Web</strong> category:</p>
-<ul><li>WebGL 1</li><li>WebGL 2</li><li>WebGpu</li><li>Canvas</li></ul>
-<p>WebGL 1 and WebGL 2 use the shared EasyGL implementation and provide programmable GPU-backed rendering through the browser&#39;s WebGL APIs.</p>
-<h3 id="canvas-supported">Canvas - Supported</h3>
-<p>Canvas uses the browser&#39;s HTML Canvas 2D API.</p>
-<p>Instead of creating a WebGL graphics pipeline, CNA translates supported drawing operations into <code>CanvasRenderingContext2D</code> operations.</p>
-<p>It is a 2D only renderer and is not intended to replace WebGL for every application.</p>
-<p>Its value is partly architectural: it tests CNA against a browser-native 2D rendering model that is substantially different from a conventional programmable GPU pipeline.</p>
+<p>CNA currently has one renderer identity in its <strong>Web</strong> category:</p>
+<ul><li>WebGL 2</li></ul>
+<p>WebGL 2 uses the shared EasyGL implementation and provides programmable GPU-backed rendering through the browser&#39;s WebGL API.</p>
 <h2 id="diagnostic-renderers">Diagnostic renderers</h2>
 <p>Two CNA renderers deliberately do not behave like normal pixel-producing graphics backends.</p>
 <p>They are classified as <strong>Diagnostic</strong> technology.</p>
@@ -185,25 +166,25 @@
 <p>That makes it useful for testing code paths that should not depend on graphics output and for identifying accidental renderer dependencies elsewhere in an application or framework.</p>
 <p>Together, these backends demonstrate another important property of CNA&#39;s architecture:</p>
 <p><strong>the graphics API presented to an application does not necessarily require either a visible window or a GPU behind it.</strong></p>
-<h2 id="18-renderers-but-not-18-equal-renderers">18 renderers, but not 18 equal renderers</h2>
-<p>CNA does not have 18 completely interchangeable graphics renderers with identical capabilities.</p>
+<h2 id="14-renderers-but-not-14-equal-renderers">14 renderers, but not 14 equal renderers</h2>
+<p>CNA does not have 14 completely interchangeable graphics renderers with identical capabilities.</p>
 <p>Some:</p>
 <ul><li>are general-purpose GPU renderers</li><li>implement only 2D</li><li>render entirely on the CPU</li><li>depend on another graphics abstraction</li><li>exist only in browsers</li><li>render no pixels at all</li></ul>
 <p>A renderer&#39;s <strong>maturity</strong> describes how ready and validated its implementation is within the scope that it claims to support.</p>
 <p>Its <strong>capabilities</strong> describe what that renderer can actually do.</p>
 <p>For example, SDL Renderer is intentionally much narrower than Vulkan because SDL Renderer is a 2D abstraction.</p>
 <ul><li>That does not prevent SDL Renderer from being classified as Production within its supported scope.</li></ul>
-<p>Canvas and SDL Renderer operate in environments fundamentally different from general-purpose 3D renderers.</p>
+<p>SDL Renderer operates in an environment fundamentally different from general-purpose 3D renderers.</p>
 <p>Headless and Stub deliberately make no normal pixel-output claim.</p>
 <h2 id="production-renderers">Production renderers</h2>
-<p>CNA classifies these eight renderers as <strong>Production</strong>:</p>
-<ul><li>SDL Renderer</li><li>OpenGL ES 2</li><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>Vulkan</li><li>Direct3D 9</li><li>Direct3D 11</li><li>Direct3D 12</li></ul>
+<p>CNA classifies these six renderers as <strong>Production</strong>:</p>
+<ul><li>SDL Renderer</li><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>Vulkan</li><li>Direct3D 9</li><li>Direct3D 11</li></ul>
 <p>Production is CNA&#39;s highest current renderer maturity level.</p>
 <p>It means the renderer is considered appropriate for regular use within the feature scope it claims to support, with broad and verified coverage.</p>
 <p>A Production renderer does not necessarily have the same capabilities as another Production renderer.</p>
 <h2 id="supported-renderers">Supported renderers</h2>
 <p>The current <strong>Supported</strong> renderers are:</p>
-<ul><li>WebGL 1</li><li>WebGL 2</li><li>Headless</li><li>Stub</li><li>Canvas</li><li>SDL GPU</li><li>Metal</li></ul>
+<ul><li>WebGL 2</li><li>Headless</li><li>Stub</li><li>SDL GPU</li><li>Metal</li></ul>
 <p>These renderers are functional and maintained.</p>
 <p>They may have narrower capability boundaries, less renderer-parity coverage, less hardware validation or other remaining work that keeps them below the Production maturity level.</p>
 <h2 id="experimental-renderers">Experimental renderers</h2>
@@ -214,14 +195,14 @@
 <h2 id="technology-categories">Technology categories</h2>
 <p>The technology category answers: W<strong>hat kind of implementation is underneath it?</strong></p>
 <p>The current renderer set is divided as follows.</p>
-<h3 id="native-8">Native - 8</h3>
-<ul><li>OpenGL ES 2</li><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>Vulkan</li><li>Direct3D 9</li><li>Direct3D 11</li><li>Direct3D 12</li><li>Metal</li></ul>
+<h3 id="native-6">Native - 6</h3>
+<ul><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>Vulkan</li><li>Direct3D 9</li><li>Direct3D 11</li><li>Metal</li></ul>
 <h3 id="translationlayer-4">TranslationLayer - 4</h3>
 <ul><li>SDL Renderer</li><li>SDL GPU</li><li>WebGPU</li><li>FNA3D</li></ul>
 <h3 id="software-1">Software - 1</h3>
 <ul><li>Software</li></ul>
-<h3 id="web-3">Web - 3</h3>
-<ul><li>WebGL 1</li><li>WebGL 2</li><li>Canvas</li></ul>
+<h3 id="web-1">Web - 1</h3>
+<ul><li>WebGL 2</li></ul>
 <h3 id="diagnostic-2">Diagnostic - 2</h3>
 <ul><li>Headless</li><li>Stub</li></ul>
 <h2 id="many-renderers-strengthen-the-abstraction">Many renderers strengthen the abstraction</h2>
@@ -235,12 +216,12 @@
 <h2 id="graphics-is-separate-from-the-platform">Graphics is separate from the platform</h2>
 <p>The important CNA design principle is that the <strong>renderer and platform are separate systems:</strong></p>
 <ul><li>The renderer determines how graphics are produced.</li><li>The platform determines things such as windows, operating-system events, input and native integration.</li></ul>
-<p>CNA&#39;s platform layer currently includes SDL3, native Win32, X11 and Wayland implementations, Headless and Terminal platform implementations for specialized environments.</p>
+<p>CNA&#39;s platform layer currently includes SDL3, Headless and Terminal platform implementations for specialized environments.</p>
 <p>The graphics renderer is not supposed to define the entire operating environment around the application</p>
 <h2 id="you-normally-use-only-one-renderer">You normally use only one renderer</h2>
-<p>Having 18 renderers in CNA does not mean a normal game contains all of them.</p>
+<p>Having 14 renderers in CNA does not mean a normal game contains all of them.</p>
 <ul><li>The usual CNA configuration selects one renderer at build time with: <code>CNA_GRAPHICS_RENDERER</code></li></ul>
-<p>A project that only needs the SDL Renderer does not have to ship Direct3D 12, Vulkan, Metal or any other CNA renderer.</p>
+<p>A project that only needs the SDL Renderer does not have to ship Vulkan, Metal or any other CNA renderer.</p>
 <p>An individual CNA game contains only those renderers, it needs.</p>
 <h2 id="multi-renderer-builds-are-possible">Multi-renderer builds are possible</h2>
 <p>CNA also supports an optional multi-renderer architecture through:<code>CNA_GRAPHICS_RENDERERS</code></p>
@@ -267,7 +248,7 @@
 <p>The important work is making the existing implementations increasingly correct, understandable, tested and maintainable.</p>
 <h2 id="the-cna-framework-spans-a-wide-range-of-graphics-technologies">The CNA framework spans a wide range of graphics technologies</h2>
 <p>XNA was originally built on DirectX 9.</p>
-<p>There are APIs such as Vulkan, Direct3D 12, Metal and WebGPU, OpenGL, OpenGL ES, SDL abstractions, FNA3D, browser APIs, a CPU rasterizer and diagnostic backends.</p>
+<p>There are APIs such as Vulkan, Metal and WebGPU, OpenGL, OpenGL ES, SDL abstractions, FNA3D, browser APIs, a CPU rasterizer and diagnostic backends.</p>
 <p>These technologies differ enormously.</p>
 <p>Any CNA application talks to CNA. The renderer is replaceable and the graphics API underneath CNA can change.</p></div>
     <footer class="taxonomy-links"><a href="/category/graphics/">Graphics</a><a href="/tag/renderers/">#Renderers</a><a href="/tag/graphics-apis/">#Graphics APIs</a><a href="/tag/opengl/">#OpenGL</a><a href="/tag/directx/">#DirectX</a><a href="/tag/vulkan/">#Vulkan</a><a href="/tag/webgpu/">#WebGPU</a><a href="/tag/software-rendering/">#Software Rendering</a></footer>
@@ -275,19 +256,19 @@
     <aside class="sidebar" aria-label="Additional information">
     <section class="sidebar-card">
       <h2>Recent Posts</h2>
-      <ul><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li><li><a href="/2026/09/27/32/">Platform API in CNA</a></li><li><a href="/2026/09/24/how-cna-can-survive-sdl/">How CNA can survive SDL</a></li></ul>
+      <ul><li><a href="/2026/10/08/cna-repositories-at-github-com/">CNA repositories at github.com</a></li><li><a href="/2026/10/05/cna-goes-online-gamer-services-avatars-and-networking/">CNA Goes Online: Gamer Services, Avatars and Networking</a></li><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li></ul>
     </section>
     <section class="sidebar-card">
       <h2>Archives</h2>
-      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">2</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">4</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
     </section>
     <section class="sidebar-card">
       <h2>Categories</h2>
-      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">2</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">3</span></a></li></ul>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">3</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">4</span></a></li></ul>
     </section>
     <section class="sidebar-card">
       <h2>Tags</h2>
-      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl2/">SDL2</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
+      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/github/">GitHub</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/projects/">Projects</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
     </section>
   </aside>
   </div>

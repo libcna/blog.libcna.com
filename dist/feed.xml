@@ -5,13 +5,27 @@
     <link>https://blog.libcna.com/</link>
     <description>Building a portable XNA-style framework for the long term.</description>
     <language>en</language>
-    <lastBuildDate>Sun, 04 Oct 2026 12:33:36 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 08 Oct 2026 12:42:49 GMT</lastBuildDate>
+    <item>
+      <title>CNA repositories at github.com</title>
+      <link>https://blog.libcna.com/2026/10/08/cna-repositories-at-github-com/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2026/10/08/cna-repositories-at-github-com/</guid>
+      <pubDate>Thu, 08 Oct 2026 12:42:49 GMT</pubDate>
+      <description>CNA is no a single Git repository.</description>
+    </item>
+    <item>
+      <title>CNA Goes Online: Gamer Services, Avatars and Networking</title>
+      <link>https://blog.libcna.com/2026/10/05/cna-goes-online-gamer-services-avatars-and-networking/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2026/10/05/cna-goes-online-gamer-services-avatars-and-networking/</guid>
+      <pubDate>Mon, 05 Oct 2026 07:42:31 GMT</pubDate>
+      <description>CNA implements much more than the graphics and game-loop side of Microsoft XNA 4.0.</description>
+    </item>
     <item>
       <title>Renderer API in CNA</title>
       <link>https://blog.libcna.com/2026/10/04/renderer-api-in-cna/</link>
       <guid isPermaLink="true">https://blog.libcna.com/2026/10/04/renderer-api-in-cna/</guid>
       <pubDate>Sun, 04 Oct 2026 12:33:36 GMT</pubDate>
-      <description>CNA currently exposes 18 renderers across 14 implementation families.</description>
+      <description>CNA currently exposes 14 renderers across 12 implementation families.</description>
     </item>
     <item>
       <title>CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</title>
@@ -29,8 +43,8 @@
     </item>
     <item>
       <title>Platform API in CNA</title>
-      <link>https://blog.libcna.com/2026/09/27/32/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2026/09/27/32/</guid>
+      <link>https://blog.libcna.com/2026/09/27/platform-api-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2026/09/27/platform-api-in-cna/</guid>
       <pubDate>Sun, 27 Sep 2026 11:26:04 GMT</pubDate>
       <description>SDL3 is currently one of the most important dependencies underneath CNA. But the rest of CNA is not supposed to be an SDL3 application.</description>
     </item>
@@ -60,12 +74,12 @@
       <link>https://blog.libcna.com/2026/09/17/how-large-is-cna/</link>
       <guid isPermaLink="true">https://blog.libcna.com/2026/09/17/how-large-is-cna/</guid>
       <pubDate>Thu, 17 Sep 2026 10:58:05 GMT</pubDate>
-      <description>Today, CNA contains the XNA-compatible framework, 18 graphics renderers a content system and content pipeline, audio, input, networking, native and portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.</description>
+      <description>Today, CNA contains the XNA-compatible framework, 14 graphics renderers a content system and content pipeline, audio, input, networking, portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.</description>
     </item>
     <item>
       <title>What is CNA?</title>
-      <link>https://blog.libcna.com/2026/09/13/hello-this-is-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2026/09/13/hello-this-is-cna/</guid>
+      <link>https://blog.libcna.com/2026/09/13/what-is-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2026/09/13/what-is-cna/</guid>
       <pubDate>Sun, 13 Sep 2026 10:46:24 GMT</pubDate>
       <description>CNA is an open-source C++23 reimplementation of the Microsoft XNA 4.0 programming model.</description>
     </item>

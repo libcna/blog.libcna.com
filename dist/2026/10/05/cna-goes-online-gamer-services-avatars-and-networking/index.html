@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNA Goes Online: Gamer Services, Avatars and Networking | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA implements much more than the graphics and game-loop side of Microsoft XNA 4.0.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/10/05/cna-goes-online-gamer-services-avatars-and-networking/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNA Goes Online: Gamer Services, Avatars and Networking">
+  <meta property="og:description" content="CNA implements much more than the graphics and game-loop side of Microsoft XNA 4.0.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/10/05/cna-goes-online-gamer-services-avatars-and-networking/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+  <meta property="og:image" content="https://blog.libcna.com/wp-content/uploads/2026/10/avatar-shadows.png">
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-10-05T07:42:31Z">October 5, 2026</time></span><span>Updated <time datetime="2026-10-04T07:52:08Z">October 4, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">CNA Goes Online: Gamer Services, Avatars and Networking</h1>
+      <p class="article-description">CNA implements much more than the graphics and game-loop side of Microsoft XNA 4.0.</p>
+    </header>
+    <figure class="featured-image"><img src="/wp-content/uploads/2026/10/avatar-shadows.png" alt="Avatar shadows"></figure>
+    <div class="article-body"><p>CNA implements much more than the graphics and game-loop side of Microsoft XNA 4.0.</p>
+<p>The framework now includes substantial parts of <code>Microsoft.Xna.Framework.GamerServices</code> and <code>Microsoft.Xna.Framework.Net</code>, including gamer profiles, achievements, leaderboards, friends, avatars, invitations, parties, network sessions and online multiplayer.</p>
+<p>CNA also has its own independent Gamer Services server.</p>
+<h2 id="gamer-services-in-cna">Gamer Services in CNA</h2>
+<p>XNA Gamer Services originally depended heavily on Xbox LIVE. CNA keeps the XNA programming model, but replaces unavailable external infrastructure with its own implementation.</p>
+<p>CNA Gamer Services supports concepts such as:</p>
+<ul><li><code>Gamer</code></li><li><code>SignedInGamer</code></li><li><code>GamerProfile</code></li><li>friends and presence</li><li>achievements</li><li>leaderboards</li><li>gamer pictures</li><li>privileges</li><li>Guide sign-in</li><li>messages</li><li>parties</li><li>invitations</li><li>avatars</li></ul>
+<p>CNA does <strong>not</strong> emulate Xbox LIVE and is not compatible with Xbox LIVE protocols, accounts or services.</p>
+<p>When no server is configured, CNA can use local offline profiles. Games can still sign in players, store local achievements, maintain local leaderboard data and use locally generated avatars.</p>
+<p>When a Gamer Services server is configured, the same API can provide online functionality.</p>
+<h2 id="cna-gamer-services-server">CNA Gamer Services Server</h2>
+<p>The separate <code>cna-gamer-services-server</code> project is written in C++23 and provides the backend for CNA&#39;s online Gamer Services.</p>
+<p>It currently supports:</p>
+<ul><li>accounts and authentication</li><li>gamer profiles and gamer pictures</li><li>friends and friend requests</li><li>presence</li><li>achievements</li><li>leaderboards</li><li>messages and player reviews</li><li>parties</li><li>avatars</li><li>session discovery</li><li>persistent invitations</li><li>host migration</li><li>online <code>NetworkSession</code> relay</li></ul>
+<p>The server also exposes title configuration, minimum accepted game versions and server-side gamer privileges.</p>
+<p>Storage uses SQLite, while normal network deployments use TLS.</p>
+<p>The server includes a small administration utility for creating users, registering games, defining leaderboards and achievements, assigning gamer pictures and configuring avatar catalogs.</p>
+<h2 id="xna-networksession-on-cna">XNA NetworkSession on CNA</h2>
+<p>CNA implements real networking for <code>Microsoft.Xna.Framework.Net</code>.</p>
+<p>For System Link, CNA uses ENet and UDP. Games can create sessions, discover them, join them and exchange packets between machines.</p>
+<p>Online <code>PlayerMatch</code> and <code>Ranked</code> sessions use the CNA Gamer Services server for session management.</p>
+<p>Realtime traffic travels through an authenticated WebSocket relay. The relay forwards ENet datagrams between participating machines while checking that each connection belongs to the session.</p>
+<p>This also allows online sessions to work when players are behind NAT without requiring direct incoming connections.</p>
+<p>CNA supports several higher-level XNA networking features as well, including:</p>
+<ul><li>session discovery</li><li>invitations</li><li><code>AddLocalGamer</code></li><li>player removal</li><li>host migration</li><li>session state changes</li><li>Ranked arbitration</li></ul>
+<p>Voice communication can also travel through the same <code>NetworkSession</code> transport.</p>
+<h2 id="cna-avatars">CNA Avatars</h2>
+<p>CNA implements the XNA Avatar API using completely original assets.</p>
+<p>It does not redistribute Xbox avatar models or textures.</p>
+<p>The implementation includes familiar XNA classes such as:</p>
+<ul><li><code>AvatarDescription</code></li><li><code>AvatarAnimation</code></li><li><code>AvatarRenderer</code></li></ul>
+<p>CNA avatars have their own body types, hairstyles, clothes, shoes, glasses, hats, facial hair, face parameters and colours.</p>
+<p>The avatar skeleton contains 71 bones and CNA includes a set of predefined animation presets.</p>
+<p><code>AvatarRenderer</code> builds the character from the avatar description and renders it through CNA&#39;s graphics system.</p>
+<p>Applications can also access bone transforms and create custom animation systems or attach objects to the avatar skeleton.</p>
+<h2 id="avatars-and-the-gamer-services-server">Avatars and the Gamer Services Server</h2>
+<p>An online CNA account can have its own avatar.</p>
+<p>The server stores the player&#39;s validated <code>AvatarDescription</code>, rather than storing a separate complete 3D model for every account.</p>
+<p>The client uses its local CNA avatar catalog to construct the character.</p>
+<p>Avatar catalogs are versioned. If an account uses a catalog version that a client does not have, the server can provide the corresponding catalog pack.</p>
+<p>This keeps the player identity small while still allowing the same avatar to appear on different machines.</p>
+<h2 id="five-avatar-samples-running-in-the-browser">Five Avatar Samples Running in the Browser</h2>
+<p>The CNA Samples gallery contains several original Microsoft XNA Avatar samples ported to CNA and compiled to WebAssembly.</p>
+<p>They can be launched directly in a browser.</p>
+<h3 id="avatar-animation-blending">Avatar Animation Blending</h3>
+<p>This sample demonstrates smooth interpolation between avatar animations such as Stand, Celebrate, Clap and Wave.</p>
+<p>It shows how animation transitions can be blended instead of changing instantly.</p>
+<h3 id="avatar-multiple-animations">Avatar Multiple Animations</h3>
+<p>Different parts of the skeleton can play different animations at the same time.</p>
+<p>For example, most of the character can perform one animation while one arm performs another.</p>
+<h3 id="object-placement-on-avatar">Object Placement on Avatar</h3>
+<p>This sample attaches an object to an animated avatar bone.</p>
+<p>A baseball bat follows the avatar&#39;s hand using the current animated bone transformation.</p>
+<h3 id="custom-avatar-animation">Custom Avatar Animation</h3>
+<p>This example uses custom animation and facial-expression data instead of only the built-in CNA animation presets.</p>
+<p>The avatar can perform actions such as jumping, kicking and punching.</p>
+<h3 id="avatar-shadows">Avatar Shadows</h3>
+<p>Avatar Shadows renders multiple independently generated CNA avatars in the same scene together with planar shadows.</p>
+<p>It is probably the best visual demonstration of the current CNA Avatar implementation.</p>
+<h2 id="avatars-over-networksession">Avatars over NetworkSession</h2>
+<p>CNA also contains networking demos that combine Avatars with <code>NetworkSession</code>.</p>
+<p>A machine can send another player:</p>
+<ul><li>avatar description</li><li>position</li><li>rotation</li><li>animation state</li></ul>
+<p>The receiving machine recreates and renders the remote avatar locally.</p>
+<p>Only the avatar description and gameplay state need to be synchronized. The actual meshes and textures already exist in the CNA avatar catalog.</p>
+<h2 id="testing">Testing</h2>
+<p>The Gamer Services and Net implementation has dedicated automated tests covering areas such as:</p>
+<ul><li>authentication</li><li>achievements</li><li>leaderboards</li><li>profiles</li><li>friends</li><li>avatars</li><li>invitations</li><li>parties</li><li>session creation and joining</li><li>host migration</li><li>online relay traffic</li><li>service restart</li><li>persistence</li></ul>
+<p>Some networking tests also launch separate CNA processes and test communication through isolated Linux network environments.</p>
+<p>The Gamer Services server repository contains its own server-side test suite and benchmarks.</p>
+<h2 id="screenshots">Screenshots</h2>
+<p><img src="/wp-content/uploads/2026/10/avatars-1.jpg" alt="Avatars" loading="lazy"></p>
+<h2 id="try-the-avatar-samples">Try the Avatar Samples</h2>
+<p>The easiest way to see this part of CNA is through the online Samples gallery:</p>
+<p><a href="https://samples.libcna.com/">**https://samples.libcna.com/**</a></p>
+<p>The avatar samples currently include:</p>
+<ul><li>Avatar Animation Blending</li><li>Avatar Multiple Animations</li><li>Object Placement on Avatar</li><li>Custom Avatar Animation</li><li>Avatar Shadows</li></ul>
+<p>Their source code is available in the CNA Samples repository:</p>
+<p><a href="https://github.com/libcna/cna-samples">**https://github.com/libcna/cna-samples**</a></p>
+<p>The Gamer Services server is available separately:</p>
+<p><a href="https://github.com/libcna/cna-gamer-services-server">**https://github.com/libcna/cna-gamer-services-server**</a></p>
+<p>And the main CNA framework repository is available at:</p>
+<p><a href="https://github.com/libcna/cna">**https://github.com/libcna/cna**</a></p>
+<p>CNA&#39;s Gamer Services, Net and Avatar implementations bring back some of the less commonly reimplemented parts of XNA 4.0 while replacing the original Xbox-dependent infrastructure with independent CNA components.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2026/10/08/cna-repositories-at-github-com/">CNA repositories at github.com</a></li><li><a href="/2026/10/05/cna-goes-online-gamer-services-avatars-and-networking/">CNA Goes Online: Gamer Services, Avatars and Networking</a></li><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">4</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">3</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">4</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/github/">GitHub</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/projects/">Projects</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

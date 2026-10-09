@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>How large is CNA? | CNA&#39;s Blog</title>
-  <meta name="description" content="Today, CNA contains the XNA-compatible framework, 18 graphics renderers a content system and content pipeline, audio, input, networking, native and portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.">
+  <meta name="description" content="Today, CNA contains the XNA-compatible framework, 14 graphics renderers a content system and content pipeline, audio, input, networking, portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.">
 
   <link rel="canonical" href="https://blog.libcna.com/2026/09/17/how-large-is-cna/">
   <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/assets/style.css">
   <meta property="og:type" content="article">
   <meta property="og:title" content="How large is CNA?">
-  <meta property="og:description" content="Today, CNA contains the XNA-compatible framework, 18 graphics renderers a content system and content pipeline, audio, input, networking, native and portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.">
+  <meta property="og:description" content="Today, CNA contains the XNA-compatible framework, 14 graphics renderers a content system and content pipeline, audio, input, networking, portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.">
   <meta property="og:url" content="https://blog.libcna.com/2026/09/17/how-large-is-cna/">
   <meta property="og:site_name" content="CNA&#39;s Blog">
 
@@ -40,13 +40,13 @@
   <div class="page-shell single-layout">
     <main class="main-content" id="content"><article class="article">
     <header class="article-header">
-      <div class="meta"><span>Published <time datetime="2026-09-17T10:58:05Z">September 17, 2026</time></span><span>Updated <time datetime="2026-10-02T13:37:40Z">October 2, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/about/">About</a></span></div>
+      <div class="meta"><span>Published <time datetime="2026-09-17T10:58:05Z">September 17, 2026</time></span><span>Updated <time datetime="2026-10-09T17:48:03Z">October 9, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/about/">About</a></span></div>
       <h1 class="article-title">How large is CNA?</h1>
-      <p class="article-description">Today, CNA contains the XNA-compatible framework, 18 graphics renderers a content system and content pipeline, audio, input, networking, native and portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.</p>
+      <p class="article-description">Today, CNA contains the XNA-compatible framework, 14 graphics renderers a content system and content pipeline, audio, input, networking, portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.</p>
     </header>
-    <div class="article-body"><p>Today, CNA contains the XNA-compatible framework, 18 graphics renderers a content system and content pipeline, audio, input, networking, native and portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.</p>
-<p>The figures below describe the development branch &quot;next&quot; measured on October 2, 2026.</p>
-<h2 id="around-368-000-lines-of-non-generated-production-c-code">Around 368,000 lines of non-generated production C++ code</h2>
+    <div class="article-body"><p>Today, CNA contains the XNA-compatible framework, 14 graphics renderers a content system and content pipeline, audio, input, networking, portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.</p>
+<p>The figures below describe the development branch &quot;next&quot; measured on October 9, 2026.</p>
+<h2 id="around-322-000-lines-of-non-generated-production-c-code">Around 322,000 lines of non-generated production C++ code</h2>
 <p>This number excludes:</p>
 <ul><li>tests</li><li>examples, benchmarks and standalone diagnostic programs outside the production trees</li><li>the C API</li><li>automatically generated source files</li><li>vendor/</li><li>third_party/</li><li>comment-only lines</li><li>blank lines</li></ul>
 <h2 id="why-generated-code-is-counted-separately">Why generated code is counted separately</h2>
@@ -58,8 +58,8 @@
 <p>The C API is much more than a tiny compatibility wrapper.</p>
 <ul><li>It provides a language-neutral ABI over CNA&#39;s C++ implementation and is intended to form the foundation for bindings to additional programming languages.</li></ul>
 <h2 id="the-tests-are-huge-too">The tests are huge too</h2>
-<p>Module test directories currently contain approximately: <strong>312,000 lines of C and C++ test code.</strong></p>
-<ul><li>Of that, <strong>265,943 lines</strong> belong to the framework and renderer modules outside the C API, while the C API contributes another <strong>45,104 lines</strong> in its dedicated test directory.</li></ul>
+<p>Module test directories currently contain approximately: <strong>289,000 lines of C and C++ test code.</strong></p>
+<ul><li>Of that, <strong>242,646 lines</strong> belong to the framework and renderer modules outside the C API, while the C API contributes another <strong>46,014 lines</strong> in its dedicated test directory.</li></ul>
 <p>For CNA, this validation code is especially important because compatibility is not simply about recreating XNA class names and method signatures.</p>
 <p>Small behavioral differences in mathematics, graphics states, content loading, audio, input, resource lifetime, networking, serialization or rendering can break real applications.</p>
 <p>The test suite helps turn discovered compatibility problems into permanent regression tests.</p>
@@ -68,21 +68,21 @@
 <p>Most CNA code lives in a set of relatively independent modules.</p>
 <p>Rendering remains the largest individual area, but CNA also contains major subsystems for content, platforms, graphics, audio, input, networking, media, devices, Gamer Services, storage, runtime infrastructure, diagnostics, inspection tools, XNA Design tooling and other parts of the XNA programming model.</p>
 <p>Using the same methodology throughout — production code only, with tests, examples, comments, blank lines and generated source files excluded — the measured sizes currently look like this:</p>
-<div class="table-wrap"><table><thead><tr><th>Area</th><th>Non-generated production code</th></tr></thead><tbody><tr><td>Renderers</td><td>137,116 lines</td></tr><tr><td>Content and Content Pipeline</td><td>71,213 lines</td></tr><tr><td>Platform</td><td>43,655 lines</td></tr><tr><td>Graphics</td><td>36,778 lines</td></tr><tr><td>Gamer Services</td><td>17,637 lines</td></tr><tr><td>Audio</td><td>11,763 lines</td></tr><tr><td>Networking</td><td>9,419 lines</td></tr><tr><td>Math</td><td>7,185 lines</td></tr><tr><td>Input</td><td>6,599 lines</td></tr><tr><td>Devices and Device Extensions</td><td>5,588 lines</td></tr><tr><td>Media</td><td>5,127 lines</td></tr><tr><td>Runtime</td><td>4,177 lines</td></tr><tr><td>Inspector</td><td>3,834 lines</td></tr><tr><td>Diagnostics</td><td>1,898 lines</td></tr><tr><td>Graphics Extensions / CNAEXT</td><td>1,743 lines</td></tr><tr><td>Core</td><td>1,713 lines</td></tr><tr><td>Design</td><td>895 lines</td></tr><tr><td>Video, Storage and Phone</td><td>1,847 lines</td></tr><tr><td>Framework total, excluding C API</td><td>368,187 lines</td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Area</th><th>Non-generated production code</th></tr></thead><tbody><tr><td>Renderers</td><td>122,272 lines</td></tr><tr><td>Content and Content Pipeline</td><td>71,215 lines</td></tr><tr><td>Platform</td><td>12,681 lines</td></tr><tr><td>Graphics</td><td>36,907 lines</td></tr><tr><td>Gamer Services</td><td>17,811 lines</td></tr><tr><td>Audio</td><td>11,533 lines</td></tr><tr><td>Networking</td><td>9,419 lines</td></tr><tr><td>Math</td><td>7,185 lines</td></tr><tr><td>Input</td><td>6,610 lines</td></tr><tr><td>Devices and Device Extensions</td><td>5,588 lines</td></tr><tr><td>Media</td><td>5,127 lines</td></tr><tr><td>Runtime</td><td>4,195 lines</td></tr><tr><td>Inspector</td><td>3,826 lines</td></tr><tr><td>Diagnostics</td><td>1,898 lines</td></tr><tr><td>Graphics Extensions / CNAEXT</td><td>1,743 lines</td></tr><tr><td>Core</td><td>1,689 lines</td></tr><tr><td>Design</td><td>895 lines</td></tr><tr><td>Video, Storage and Phone</td><td>1,848 lines</td></tr><tr><td>Framework total, excluding C API</td><td>322,442 lines</td></tr></tbody></table></div>
 <p>These numbers change frequently because CNA is still under active development.</p>
-<h2 id="18-graphics-renderers">18 graphics renderers</h2>
-<p>CNA currently exposes <strong>18 public renderers</strong> implemented through <strong>14 renderer families</strong>.</p>
-<p>The shared EasyGL renderer family provides five public identities:</p>
-<ul><li>OpenGL ES 2</li><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>WebGL 1</li><li>WebGL 2</li></ul>
+<h2 id="14-graphics-renderers">14 graphics renderers</h2>
+<p>CNA currently exposes <strong>14 public renderers</strong> implemented through <strong>12 renderer families</strong>.</p>
+<p>The shared EasyGL renderer family provides three public identities:</p>
+<ul><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>WebGL 2</li></ul>
 <p>CNA also contains renderer implementations for:</p>
-<ul><li>Vulkan</li><li>WebGPU</li><li>Direct3D 9</li><li>Direct3D 11</li><li>Direct3D 12</li><li>Metal</li><li>SDL Renderer</li><li>SDL GPU</li><li>FNA3D</li><li>Canvas</li><li>Software</li><li>Headless</li><li>Stub</li></ul>
+<ul><li>Vulkan</li><li>WebGPU</li><li>Direct3D 9</li><li>Direct3D 11</li><li>Metal</li><li>SDL Renderer</li><li>SDL GPU</li><li>FNA3D</li><li>Software</li><li>Headless</li><li>Stub</li></ul>
 <h2 id="graphics-is-separate-from-the-renderers">Graphics is separate from the renderers</h2>
 <p>CNA&#39;s main graphics module is separate from the individual renderer implementations.</p>
-<p>It currently contains <strong>36,778 lines of non-generated production C++</strong>, or approximately <strong>36,800 lines</strong>, and provides the XNA-facing graphics API and shared infrastructure such as:</p>
+<p>It currently contains <strong>36,907 lines of non-generated production C++</strong>, or approximately <strong>36,900 lines</strong>, and provides the XNA-facing graphics API and shared infrastructure such as:</p>
 <ul><li><code>GraphicsDevice</code></li><li>textures</li><li>vertex and index buffers</li><li>render targets</li><li>graphics states</li><li>effects</li><li>models</li><li><code>SpriteBatch</code></li><li>resource management</li><li>display modes</li><li>graphics adapters</li></ul>
 <p>The graphics module describes what the application wants to do.</p>
 <p>A renderer translates those operations into a particular graphics API or output technology.</p>
-<p>That separation is one of the reasons CNA can support 18 renderer identities without requiring applications to be written directly against those APIs.</p>
+<p>That separation is one of the reasons CNA can support 14 renderer identities without requiring applications to be written directly against those APIs.</p>
 <h2 id="cnaext-extensions-for-graphics-and-devices">CNAEXT extensions for graphics and devices</h2>
 <p>CNA also contains extensions called <strong>CNAEXT</strong>, separate from the XNA-compatible API and intended for functionality that did not exist in XNA 4.0.</p>
 <p>Dedicated extension modules include <code>graphics-ext</code> and <code>devices-ext</code>.</p>
@@ -96,34 +96,32 @@
 <p><strong>71,000 lines of non-generated production C++.</strong></p>
 <p>The repository contains work around:</p>
 <ul><li>XNB reading and writing</li><li>content readers and writers</li><li>compression</li><li>textures</li><li>models</li><li>fonts</li><li>audio assets</li><li>glTF 2.0</li><li>CNA&#39;s native CNB content format</li><li>build-time content importing and processing</li></ul>
-<h2 id="the-native-platform-layer-has-become-substantial">The native platform layer has become substantial</h2>
+<h2 id="the-platform-layer-has-become-substantial">The platform layer has become substantial</h2>
 <p>The platform subsystem now contains approximately:</p>
-<p><strong>43,700 lines of production C++.</strong></p>
+<p><strong>12,700 lines of production C++.</strong></p>
 <p>SDL3 remains CNA&#39;s default platform implementation, headless and POSIX terminal implementations.</p>
-<p>CNA now also has working native platform backends for:</p>
-<ul><li><strong>Win32</strong> on Windows</li><li><strong>X11</strong> on Linux</li><li><strong>Wayland</strong> on Linux</li></ul>
 <h2 id="lines-of-code-are-not-a-quality-metric">Lines of code are not a quality metric</h2>
 <p>CNA is simultaneously trying to:</p>
-<ul><li>reproduce the XNA 4.0 programming model</li><li>support 18 graphics renderers</li><li>remain independent of any single graphics API</li><li>support portable and native platform backends</li><li>process old and modern asset formats</li><li>run real XNA software</li><li>provide focused optional graphics and device extensions</li><li>support XNA Design and other less commonly implemented framework areas</li><li>expose a native C ABI</li><li>enable bindings to additional programming languages</li><li>maintain a very large compatibility and regression test suite</li></ul>
+<ul><li>reproduce the XNA 4.0 programming model</li><li>support 14 graphics renderers</li><li>remain independent of any single graphics API</li><li>support portable platform backends</li><li>process old and modern asset formats</li><li>run real XNA software</li><li>provide focused optional graphics and device extensions</li><li>support XNA Design and other less commonly implemented framework areas</li><li>expose a native C ABI</li><li>enable bindings to additional programming languages</li><li>maintain a very large compatibility and regression test suite</li></ul>
 <p>That naturally creates a substantial codebase.</p></div>
     <footer class="taxonomy-links"><a href="/category/about/">About</a></footer>
   </article></main>
     <aside class="sidebar" aria-label="Additional information">
     <section class="sidebar-card">
       <h2>Recent Posts</h2>
-      <ul><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li><li><a href="/2026/09/27/32/">Platform API in CNA</a></li><li><a href="/2026/09/24/how-cna-can-survive-sdl/">How CNA can survive SDL</a></li></ul>
+      <ul><li><a href="/2026/10/08/cna-repositories-at-github-com/">CNA repositories at github.com</a></li><li><a href="/2026/10/05/cna-goes-online-gamer-services-avatars-and-networking/">CNA Goes Online: Gamer Services, Avatars and Networking</a></li><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li></ul>
     </section>
     <section class="sidebar-card">
       <h2>Archives</h2>
-      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">2</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">4</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
     </section>
     <section class="sidebar-card">
       <h2>Categories</h2>
-      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">2</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">3</span></a></li></ul>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">3</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">4</span></a></li></ul>
     </section>
     <section class="sidebar-card">
       <h2>Tags</h2>
-      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl2/">SDL2</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
+      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/github/">GitHub</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/projects/">Projects</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
     </section>
   </aside>
   </div>

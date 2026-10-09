@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNA repositories at github.com | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA is no a single Git repository.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/10/08/cna-repositories-at-github-com/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNA repositories at github.com">
+  <meta property="og:description" content="CNA is no a single Git repository.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/10/08/cna-repositories-at-github-com/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-10-08T12:42:49Z">October 8, 2026</time></span><span>Updated <time datetime="2026-10-02T14:55:42Z">October 2, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">CNA repositories at github.com</h1>
+      <p class="article-description">CNA is no a single Git repository.</p>
+    </header>
+    <div class="article-body"><p>CNA is no a single Git repository.</p>
+<p>As of October 2026, the <code>libcna</code> GitHub organization contains <strong>26 public repositories</strong> covering the core framework, supporting libraries, language bindings, project templates, samples, applications, experiments, documentation, and websites.</p>
+<p>Most users do not need all of them.</p>
+<h2 id="core-and-foundation-repositories">Core and foundation repositories</h2>
+<h3 id="cna">cna</h3>
+<p>The main repository.</p>
+<p>This contains the C++23 implementation of the XNA 4.0 programming model, the graphics system, 50 renderer paths, Platform API, audio, input, networking, content system, CNAEXT, tests, tools, and the native C API.</p>
+<p>The C API is deliberately part of the main CNA repository rather than a separate project.</p>
+<h3 id="sharp-runtime">sharp-runtime</h3>
+<p>A C++ implementation of a pragmatic subset of the .NET <code>System::*</code> runtime.</p>
+<p>It provides types and runtime functionality useful when translating C# software into native C++, and it is used by CNA and several projects built around it.</p>
+<h3 id="easy-gl">easy-gl</h3>
+<p>A toolkit-independent C++20 RAII wrapper over OpenGL and OpenGL ES.</p>
+<p>EasyGL is also important inside CNA: the OpenGL ES 2, OpenGL ES 3, OpenGL 3.3, WebGL 1, and WebGL 2 renderer identities are built around the EasyGL renderer family.</p>
+<h3 id="meta-gl">meta-gl</h3>
+<p>A lower-level C++23 wrapper around OpenGL ES and WebGL.</p>
+<p>It provides type-safe GL enums and runtime function loading without exposing ordinary OpenGL headers to its users.</p>
+<h3 id="xna4-spec">xna4-spec</h3>
+<p>A reference project documenting the XNA 4.0 API surface.</p>
+<p>It exists to provide a more systematic specification against which CNA compatibility work can be checked.</p>
+<h3 id="cna-extended">cna-extended</h3>
+<p>An early C++23 port of MonoGame.Extended for CNA.</p>
+<p>The project covers areas such as collision detection, tweening, viewport adapters, sprite animation, particles, ECS functionality, bitmap fonts, and tilemap formats including Tiled, LDtk, and Ogmo.</p>
+<h2 id="language-bindings">Language bindings</h2>
+<p>CNA&#39;s native implementation remains C++, but the C API is being used as the foundation for additional programming languages.</p>
+<p>The additional language is <strong>C itself</strong>, which does not need a separate binding repository because its API lives directly inside <code>cna</code>.</p>
+<p>Together with C++, the long-term target is therefore CNA applications written in <strong>3 languages</strong>.</p>
+<p>One binding currently have their own repository:</p>
+<h3 id="cna-cs">cna-cs</h3>
+<p>C# bindings for CNA.</p>
+<p>This is particularly important because XNA itself was primarily used from C#. The project aims to let XNA-style C# applications run on top of the native CNA core.</p>
+<h2 id="project-templates">Project templates</h2>
+<p>Each language also needs a practical starting point.</p>
+<p>The organization therefore contains a set of small template repositories:</p>
+<ul><li><code>cna-template</code> — C++</li><li><code>cna-c-template</code> — C</li><li><code>cna-cs-template</code> — C#</li></ul>
+<p>These are intentionally separate from the binding implementations.</p>
+<ul><li>A binding repository is where the language integration itself is developed.</li><li>A template is where an application developer can start a new CNA project.</li></ul>
+<h2 id="samples-and-examples">Samples and examples</h2>
+<h3 id="cna-samples">cna-samples</h3>
+<p>One of the most important repositories outside the framework itself.</p>
+<p>It contains C++ ports of official Microsoft XNA Game Studio 4.0 samples.</p>
+<p>These samples are not only demonstrations. They are also compatibility tests that regularly uncover missing or incorrect CNA behavior.</p>
+<h3 id="cna-cs-samples">cna-cs-samples</h3>
+<p>The corresponding C# sample compatibility workspace.</p>
+<p>Original XNA-style C# applications can be tested against the evolving CNA C# binding, helping drive the binding toward real XNA compatibility.</p>
+<h3 id="cna-examples">cna-examples</h3>
+<p>A different kind of sample repository.</p>
+<p>Instead of porting Microsoft samples, this is one large CNA-specific application containing a browsable catalog of demonstrations.</p>
+<p>The current project contains <strong>13 areas, 79 categories, and 249 demo screens</strong>, covering framework functionality, math, content, input, audio, devices, networking, media, 2D graphics, 3D graphics, and more.</p>
+<h3 id="cna-gltf-viewer">cna-gltf-viewer</h3>
+<p>A desktop application for viewing <code>.gltf</code> and <code>.glb</code> files.</p>
+<p>It uses CNA&#39;s own tooling to convert glTF into CNA content, loads the result through <code>ContentManager</code>, and renders it through CNA&#39;s 3D API.</p>
+<h2 id="larger-cna-applications-and-demos">Larger CNA applications and demos</h2>
+<h3 id="cna-multi-language-3d-demo">cna-multi-language-3d-demo</h3>
+<p>This repository is intended to become one of the clearest demonstrations of CNA&#39;s multi-language architecture.</p>
+<p>It defines one small 3D game, <strong>CNA Starfield Courier</strong>, which is ultimately intended to exist in C++ and all ten additional CNA languages.</p>
+<p>Currently only the C++ implementation is complete. The other nine language directories are intentionally still empty until they contain real CNA-powered ports.</p>
+<h3 id="cna-street">cna-street</h3>
+<p>A much larger graphics demonstration.</p>
+<p>It renders a detailed city street with traffic, pedestrians, shops, imported assets, PBR materials, shadows, reflections.</p>
+<p>Its purpose is to exercise CNA&#39;s graphics layer on something substantially more complicated than an isolated test scene.``</p>
+<h3 id="mesh-craft">mesh-craft</h3>
+<p>A C++23 3D scene editor for the MC3 format.</p>
+<p>It includes primitives, CSG operations, PBR materials, animation, and glTF/GLB and MCB export.</p>
+<p>These projects are useful because they push CNA in ways that small tests cannot.</p>
+<p>A framework can pass thousands of isolated tests and still reveal very different problems once it has to render a street, run a simulation, edit complex 3D scenes, or support a complete game.</p>
+<h2 id="experimental-workspace">Experimental workspace</h2>
+<h3 id="cna-lab">cna-lab</h3>
+<p>Not every CNA-related experiment needs to immediately become a permanent standalone project.</p>
+<p><code>cna-lab</code> is a workspace for experimental CNA-related repositories, integrated using Git subtrees so that their history can be preserved while the projects are tested and developed together.</p>
+<p>Some experiments may eventually become important projects.</p>
+<p>Others may disappear.</p>
+<p>That is what the lab is for.</p>
+<h2 id="websites-and-documentation">Websites and documentation</h2>
+<p>The GitHub organization also contains the sources behind several CNA-related websites.</p>
+<h3 id="libcna-com">libcna.com</h3>
+<p>The main CNA website, containing documentation, tutorials, demos, videos, roadmap information, and general project information.</p>
+<h3 id="samples-libcna-com">samples.libcna.com</h3>
+<p>The website used to publish CNA sample applications that can run directly in the browser.</p>
+<p>The online collection is still growing and represents only part of the much larger set of samples already ported to CNA.</p>
+<h3 id="demos-libcna-com">demos.libcna.com</h3>
+<p>The repository behind the CNA demos website.</p>
+<h3 id="sharpruntime-com">sharpruntime.com</h3>
+<p>The website repository for sharp-runtime.</p>
+<h2 id="a-rough-map-of-the-ecosystem">A rough map of the ecosystem</h2>
+<p>At the moment, the 44 public repositories can be summarized roughly like this:</p>
+<div class="table-wrap"><table><thead><tr><th>Area</th><th>Repositories</th></tr></thead><tbody><tr><td>CNA core, libraries and specification</td><td>7</td></tr><tr><td>Language bindings</td><td>1</td></tr><tr><td>Project templates</td><td>3</td></tr><tr><td>Samples, demos, applications and experiments</td><td>11</td></tr><tr><td>Websites and documentation</td><td>4</td></tr><tr><td>Total</td><td>26</td></tr></tbody></table></div>
+<p>The structure behind it is:</p>
+<pre><code class="language-text">                         CNA
+                          │
+        ┌─────────────────┼─────────────────┐
+        │                 │                 │
+  foundation          C API          XNA compatibility
+   libraries              │
+        │                 │
+        │          language bindings
+        │                 │
+        └────────────┬────┘
+                     │
+                  templates
+                     │
+              games / applications
+                     │
+          samples / demos / tools
+                     │
+             websites / docs</code></pre></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/tag/bindings/">#Bindings</a><a href="/tag/github/">#GitHub</a><a href="/tag/repositories/">#Repositories</a><a href="/tag/cna-ecosystem/">#CNA Ecosystem</a><a href="/tag/samples/">#Samples</a><a href="/tag/documentation/">#Documentation</a><a href="/tag/projects/">#Projects</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2026/10/08/cna-repositories-at-github-com/">CNA repositories at github.com</a></li><li><a href="/2026/10/05/cna-goes-online-gamer-services-avatars-and-networking/">CNA Goes Online: Gamer Services, Avatars and Networking</a></li><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">4</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">3</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">4</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/github/">GitHub</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/projects/">Projects</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -3,7 +3,7 @@ title: Renderer API in CNA
 date: 2026-10-04T12:33:36Z
 updated: 2026-10-04T07:17:57Z
 description: |
-  CNA currently exposes 18 renderers across 14 implementation families.
+  CNA currently exposes 14 renderers across 12 implementation families.
 author: Robert Vokac
 categories:
   - Graphics
@@ -21,11 +21,11 @@ classicpressStatus: future
 draft: false
 ---
 
-CNA currently exposes **18 renderers across 14 implementation families**.
+CNA currently exposes **14 renderers across 12 implementation families**.
 
 Those renderers are extremely different.
 
-Vulkan, Direct3D 12, OpenGL, SDL Renderer, software rendering, Headless does not have much in common at the native API level.
+Vulkan, Direct3D 11, OpenGL, SDL Renderer, software rendering, Headless does not have much in common at the native API level.
 
 Yet all of them can sit underneath the same XNA-style `GraphicsDevice`.
 
@@ -68,10 +68,8 @@ The current public set contains 18 identities:
 ```text
 SDL_RENDERER
 
-OPENGLES2
 OPENGLES3
 OPENGL33
-WEBGL1
 WEBGL2
 
 VULKAN
@@ -79,7 +77,6 @@ WEBGPU
 
 DIRECTX9
 DIRECTX11
-DIRECTX12
 
 METAL
 
@@ -88,7 +85,6 @@ FNA3D
 
 SOFTWARE
 
-CANVAS
 HEADLESS
 STUB
 ```
@@ -97,7 +93,7 @@ An identity does not necessarily mean a completely independent implementation.
 
 The most important example is **EasyGL**.
 
-OpenGL ES 2, OpenGL ES 3, OpenGL 3.3, WebGL 1 and WebGL 2 are five separate public identities, but they share one EasyGL implementation family.
+OpenGL ES 3, OpenGL 3.3 and WebGL 2 are three separate public identities, but they share one EasyGL implementation family.
 
 `GraphicsRendererType` describes which renderer CNA exposes to the rest of the framework.
 
@@ -249,9 +245,6 @@ But the two are separate.
 CNA now has multiple platform implementations including:
 
 - SDL3
-- Win32
-- X11
-- Wayland
 - Headless
 - Terminal
 
@@ -262,17 +255,6 @@ A Direct3D renderer should care that it has an appropriate Windows native handle
 It should not fundamentally care whether that handle originated from SDL3 or the native Win32 backend.
 
 Likewise, Vulkan can receive an appropriate presentation surface through CNA's Platform API rather than embedding one window-system implementation directly into the renderer.
-
-This separation is what allows combinations such as:
-
-```text
-SDL3 + Vulkan
-Win32 + Direct3D 12
-X11 + Vulkan
-Wayland + Vulkan
-```
-
-while preserving the same application-facing graphics model.
 
 ## Platform services are deliberately narrow
 

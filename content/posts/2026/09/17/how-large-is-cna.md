@@ -1,9 +1,9 @@
 ---
 title: How large is CNA?
 date: 2026-09-17T10:58:05Z
-updated: 2026-10-02T13:37:40Z
+updated: 2026-10-09T17:48:03Z
 description: |
-  Today, CNA contains the XNA-compatible framework, 18 graphics renderers a content system and content pipeline, audio, input, networking, native and portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.
+  Today, CNA contains the XNA-compatible framework, 14 graphics renderers a content system and content pipeline, audio, input, networking, portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.
 author: Robert Vokac
 categories:
   - About
@@ -14,11 +14,11 @@ classicpressStatus: publish
 draft: false
 ---
 
-Today, CNA contains the XNA-compatible framework, 18 graphics renderers a content system and content pipeline, audio, input, networking, native and portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.
+Today, CNA contains the XNA-compatible framework, 14 graphics renderers a content system and content pipeline, audio, input, networking, portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.
 
-The figures below describe the development branch "next" measured on October 2, 2026.
+The figures below describe the development branch "next" measured on October 9, 2026.
 
-## Around 368,000 lines of non-generated production C++ code
+## Around 322,000 lines of non-generated production C++ code
 
 This number excludes:
 
@@ -49,9 +49,9 @@ The C API is much more than a tiny compatibility wrapper.
 
 ## The tests are huge too
 
-Module test directories currently contain approximately: **312,000 lines of C and C++ test code.**
+Module test directories currently contain approximately: **289,000 lines of C and C++ test code.**
 
-- Of that, **265,943 lines** belong to the framework and renderer modules outside the C API, while the C API contributes another **45,104 lines** in its dedicated test directory.
+- Of that, **242,646 lines** belong to the framework and renderer modules outside the C API, while the C API contributes another **46,014 lines** in its dedicated test directory.
 
 For CNA, this validation code is especially important because compatibility is not simply about recreating XNA class names and method signatures.
 
@@ -71,38 +71,36 @@ Using the same methodology throughout — production code only, with tests, exam
 
 | Area | Non-generated production code |
 | --- | --- |
-| Renderers | 137,116 lines |
-| Content and Content Pipeline | 71,213 lines |
-| Platform | 43,655 lines |
-| Graphics | 36,778 lines |
-| Gamer Services | 17,637 lines |
-| Audio | 11,763 lines |
+| Renderers | 122,272 lines |
+| Content and Content Pipeline | 71,215 lines |
+| Platform | 12,681 lines |
+| Graphics | 36,907 lines |
+| Gamer Services | 17,811 lines |
+| Audio | 11,533 lines |
 | Networking | 9,419 lines |
 | Math | 7,185 lines |
-| Input | 6,599 lines |
+| Input | 6,610 lines |
 | Devices and Device Extensions | 5,588 lines |
 | Media | 5,127 lines |
-| Runtime | 4,177 lines |
-| Inspector | 3,834 lines |
+| Runtime | 4,195 lines |
+| Inspector | 3,826 lines |
 | Diagnostics | 1,898 lines |
 | Graphics Extensions / CNAEXT | 1,743 lines |
-| Core | 1,713 lines |
+| Core | 1,689 lines |
 | Design | 895 lines |
-| Video, Storage and Phone | 1,847 lines |
-| Framework total, excluding C API | 368,187 lines |
+| Video, Storage and Phone | 1,848 lines |
+| Framework total, excluding C API | 322,442 lines |
 
 These numbers change frequently because CNA is still under active development.
 
-## 18 graphics renderers
+## 14 graphics renderers
 
-CNA currently exposes **18 public renderers** implemented through **14 renderer families**.
+CNA currently exposes **14 public renderers** implemented through **12 renderer families**.
 
-The shared EasyGL renderer family provides five public identities:
+The shared EasyGL renderer family provides three public identities:
 
-- OpenGL ES 2
 - OpenGL ES 3
 - OpenGL 3.3
-- WebGL 1
 - WebGL 2
 
 CNA also contains renderer implementations for:
@@ -111,12 +109,10 @@ CNA also contains renderer implementations for:
 - WebGPU
 - Direct3D 9
 - Direct3D 11
-- Direct3D 12
 - Metal
 - SDL Renderer
 - SDL GPU
 - FNA3D
-- Canvas
 - Software
 - Headless
 - Stub
@@ -125,7 +121,7 @@ CNA also contains renderer implementations for:
 
 CNA's main graphics module is separate from the individual renderer implementations.
 
-It currently contains **36,778 lines of non-generated production C++**, or approximately **36,800 lines**, and provides the XNA-facing graphics API and shared infrastructure such as:
+It currently contains **36,907 lines of non-generated production C++**, or approximately **36,900 lines**, and provides the XNA-facing graphics API and shared infrastructure such as:
 
 - `GraphicsDevice`
 - textures
@@ -143,7 +139,7 @@ The graphics module describes what the application wants to do.
 
 A renderer translates those operations into a particular graphics API or output technology.
 
-That separation is one of the reasons CNA can support 18 renderer identities without requiring applications to be written directly against those APIs.
+That separation is one of the reasons CNA can support 14 renderer identities without requiring applications to be written directly against those APIs.
 
 ## CNAEXT extensions for graphics and devices
 
@@ -184,28 +180,22 @@ The repository contains work around:
 - CNA's native CNB content format
 - build-time content importing and processing
 
-## The native platform layer has become substantial
+## The platform layer has become substantial
 
 The platform subsystem now contains approximately:
 
-**43,700 lines of production C++.**
+**12,700 lines of production C++.**
 
 SDL3 remains CNA's default platform implementation, headless and POSIX terminal implementations.
-
-CNA now also has working native platform backends for:
-
-- **Win32** on Windows
-- **X11** on Linux
-- **Wayland** on Linux
 
 ## Lines of code are not a quality metric
 
 CNA is simultaneously trying to:
 
 - reproduce the XNA 4.0 programming model
-- support 18 graphics renderers
+- support 14 graphics renderers
 - remain independent of any single graphics API
-- support portable and native platform backends
+- support portable platform backends
 - process old and modern asset formats
 - run real XNA software
 - provide focused optional graphics and device extensions

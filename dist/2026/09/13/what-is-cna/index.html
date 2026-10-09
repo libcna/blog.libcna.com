@@ -6,14 +6,14 @@
   <title>What is CNA? | CNA&#39;s Blog</title>
   <meta name="description" content="CNA is an open-source C++23 reimplementation of the Microsoft XNA 4.0 programming model.">
 
-  <link rel="canonical" href="https://blog.libcna.com/2026/09/13/hello-this-is-cna/">
+  <link rel="canonical" href="https://blog.libcna.com/2026/09/13/what-is-cna/">
   <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="stylesheet" href="/assets/style.css">
   <meta property="og:type" content="article">
   <meta property="og:title" content="What is CNA?">
   <meta property="og:description" content="CNA is an open-source C++23 reimplementation of the Microsoft XNA 4.0 programming model.">
-  <meta property="og:url" content="https://blog.libcna.com/2026/09/13/hello-this-is-cna/">
+  <meta property="og:url" content="https://blog.libcna.com/2026/09/13/what-is-cna/">
   <meta property="og:site_name" content="CNA&#39;s Blog">
 
 </head>
@@ -45,7 +45,7 @@
       <p class="article-description">CNA is an open-source C++23 reimplementation of the Microsoft XNA 4.0 programming model.</p>
     </header>
     <div class="article-body"><p>CNA is an open-source C++23 reimplementation of the Microsoft XNA 4.0 programming model.</p>
-<p>It combines an XNA-style framework with a modular runtime, 18 graphics renderers, a content system, audio, input, networking, platform abstractions and language bindings.</p>
+<p>It combines an XNA-style framework with a modular runtime, 14 graphics renderers, a content system, audio, input, networking, platform abstractions and language bindings.</p>
 <h2 id="xna-rebuilt-in-c">XNA, rebuilt in C++</h2>
 <p>CNA preserves XNA concepts such as Game, GameTime, GraphicsDevice, SpriteBatch, ContentManager, SoundEffect, GamePad, vectors, matrices, effects, models and render targets.</p>
 <p>It is not limited to native C++ applications. CNA C# binding can serve XNA C# applications.</p>
@@ -53,16 +53,15 @@
 <h2 id="a-modular-framework">A modular framework</h2>
 <p>CNA contains separate systems for: framework and runtime functionality, mathematics, graphics, input, audio, media, video, content, content processing, storage, devices, device extensions, phone, gamer services, networking, platform integration, renderers and the C ABI.</p>
 <p>An important architectural principle is that <strong>platforms and renderers are separate</strong>.</p>
-<p>SDL3 remains the default platform implementation, headless and POSIX terminal implementations. Native <strong>Win32, X11 and Wayland</strong> platform implementations allows to use the operating system&#39;s native windowing and input facilities instead of SDL.</p>
-<p>A native <strong>Cocoa</strong> backend for macOS is planned for the future.</p>
+<p>SDL3 remains the default platform implementation, headless and POSIX terminal implementations.</p>
 <p>The CNA dependencies should be replaceable.</p>
 <ul><li>Games and applications built on CNA should be able to live for decades.</li><li>If SDL 3 becomes obsolete, CNA can move to SDL 4, SDL 5, native platform backends, or something else.</li></ul>
-<h2 id="18-graphics-renderers">18 graphics renderers</h2>
-<p>CNA now contains <strong>18 renders</strong> implemented through 14 renderer families.</p>
-<p>The shared EasyGL family provides <code>OpenGLES2</code>, <code>OpenGLES3</code>, <code>OpenGL33</code>, <code>WebGL1</code> and <code>WebGL2</code>.</p>
-<p>Other renderer identities cover Vulkan, WebGPU, Direct3D 9, Direct3D 11, Direct3D 12, Metal, SDL Renderer, SDL GPU and FNA3D.</p>
-<p>There are also specialized approaches such as the CPU-based Software renderer; browser-oriented Canvas renderer; and Headless and Stub implementations for cases where normal visual output is unnecessary.</p>
-<p>Not all 18 renderers are equally complete. Some are broad 2D and 3D implementations, some intentionally support a narrower subset of functionality, some are specialized for a particular operating system or environment, and others remain experimental.</p>
+<h2 id="14-graphics-renderers">14 graphics renderers</h2>
+<p>CNA now contains <strong>14 renders</strong> implemented through 12 renderer families.</p>
+<p>The shared EasyGL family provides <code>OpenGLES3</code>, <code>OpenGL33</code> and <code>WebGL2</code>.</p>
+<p>Other renderer identities cover Vulkan, WebGPU, Direct3D 9, Direct3D 11, Metal, SDL Renderer, SDL GPU and FNA3D.</p>
+<p>There are also specialized approaches such as the CPU-based Software renderer; and Headless and Stub implementations for cases where normal visual output is unnecessary.</p>
+<p>Not all 14 renderers are equally complete. Some are broad 2D and 3D implementations, some intentionally support a narrower subset of functionality, some are specialized for a particular operating system or environment, and others remain experimental.</p>
 <h2 id="compatibility-through-real-xna-4-0-c-samples">Compatibility through real XNA 4.0 C# samples</h2>
 <p>CNA relies heavily on automated tests, reference behavior, pixel comparisons and real XNA samples.</p>
 <p>Roughly <strong>one hundred XNA samples have already been ported</strong> as part of CNA development.</p>
@@ -100,19 +99,19 @@
     <aside class="sidebar" aria-label="Additional information">
     <section class="sidebar-card">
       <h2>Recent Posts</h2>
-      <ul><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li><li><a href="/2026/09/27/32/">Platform API in CNA</a></li><li><a href="/2026/09/24/how-cna-can-survive-sdl/">How CNA can survive SDL</a></li></ul>
+      <ul><li><a href="/2026/10/08/cna-repositories-at-github-com/">CNA repositories at github.com</a></li><li><a href="/2026/10/05/cna-goes-online-gamer-services-avatars-and-networking/">CNA Goes Online: Gamer Services, Avatars and Networking</a></li><li><a href="/2026/10/04/renderer-api-in-cna/">Renderer API in CNA</a></li><li><a href="/2026/10/01/the-cna-c-api-and-the-road-to-11-programming-languages/">CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</a></li><li><a href="/2026/09/30/house-simulator/">House Simulator</a></li></ul>
     </section>
     <section class="sidebar-card">
       <h2>Archives</h2>
-      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">2</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">4</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
     </section>
     <section class="sidebar-card">
       <h2>Categories</h2>
-      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">2</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">3</span></a></li></ul>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">3</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">4</span></a></li></ul>
     </section>
     <section class="sidebar-card">
       <h2>Tags</h2>
-      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl2/">SDL2</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
+      <div class="tag-cloud"><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-street/">cna-street</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/github/">GitHub</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/projects/">Projects</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a></div>
     </section>
   </aside>
   </div>

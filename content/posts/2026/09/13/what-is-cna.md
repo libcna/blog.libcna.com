@@ -8,7 +8,7 @@ author: Robert Vokac
 categories:
   - About
 tags: []
-originalUrl: https://blog.libcna.com/2026/09/13/hello-this-is-cna/
+originalUrl: https://blog.libcna.com/2026/09/13/what-is-cna/
 classicpressId: 17
 classicpressStatus: publish
 draft: false
@@ -16,7 +16,7 @@ draft: false
 
 CNA is an open-source C++23 reimplementation of the Microsoft XNA 4.0 programming model.
 
-It combines an XNA-style framework with a modular runtime, 18 graphics renderers, a content system, audio, input, networking, platform abstractions and language bindings.
+It combines an XNA-style framework with a modular runtime, 14 graphics renderers, a content system, audio, input, networking, platform abstractions and language bindings.
 
 ## XNA, rebuilt in C++
 
@@ -32,26 +32,24 @@ CNA contains separate systems for: framework and runtime functionality, mathemat
 
 An important architectural principle is that **platforms and renderers are separate**.
 
-SDL3 remains the default platform implementation, headless and POSIX terminal implementations. Native **Win32, X11 and Wayland** platform implementations allows to use the operating system's native windowing and input facilities instead of SDL.
-
-A native **Cocoa** backend for macOS is planned for the future.
+SDL3 remains the default platform implementation, headless and POSIX terminal implementations. 
 
 The CNA dependencies should be replaceable.
 
 - Games and applications built on CNA should be able to live for decades.
 - If SDL 3 becomes obsolete, CNA can move to SDL 4, SDL 5, native platform backends, or something else.
 
-## 18 graphics renderers
+## 14 graphics renderers
 
-CNA now contains **18 renders** implemented through 14 renderer families.
+CNA now contains **14 renders** implemented through 12 renderer families.
 
-The shared EasyGL family provides `OpenGLES2`, `OpenGLES3`, `OpenGL33`, `WebGL1` and `WebGL2`.
+The shared EasyGL family provides `OpenGLES3`, `OpenGL33` and `WebGL2`.
 
-Other renderer identities cover Vulkan, WebGPU, Direct3D 9, Direct3D 11, Direct3D 12, Metal, SDL Renderer, SDL GPU and FNA3D.
+Other renderer identities cover Vulkan, WebGPU, Direct3D 9, Direct3D 11, Metal, SDL Renderer, SDL GPU and FNA3D.
 
-There are also specialized approaches such as the CPU-based Software renderer; browser-oriented Canvas renderer; and Headless and Stub implementations for cases where normal visual output is unnecessary.
+There are also specialized approaches such as the CPU-based Software renderer; and Headless and Stub implementations for cases where normal visual output is unnecessary.
 
-Not all 18 renderers are equally complete. Some are broad 2D and 3D implementations, some intentionally support a narrower subset of functionality, some are specialized for a particular operating system or environment, and others remain experimental.
+Not all 14 renderers are equally complete. Some are broad 2D and 3D implementations, some intentionally support a narrower subset of functionality, some are specialized for a particular operating system or environment, and others remain experimental.
 
 ## Compatibility through real XNA 4.0 C# samples
 

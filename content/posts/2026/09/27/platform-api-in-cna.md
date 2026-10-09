@@ -1,7 +1,7 @@
 ---
 title: Platform API in CNA
 date: 2026-09-27T11:26:04Z
-updated: 2026-10-02T14:24:04Z
+updated: 2026-10-09T18:08:54Z
 description: |
   SDL3 is currently one of the most important dependencies underneath CNA. But the rest of CNA is not supposed to be an SDL3 application.
 author: Robert Vokac
@@ -12,7 +12,6 @@ tags:
   - Portability
   - Architecture
   - Platform API
-  - SDL2
   - Win32
   - X11
   - Wayland
@@ -32,13 +31,8 @@ Its purpose is to isolate windowing, events, input, system services, native wind
 Today CNA has several platform implementations:
 
 - **SDL3**
-- **Win32**
-- **X11**
-- **Wayland**
 - **Headless**
 - **Terminal**
-
-A native **Cocoa** implementation for macOS is planned.
 
 ## What does "platform" mean in CNA?
 
@@ -53,7 +47,7 @@ CNA framework
         ↓
 CNA::Platform
         ↓
-SDL3 | Win32 | X11 | Wayland | Headless | Terminal
+SDL3 | Headless | Terminal
         ↓
 Operating system / host environment
 ```
@@ -87,7 +81,9 @@ The rest of CNA consumes these CNA-owned interfaces rather than directly dependi
 
 ## SDL3 is behind the boundary
 
-SDL3 remains CNA's default platform implementation.
+SDL3 remains CNA's default platform implementation and its only implementation for graphical windows.
+
+Windows, X11, Wayland, macOS, iOS, Android and browser environments are reached through SDL's own video drivers.
 
 Its implementation lives inside the Platform module and translates between SDL and CNA.
 
@@ -111,14 +107,11 @@ There are deliberate exceptions, such as renderers that are themselves explicitl
 
 Native events are translated at the platform boundary.
 
-Several completely different event systems can therefore feed the same CNA runtime:
+Different event systems can therefore feed the same CNA runtime:
 
 ```text
 SDL3 event ─────┐
-SDL2 event ─────┤
-Win32 message ──┤
-X11 event ──────┼──→ PlatformEvent ──→ CNA runtime
-Wayland event ──┤
+               ├──→ PlatformEvent ──→ CNA runtime
 Terminal input ─┘
 ```
 
@@ -126,7 +119,7 @@ Terminal input ─┘
 
 Events are collected at the platform boundary and exposed through CNA's own event model.
 
-The rest of CNA does not need separate event-processing code for SDL, Win32, X11 or Wayland.
+The rest of CNA does not need separate event-processing code for SDL3 and Terminal.
 
 That is one of the most important responsibilities of the Platform API.
 
@@ -146,36 +139,24 @@ For example:
 
 ```text
 SDL3 platform + Vulkan renderer
-SDL3 platform + Direct3D 12 renderer
+SDL3 platform + Direct3D 11 renderer
 SDL3 platform + OpenGL renderer
 SDL3 platform + Software renderer
 ```
 
-But CNA can now also use native combinations such as:
+Other combinations include:
 
 ```text
-Win32 platform + Direct3D 11 renderer
-Win32 platform + Direct3D 12 renderer
-Win32 platform + Vulkan renderer
-
-X11 platform + OpenGL renderer
-X11 platform + Vulkan renderer
-
-Wayland platform + OpenGL renderer
-Wayland platform + Vulkan renderer
-```
-
-And in the future:
-
-```text
-Cocoa platform + Metal renderer
+SDL3 platform + Metal renderer
+Headless platform + Headless renderer
+Terminal platform + Software renderer
 ```
 
 Changing the platform implementation does not imply changing the application's XNA-facing API.
 
 The renderer and operating-system integration remain separate concerns.
 
-## Renderers do not need an SDL window
+## Renderers can use native window handles
 
 This separation goes deeper than simply placing SDL behind an interface.
 
@@ -194,19 +175,17 @@ It can represent environments including:
 
 An SDL3-created window on Windows can expose its underlying `HWND`.
 
-The native Win32 platform naturally exposes the same kind of Windows handle.
-
-On X11, CNA can expose the native X11 display and window information.
+On X11, the SDL3 platform exposes the native X11 display and window information.
 
 On Wayland, it can expose the corresponding display and surface.
 
-On macOS, the abstraction is prepared to represent a Cocoa window.
+On macOS, it exposes the underlying Cocoa `NSWindow*`.
 
-A renderer consumes CNA's native-window representation rather than requiring an `SDL_Window*`.
+Direct3D, Metal and WebGPU consume CNA's native-window representation. SDL Renderer, SDL GPU and FNA3D use the SDL window directly.
 
-That means a Direct3D renderer should not care whether an `HWND` came from SDL3 or directly from the Win32 backend.
+That means a Direct3D renderer receives the underlying `HWND` through CNA's platform contract.
 
-Likewise, Vulkan should not need one implementation simply because a window came from SDL and another because it came directly from X11 or Wayland.
+Likewise, Vulkan obtains its presentation surface through the platform contract.
 
 ## Narrow graphics services
 
@@ -230,7 +209,7 @@ Vulkan uses `IPlatformVulkanSurface`.
 
 The platform knows how to create a Vulkan presentation surface appropriate for its window system.
 
-That may mean SDL, Win32, X11, Wayland or another implementation.
+The SDL3 platform creates that surface through SDL for the active window system.
 
 The Vulkan renderer does not need to own the entire operating-system integration layer itself.
 
@@ -252,7 +231,7 @@ Together these seams allow very different host environments to participate in th
 
 Different platform implementations cannot honestly provide identical functionality.
 
-A terminal does not behave like Win32.
+A terminal does not behave like a graphical desktop.
 
 Headless execution has no physical desktop.
 
@@ -287,7 +266,7 @@ A platform implementation must explicitly advertise functionality that it really
 
 Unsupported functionality should **fail clearly rather than silently pretend to work**.
 
-This matters especially when comparing portable and native backends.
+This matters especially when comparing graphical, headless and terminal backends.
 
 A backend does not need to implement every possible CNA platform feature before it can be useful.
 
@@ -308,102 +287,6 @@ SDL3 therefore remains extremely valuable to CNA.
 The purpose of the Platform API is not to remove SDL3.
 
 It is to make SDL3 **replaceable**.
-
-## Win32 platform
-
-CNA now has a native **Win32 platform backend**.
-
-Instead of:
-
-```text
-CNA
- ↓
-SDL3
- ↓
-Win32
- ↓
-Windows
-```
-
-CNA can use:
-
-```text
-CNA
- ↓
-Win32 platform
- ↓
-Windows
-```
-
-The Win32 implementation communicates directly with Windows APIs and provides CNA's platform contract without requiring SDL in between.
-
-Its responsibilities include areas such as:
-
-- native windows
-- Windows message processing
-- keyboard and mouse input
-- text input
-- DPI integration
-- fullscreen and window state
-- native handles
-- system services
-- graphics integration
-
-This gives CNA a real SDL-free Windows path.
-
-It is also an important architectural test.
-
-If CNA works through both SDL3 and native Win32, then the abstraction is being exercised against two independent implementations of the same operating-system environment.
-
-## X11 platform
-
-CNA also has a native **X11 platform backend**.
-
-It communicates directly with X11 rather than requiring SDL to provide the Linux desktop platform layer.
-
-The backend handles areas such as:
-
-- X11 windows
-- event processing
-- keyboard and mouse input
-- text handling
-- display integration
-- clipboard functionality
-- native X11 handles
-- graphics-surface integration
-
-This gives CNA a native SDL-free path on X11 systems.
-
-It also means CNA can test the same higher-level platform contract against SDL and direct X11 independently.
-
-## Wayland platform
-
-CNA also has a native **Wayland platform backend**.
-
-Wayland is not simply a newer version of X11.
-
-Its architecture is substantially different, which makes a direct implementation particularly useful for validating CNA's abstractions.
-
-The Wayland backend includes support around concepts such as:
-
-- registry discovery
-- surfaces
-- seats
-- pointer input
-- keyboard input
-- outputs
-- clipboard
-- drag and drop
-- text input
-- window states
-- fractional scaling
-- relative pointer input
-- pointer constraints
-- presentation timing
-
-The native Wayland backend gives CNA another SDL-free Linux path.
-
-More importantly, supporting both X11 and Wayland forces CNA's Linux-facing abstractions to work across two fundamentally different window-system designs.
 
 ## Headless platform
 
@@ -457,7 +340,7 @@ That makes Terminal one of the strongest demonstrations that CNA's platform abst
 
 It also enables unusual environments such as SSH sessions, terminal multiplexers and machines without a normal graphical desktop.
 
-## One selected desktop backend
+## One selected default platform
 
 The primary platform implementation is selected at build time through `CNA_PLATFORM`.
 
@@ -465,76 +348,21 @@ Current selections include:
 
 ```text
 CNA_PLATFORM=SDL3
-CNA_PLATFORM=WIN32
-CNA_PLATFORM=X11
-CNA_PLATFORM=WAYLAND
 CNA_PLATFORM=HEADLESS
 CNA_PLATFORM=TERMINAL
 ```
 
 Not every value is valid on every operating system.
 
-For example, Win32 belongs to Windows, while X11 and Wayland belong to compatible Unix/Linux environments.
+For example, Terminal requires a POSIX environment and is unavailable on Windows.
 
 `PlatformFactory` creates the platform implementation selected for that build.
 
-Headless is compiled broadly because it is valuable for testing the contract.
+Headless is compiled in every build because it is valuable for testing the contract.
 
 Terminal is also available on POSIX builds.
 
-Native desktop backends are compiled only when selected, which prevents their platform-specific dependencies from leaking into unrelated CNA builds.
-
-## Native backends do not primarily add new operating systems
-
-This distinction is important.
-
-Win32, X11 and Wayland are not mainly about reaching operating systems that CNA could not reach before.
-
-SDL already provided portable access to Windows and Linux.
-
-The purpose of native implementations is different:
-
-**to provide multiple independent paths to the same host systems.**
-
-Conceptually:
-
-```text
-Windows
- ├── SDL3
- ├── SDL2
- └── Win32
-
-Linux / X11
- ├── SDL3
- ├── SDL2
- └── X11
-
-Linux / Wayland
- ├── SDL3
- ├── SDL2
- └── Wayland
-
-macOS / Cocoa
- ├── SDL3
- ├── SDL2
- └── Cocoa      (planned)
-```
-
-This is valuable for portability, testing and long-term independence.
-
-## Cocoa is still planned
-
-The major native desktop backend still missing from this group is **Cocoa** for macOS.
-
-Today CNA can reach macOS through SDL.
-
-A future Cocoa platform backend would communicate with Apple's native desktop frameworks directly.
-
-CNA's native-window abstraction is already designed to represent Cocoa windows, which is also useful to graphics renderers such as Metal.
-
-Cocoa would be another alternative implementation, not a replacement users would be forced to adopt.
-
-A CNA application could continue using SDL3 whenever that remains the better choice.
+The SDL3 platform implementation is compiled only when selected. SDL chooses its window-system driver at runtime; `SDL_VIDEODRIVER` can select one explicitly.
 
 ## Other portable platform backends are possible
 
@@ -572,6 +400,8 @@ A renderer produces graphics.
 
 An audio backend communicates with the audio system.
 
+A build with `CNA_ENABLE_SDL=OFF` uses Headless or Terminal, a Headless, Software or Stub renderer, and NULL or Linux ALSA audio. Graphical window builds require SDL3.
+
 ## Dependencies should be replaceable
 
 An application can use CNA while Vulkan, Direct3D, OpenGL, Metal, WebGPU or another graphics implementation exists underneath it.
@@ -592,6 +422,6 @@ selected implementation
 host environment
 ```
 
-The selected implementation may be SDL3, Win32, X11, Wayland, Headless or Terminal.
+The selected implementation may be SDL3, Headless or Terminal.
 
-In the future it may be Cocoa or another portable implementation.
+The same contract can support additional implementations in the future.

@@ -1,7 +1,7 @@
 ---
 title: CNA Modules
 date: 2026-11-19T16:16:21Z
-updated: 2026-09-19T16:21:57Z
+updated: 2026-10-09T18:02:52Z
 description: |
   CNA is a large framework, but it is not built as one giant C++ library.
 author: Robert Vokac
@@ -23,7 +23,7 @@ draft: false
 
 CNA is a large framework, but it is not built as one giant C++ library.
 
-The current architecture divides the framework into **20 physical modules**, together with a separate tree of renderer implementation families.
+The current architecture divides the framework into **22 physical modules**, together with a separate tree of renderer implementation families.
 
 Each module owns a specific part of CNA, has its own source and public headers, and normally builds as an independent CMake target.
 
@@ -32,6 +32,8 @@ The current high-level structure is:
 ```text
 modules/
 ├── core/
+├── diagnostics/
+├── inspector/
 ├── math/
 ├── design/
 ├── platform/
@@ -54,9 +56,9 @@ modules/
 └── renderers/
 ```
 
-The 20-module count refers to the physical framework modules outside `renderers/`.
+The 22-module count refers to the physical framework modules outside `renderers/`.
 
-The renderer tree forms another modular layer of its own, currently containing **21 implementation families that provide 25 public renderer identities**.
+The renderer tree forms another modular layer of its own, currently containing **12 implementation families that provide 14 public renderer identities**.
 
 Some modules are optional or conditional. For example, the C API must be explicitly enabled, FFmpeg is an optional video backend, Gamer Services and networking depend on networking being enabled, and Design is deliberately an opt-in tooling module.
 
@@ -143,6 +145,22 @@ CNA::CoreHeaders
 This is useful when another module only needs common header-level types or definitions and does not need the implementation library itself.
 
 That helps keep dependency closures small.
+
+## Diagnostics
+
+`CNA::Diagnostics` provides optional runtime statistics and profiling.
+
+Its `CNA_DIAGNOSTICS` setting selects `OFF`, `STATS` or `FULL`, depending on whether an application needs no instrumentation, counters or detailed profiling.
+
+The module provides the observation foundation used by Inspector.
+
+## Inspector
+
+`CNA::Inspector` is an optional development tool for inspecting a running CNA application from a separate process.
+
+It includes an in-process agent and the standalone `cna-inspector` browser bridge.
+
+It requires `CNA_BUILD_INSPECTOR=ON` and explicit linking with `CNA::Inspector`. It stays outside the normal `CNA` umbrella.
 
 ## Math
 
@@ -235,26 +253,12 @@ It defines abstractions for areas such as:
 Current implementations include:
 
 - **SDL3**
-- **SDL2**
-- **Win32**
-- **X11**
-- **Wayland**
 - **Headless**
 - **POSIX Terminal**
 
 SDL3 remains the default portable backend.
 
-But CNA now also has real native Win32, X11 and Wayland implementations.
-
-That means SDL is no longer an unavoidable part of the desktop platform architecture.
-
-When the Win32 backend is selected, native Windows implementation code and dependencies stay inside that platform configuration.
-
-The same principle applies to X11 and Wayland.
-
-SDL3 and SDL2 are linked only for their respective platform selections rather than being mandatory public dependencies of the Platform API.
-
-A native **Cocoa** implementation for macOS is planned for the future.
+CNA had real native Win32, X11 and Wayland implementations, which were retired due the cost of their maintenance
 
 The Platform API therefore represents CNA concepts rather than SDL concepts.
 
@@ -296,35 +300,28 @@ Graphics does not itself mean OpenGL, Vulkan, Direct3D or another native API.
 
 Those implementations live separately under `modules/renderers/`.
 
+The Graphics module also owns the core `PbrEffect`, `SkinnedPbrEffect` and custom `ShaderEffect` APIs.
+
 ## Renderers
 
 The renderer tree is effectively another modular architecture inside CNA.
 
-CNA currently exposes **25 public renderer identities implemented through 21 renderer families**.
+CNA currently exposes **14 public renderer identities implemented through 12 renderer families**.
 
 The implementation-family tree currently includes:
 
 ```text
 modules/renderers/
 ├── easygl/
-├── opengl4/
 ├── vulkan/
 ├── webgpu/
 ├── directx9/
 ├── directx11/
-├── directx12/
-├── direct2d/
-├── gdi/
 ├── metal/
 ├── sdl-renderer/
 ├── sdl-gpu/
 ├── fna3d/
-├── freedirect/
 ├── software/
-├── portablegl/
-├── canvas/
-├── html-dom/
-├── svg-dom/
 ├── headless/
 └── stub/
 ```
@@ -333,12 +330,10 @@ There is also internal shared renderer infrastructure under areas such as `rende
 
 That common infrastructure is not another public renderer family.
 
-Five public identities share the EasyGL family:
+Three public identities share the EasyGL family:
 
-- OpenGL ES 2
 - OpenGL ES 3
 - OpenGL 3.3
-- WebGL 1
 - WebGL 2
 
 This is why CNA has more public renderer identities than independent implementation families.
@@ -349,13 +344,13 @@ Vulkan code stays inside the Vulkan family.
 
 Direct3D implementation code stays in the DirectX families.
 
-OpenGL-specific implementation details stay in EasyGL or OpenGL 4.
+OpenGL-specific implementation details stay in EasyGL.
 
 Browser-specific implementation code stays in the browser renderer families.
 
-CPU rendering stays in Software or PortableGL.
+CPU rendering stays in Software.
 
-Shared implementation code can live in internal renderer helper modules, such as the Direct3D common layer used by Direct3D 11 and Direct3D 12.
+Shared implementation code can live in internal renderer helper modules, such as the Direct3D common layer used by Direct3D 11.
 
 This separation is a major reason CNA can support many substantially different rendering technologies without filling `GraphicsDevice` with native graphics API code.
 
@@ -380,7 +375,7 @@ The actual operating-system communication is delegated to the Platform API.
 
 The Input module understands concepts such as `KeyboardState`, `MouseState` and `GamePadState`.
 
-`CNA::Platform` knows how the selected SDL3, Win32, X11, Wayland or other platform implementation obtains the underlying information.
+`CNA::Platform` knows how the selected SDL3, Headless or Terminal implementation obtains the underlying information.
 
 ## Audio
 
@@ -615,22 +610,15 @@ This keeps CNA-specific extensions physically separate from the compatibility-or
 
 ## Graphics Extensions
 
-`CNA::GraphicsExt` contains much of CNA's modern graphics functionality beyond XNA 4.0.
+`CNA::GraphicsExt` contains focused graphics utilities and effects beyond XNA 4.0.
 
-It contains systems around areas such as:
+It contains:
 
-- PBR
-- HDR
-- bloom
-- SSAO
-- SSR
-- atmospheric rendering
-- advanced shadows
-- clustered lighting
-- post-processing
-- ASCII and CRT effects
-- GPU culling
-- modern rendering pipelines
+- ASCII post-processing
+- CRT effects
+- colour-depth reduction and dithering
+- standalone `DebugDraw`
+- `ShaderCodeEXT` and `ShaderPackageEXT` values for portable shader variants
 
 This code is deliberately separate from `CNA::GraphicsCore`.
 
@@ -640,7 +628,7 @@ The core Graphics module answers:
 
 GraphicsExt answers:
 
-> What additional modern graphics functionality should CNA provide?
+> What additional graphics utilities and effects should CNA provide?
 
 The extension umbrella is:
 
@@ -794,15 +782,6 @@ For example:
 SDL
     → SDL platform/audio implementations
 
-Win32 APIs
-    → Win32 platform implementation
-
-X11 libraries
-    → X11 platform implementation
-
-Wayland / xkbcommon
-    → Wayland platform implementation
-
 ENet
     → Net
 
@@ -818,9 +797,9 @@ renderer SDK / native graphics API
 
 A dependency should live as close as practical to the functionality that actually needs it.
 
-For example, choosing native X11 should not make X11 headers part of CNA's public framework API.
+For example, choosing SDL3 should not make SDL headers part of CNA's public Platform API.
 
-Selecting Wayland should not make Wayland a dependency of Math.
+Selecting SDL3 should not make SDL a dependency of Math.
 
 Using Direct3D should not turn the Platform API into a Direct3D API.
 
@@ -895,6 +874,12 @@ The module architecture gives each major subsystem clearer ownership:
 Core
     → shared CNA foundation
 
+Diagnostics
+    → optional runtime statistics and profiling
+
+Inspector
+    → optional external inspection tool
+
 Math
     → mathematics
 
@@ -959,7 +944,7 @@ A renderer can be restructured without turning it into the Platform module.
 
 The Platform implementation can change without rewriting Math.
 
-Win32, X11 or Wayland can evolve independently of the XNA-facing input types.
+SDL3, Headless or Terminal can evolve independently of the XNA-facing input types.
 
 The content compiler can gain another build-time dependency without forcing it into every running game.
 
@@ -973,9 +958,9 @@ Modularity is not only about organizing source files.
 
 It also creates replaceable implementation boundaries.
 
-The Platform contract can be implemented by SDL3, SDL2, Win32, X11, Wayland, Headless or Terminal.
+The Platform contract can be implemented by SDL3, Headless or Terminal.
 
-The Graphics contract can be implemented by 25 public renderer identities.
+The Graphics contract can be implemented by 14 public renderer identities.
 
 Video can use the optional FFmpeg implementation without making FFmpeg part of the Media API itself.
 
@@ -995,9 +980,9 @@ target_link_libraries(MyGame PRIVATE CNA)
 
 Underneath that simple target, however, CNA is composed from a much more explicit graph of independently owned systems.
 
-There are currently **20 physical framework modules**, together with **21 renderer implementation families providing 25 public renderer identities**.
+There are currently **22 physical framework modules**, together with **12 renderer implementation families providing 14 public renderer identities**.
 
-The purpose is not to make users think about twenty libraries every time they start a game.
+The purpose is not to make users think about twenty-two libraries every time they start a game.
 
 It is to prevent CNA itself from becoming one inseparable block containing hundreds of thousands of lines of C++ with every dependency leaking everywhere.
 
