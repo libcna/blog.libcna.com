@@ -5,7 +5,14 @@
     <link>https://blog.libcna.com/</link>
     <description>Building a portable XNA-style framework for the long term.</description>
     <language>en</language>
-    <lastBuildDate>Thu, 08 Oct 2026 12:42:49 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 10 Oct 2026 16:00:00 GMT</lastBuildDate>
+    <item>
+      <title>CNA 0.1.0 was released</title>
+      <link>https://blog.libcna.com/2026/10/10/cna-0-1-0-was-released/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2026/10/10/cna-0-1-0-was-released/</guid>
+      <pubDate>Sat, 10 Oct 2026 16:00:00 GMT</pubDate>
+      <description>CNA 0.1.0 is the first final release of CNA. This article summarizes what changed since 0.1.0-alpha.1.</description>
+    </item>
     <item>
       <title>CNA repositories at github.com</title>
       <link>https://blog.libcna.com/2026/10/08/cna-repositories-at-github-com/</link>
