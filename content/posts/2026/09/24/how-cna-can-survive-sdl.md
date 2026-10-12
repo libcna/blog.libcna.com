@@ -1,7 +1,7 @@
 ---
 title: How CNA can survive SDL
 date: 2026-09-24T11:21:36Z
-updated: 2026-10-02T14:16:22Z
+updated: 2026-10-12T07:00:00Z
 description: |
   SDL is one of the most important technologies used by CNA today.
 author: Robert Vokac
@@ -26,15 +26,17 @@ SDL is one of the most important technologies used by CNA today.
 
 For a cross-platform framework, that is enormously useful.
 
-But CNA is built around the  principle: **SDL should be an implementation choice, not something CNA applications fundamentally depend on.**
+But CNA is built around the principle: **SDL should be an implementation choice, not something CNA applications fundamentally depend on.**
 
-CNA had working native **Win32, X11 and Wayland** platform backends, which allowed CNA applications to run without SDL. But these native platform backends are retired now due the cost of their maintenance in CNA.
+CNA had working native **Win32, X11 and Wayland** platform backends, which allowed CNA applications to run without SDL. **They were retired on 6 October 2026** due to the cost of their maintenance in CNA.
+
+**Windows, X11 and Wayland are still supported.** They are now supported **through SDL3**.
 
 ## SDL is important to CNA
 
-CNA currently uses **SDL3 as its default platform backend**.
+**SDL3 is CNA's only graphical platform backend.** It is the one implementation that opens a window.
 
-There are also Headless and POSIX Terminal backends.
+There are also Headless and POSIX Terminal backends, for environments without a window.
 
 SDL solves many difficult portability problems:
 
@@ -47,6 +49,8 @@ SDL solves many difficult portability problems:
 - platform integration
 - timing
 - many operating-system differences
+
+SDL3 reaches each window system through its own video driver: `windows`, `x11`, `wayland`, `cocoa` on macOS, `android` and others.
 
 SDL provides a mature, portable implementation that CNA can continue using for as long as it remains useful.
 
@@ -64,9 +68,9 @@ CNA applications care about things such as:
 - audio
 - storage
 
-They do not need to know whether CNA implements those concepts using SDL, Win32, X11, Wayland or some future platform technology.
+They do not need to know whether CNA implements those concepts using SDL3, a native backend or some future platform technology.
 
-CNA talks to the operating system or platform library.
+CNA, not the application, talks to the operating system or platform library.
 
 ## The platform and renderer are separate
 
@@ -87,59 +91,20 @@ The graphics renderer does not have to be the Vulkan.
 
 And the platform implementation does not have to be SDL 3.
 
-## CNA already had multiple platform backends
+**Renderers did not notice the retirement of the native backends.** A renderer still receives the native window it needs, now from SDL3:
+
+- an `HWND` on Windows
+- a `Display*` and window on X11
+- a `wl_display*` and `wl_surface*` on Wayland
+- an `NSWindow*` on macOS
+
+## CNA's platform backends today
 
 ### SDL3
 
-SDL3 remains CNA's default general-purpose platform backend.
+SDL3 is CNA's default platform backend and the only one that opens a window.
 
-It provides the most convenient portable path across multiple operating systems and remains an important part of normal CNA configurations.
-
-### Win32
-
-It implements the platform layer directly using Windows APIs rather than routing windowing and input through SDL.
-
-The Win32 backend covers areas such as:
-
-- native window creation
-- Windows event processing
-- keyboard and mouse input
-- text input
-- DPI handling
-- fullscreen state
-- system services
-- graphics-surface integration
-
-This makes a fully native Windows platform path possible.
-
-For example: **Win32 + Direct3D 12 **does not require SDL to provide the application's window or event loop.
-
-### X11
-
-It provides a Linux/X11 path without requiring SDL for the core platform implementation.
-
-The backend covers native X11 windowing, events, keyboard and mouse handling, clipboard-related functionality, graphics-surface integration and other platform services.
-
-CNA's X11 work also has an important architectural role: **it provides a real SDL-free Linux configuration.**
-
-### Wayland
-
-Wayland requires a substantially different architecture from X11.
-
-The CNA implementation includes native Wayland concepts such as:
-
-- registry discovery
-- surfaces
-- seats
-- keyboard and pointer input
-- outputs
-- clipboard and drag-and-drop
-- text input
-- window states
-- fractional scaling
-- relative pointer support
-- pointer constraints
-- presentation timing
+It covers every desktop and mobile target: Windows, X11, Wayland, macOS, iOS, Android and the browser.
 
 ### Headless
 
@@ -158,11 +123,55 @@ It also helps verify that application and framework code do not accidentally dep
 
 POSIX Terminal provides a very different platform implementation for terminal-oriented POSIX environments.
 
+The Software renderer can hand its finished frames to it, so **a CNA game can run in a terminal**.
+
 Its existence is architecturally useful because it demonstrates that CNA's platform interface is not simply an SDL wrapper with another name.
+
+## The retired native backends
+
+CNA carried three native platform backends alongside SDL3. They worked, and they allowed a CNA game to run without SDL at all.
+
+### Win32
+
+It implemented the platform layer directly using Windows APIs rather than routing windowing and input through SDL.
+
+The Win32 backend covered native window creation, Windows event processing, keyboard and mouse input, text input, DPI handling, fullscreen state, system services and graphics-surface integration.
+
+### X11
+
+It provided a Linux/X11 path without requiring SDL for the core platform implementation: native X11 windowing, events, keyboard and mouse handling, clipboard-related functionality and graphics-surface integration.
+
+### Wayland
+
+Wayland required a substantially different architecture from X11.
+
+The CNA implementation included native Wayland concepts such as registry discovery, surfaces, seats, outputs, clipboard and drag-and-drop, text input, window states, fractional scaling, relative pointer support, pointer constraints and presentation timing.
+
+### Why they were retired
+
+Three copies of window management, input translation, clipboard, IME and DPI handling **cost more to keep correct than the independence from SDL they bought**. SDL3 already drives all three window systems.
+
+Selecting `WIN32`, `X11` or `WAYLAND` is now a configure-time error that names `SDL3` as the replacement. There is no alias and no silent fallback.
+
+Their code, designs and measurements are not lost. They stay in CNA's git history.
+
+## CNA without SDL
+
+CNA can still be built **completely without SDL**, as a windowless configuration:
+
+- the **Headless** or **Terminal** platform
+- the **Headless**, **Software** or **Stub** renderer
+- **no audio**, or **ALSA** audio on Linux
+
+That is enough for a server, a test runner or a terminal game.
+
+Content does not need SDL either. CNA decodes WAV sound data with its own decoder, not with SDL.
+
+**A build that opens a window needs SDL3.**
 
 ## What happens when SDL4 appears?
 
-CNA will add an SDL4 platform backend.
+CNA will add an SDL4 platform backend.
 
 Existing CNA applications can continue using CNA's platform-facing APIs.
 
@@ -172,13 +181,16 @@ Most of the migration work belongs inside CNA.
 
 If SDL were no longer maintained decades from now, that would not automatically mean: CNA is dead.
 
-On Windows, CNA has Win32 (retired).
+CNA builds SDL from source, pinned to an exact commit, so an unmaintained SDL can still be built.
 
-On Linux, CNA has X11 (retired) and Wayland (retired).
+And if SDL stopped working on the systems of the future, CNA's platform interface is still there:
 
-On macOS, a native Cocoa platform could be implemented.
+- On Windows, a native Win32 backend can be brought back. CNA has already built one once.
+- On Linux, the same is true for X11 and Wayland.
+- On macOS, a native Cocoa platform could be implemented.
+- Other environments can have their own platform implementations.
 
-Other environments can have their own platform implementations.
+A new platform implementation joins CNA's implementation-neutral conformance tests automatically. Headless and Terminal are already tested by them, without SDL.
 
 ## Long-lived applications need replaceable foundations
 
@@ -188,6 +200,6 @@ The exact versions of SDL, Windows, Linux, graphics drivers, GPU APIs and compil
 
 That is what CNA's architecture is trying to make possible.
 
-SDL3 today. Perhaps SDL4 tomorrow.
+SDL3 today. Perhaps SDL4 tomorrow.
 
-Win32, X11 and Wayland already available as native alternatives.
+And if SDL ever disappears, a native platform can take its place behind the same interface. CNA has done it before with Win32, X11 and Wayland.
