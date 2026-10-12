@@ -23,85 +23,11 @@ CNA 0.1.0 was released today.
 
 It is the **first final release** of CNA.
 
-The previous release, `0.1.0-alpha.1`, was tagged on 20 August 2026. Since then, CNA received **about 3,600 commits**.
+The previous release, `0.1.0-alpha.1`, was tagged on 20 August 2026.
 
-Nobody can read all of them in one sitting, and this article does not try. It describes the most important changes: the ones that change what CNA is, what it supports, and how it is built.
+This article describes the most important changes: the ones that change what CNA is, what it supports, and how it is built.
 
 The full list is in the [CHANGELOG](https://github.com/libcna/cna/blob/v0.1.0/CHANGELOG.md), and the release itself is the tag [`v0.1.0`](https://github.com/libcna/cna/releases/tag/v0.1.0).
-
-## From 51 renderers to 14
-
-At its peak, CNA had **51 renderer identities**.
-
-**37 of them were removed.**
-
-Not because they did not work. Several of them were excellent pieces of work.
-
-They were removed because of the **cost of maintaining them**.
-
-Every renderer has to follow every change of the renderer interface, every newly restored XNA 4.0 behavior, every new test and every new platform. With 51 renderers, every one of those changes had to be made, built and tested 51 times.
-
-The removed renderers include:
-
-- historical Direct3D versions: **Direct3D 1, 2, 3, 5, 6, 7, 8 and 10**, and also **Direct3D 12**
-- older and alternative OpenGL profiles: **OpenGL 1, OpenGL 2, OpenGL 4, OpenGL ES 1, OpenGL ES 2 and WebGL 1**
-- renderers built on third-party graphics libraries: **bgfx, Magnum, Diligent Engine, Wicked Engine, sokol, LLGL, IGL and rlgl**
-- 2D and vector libraries: **Skia, Blend2D, NanoVG, OpenVG, Direct2D and PixiJS**
-- software and retro paths: **TinyGL, PortableGL, Glide and GDI**
-- browser DOM paths: **HTML DOM, SVG DOM and Canvas**
-- **FreeDirect**
-
-CNA now has **14 renderers**:
-
-| Renderer | Notes |
-|---|---|
-| OpenGL ES 3 | EasyGL |
-| OpenGL 3.3 | EasyGL |
-| WebGL 2 | EasyGL |
-| Vulkan | |
-| Direct3D 11 | |
-| Direct3D 9 | |
-| Metal | |
-| WebGPU | native and in the browser |
-| SDL GPU | |
-| FNA3D | |
-| SDL Renderer | 2D |
-| Software | CPU renderer |
-| Headless | diagnostic, no pixels |
-| Stub | diagnostic, no pixels |
-
-This is a curated set. A renderer is added only when it brings real platform coverage, compatibility value, architectural value or a capability the existing set does not reasonably cover.
-
-The removed renderers are not lost.
-
-- `docs/removed-renderers.md` records every removed renderer, the commit that removed it and the exact third-party dependency it wrapped.
-- Their C API values are **permanently reserved**. No surviving renderer was renumbered.
-- Selecting a removed renderer is a configure-time error that names it. It never silently falls back to another renderer.
-
-More about the remaining renderers is in [Renderers in CNA](/2026/09/20/renderers-in-cna/).
-
-## SDL3 is the one graphical platform
-
-Two platform changes are just as large.
-
-CNA carried **two SDL platform backends side by side, SDL2 and SDL3**. **The SDL2 backend was retired** on 4 October 2026. SDL3 is now the only SDL platform in CNA.
-
-**The native Win32, X11 and Wayland platform backends were removed too.**
-
-They worked. They allowed a CNA game to run without SDL at all. But, like the renderers, they cost too much to maintain next to SDL3.
-
-**Windows, X11 and Wayland are still supported.** They are now supported **through SDL3**, which reaches each window system through its own `windows`, `x11` and `wayland` video drivers.
-
-Renderers did not notice the change. A renderer still receives the native window it needs: an `HWND` on Windows, a `Display*` and window on X11, a `wl_display*` and `wl_surface*` on Wayland.
-
-The windowless platforms remain:
-
-- **Headless**
-- **Terminal**
-
-And a game can **run in a terminal again**: the Software renderer now hands its finished frames to the terminal platform.
-
-The longer story is in [How CNA can survive SDL](/2026/09/24/how-cna-can-survive-sdl/).
 
 ## CNA.NET: XNA 4.0 C# games on CNA
 

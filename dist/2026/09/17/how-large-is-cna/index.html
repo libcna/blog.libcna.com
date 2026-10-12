@@ -40,26 +40,35 @@
   <div class="page-shell single-layout">
     <main class="main-content" id="content"><article class="article">
     <header class="article-header">
-      <div class="meta"><span>Published <time datetime="2026-09-17T10:58:05Z">September 17, 2026</time></span><span>Updated <time datetime="2026-10-09T17:48:03Z">October 9, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/about/">About</a></span></div>
+      <div class="meta"><span>Published <time datetime="2026-09-17T10:58:05Z">September 17, 2026</time></span><span>Updated <time datetime="2026-10-12T07:09:00Z">October 12, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/about/">About</a></span></div>
       <h1 class="article-title">How large is CNA?</h1>
       <p class="article-description">Today, CNA contains the XNA-compatible framework, 14 graphics renderers a content system and content pipeline, audio, input, networking, portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.</p>
     </header>
     <div class="article-body"><p>Today, CNA contains the XNA-compatible framework, 14 graphics renderers a content system and content pipeline, audio, input, networking, portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.</p>
-<p>The figures below describe the development branch &quot;next&quot; measured on October 9, 2026.</p>
+<p>The figures below describe the development branch &quot;next&quot;. The framework figures were measured on October 9, 2026, with the C API figures updated after its major maintainability refactor on October 12, 2026.</p>
 <h2 id="around-322-000-lines-of-non-generated-production-c-code">Around 322,000 lines of non-generated production C++ code</h2>
 <p>This number excludes:</p>
 <ul><li>tests</li><li>examples, benchmarks and standalone diagnostic programs outside the production trees</li><li>the C API</li><li>automatically generated source files</li><li>vendor/</li><li>third_party/</li><li>comment-only lines</li><li>blank lines</li></ul>
 <h2 id="why-generated-code-is-counted-separately">Why generated code is counted separately</h2>
 <p>Several renderers contain automatically generated C++ headers that embed compiled shaders and other generated data.</p>
 <p>For example, Direct3D, Vulkan and SDL GPU contain generated shader headers, while the graphics extensions use generated shader-package headers.</p>
-<p>These generated files account for approximately: <strong>135,000 lines of generated C++.</strong></p>
-<h2 id="the-c-api-adds-another-101-000-lines">The C API adds another 101,000 lines</h2>
-<p>A native C API is directly included inside the CNA repository and currently contain approximately: <strong>101,000 lines of non-generated C and C++ code.</strong></p>
+<p>These generated files account for approximately: <strong>135,000 lines of generated C++.</strong></p>
+<p>This figure does not include the C API&#39;s generated route implementation, which is counted separately below.</p>
+<h2 id="the-c-api-adds-around-59-000-non-generated-lines-and-48-000-generated-lines">The C API adds around 59,000 non-generated lines and 48,000 generated lines</h2>
+<p>A native C API is directly included inside the CNA repository.</p>
+<p>After a major maintainability refactor, it now contains approximately:</p>
+<ul><li><strong>58,800 lines of non-generated C and C++ code</strong></li><li><strong>48,200 lines of generated C++ route code</strong></li></ul>
+<p>The generated route code replaces a large amount of repetitive hand-written ABI glue. It is produced during development from <strong>5,911 lines of declarative TOML specifications</strong> by a route generator of approximately <strong>939 lines of Python</strong>.</p>
+<p>The generated C++ is committed to the repository and compiled normally with CNA. The TOML specifications and Python generator are development-time tools; they are not parsed or required at runtime.</p>
+<p>The C API currently exposes <strong>3,210 <code>cna_*</code> functions</strong>. Of these:</p>
+<ul><li><strong>3,202 functions (99.75%)</strong> use generated route code</li><li><strong>2,255</strong> are generated entirely from their specifications</li><li><strong>947</strong> use a generated ABI shell around a hand-written C++ helper containing the actual complex logic</li><li>only <strong>8 functions</strong> remain fully hand-written because their ABI behavior is exceptional</li></ul>
+<p>This structure keeps complex implementation logic in normal C++ while generating repetitive work such as exception barriers, output validation, handle clearing and canonical boolean checks.</p>
 <p>The C API is much more than a tiny compatibility wrapper.</p>
 <ul><li>It provides a language-neutral ABI over CNA&#39;s C++ implementation and is intended to form the foundation for bindings to additional programming languages.</li></ul>
 <h2 id="the-tests-are-huge-too">The tests are huge too</h2>
-<p>Module test directories currently contain approximately: <strong>289,000 lines of C and C++ test code.</strong></p>
-<ul><li>Of that, <strong>242,646 lines</strong> belong to the framework and renderer modules outside the C API, while the C API contributes another <strong>46,014 lines</strong> in its dedicated test directory.</li></ul>
+<p>Module test directories currently contain approximately: <strong>294,000 lines of C and C++ test code.</strong></p>
+<ul><li>Of that, <strong>242,646 lines</strong> belong to the framework and renderer modules outside the C API, while the C API contributes another <strong>51,605 lines</strong> in its dedicated test directory.</li></ul>
+<p>The C API refactor also introduced generated contract coverage for the generated routes, including thousands of checks for common ABI contracts such as output validation, handle behavior and boolean validation.</p>
 <p>For CNA, this validation code is especially important because compatibility is not simply about recreating XNA class names and method signatures.</p>
 <p>Small behavioral differences in mathematics, graphics states, content loading, audio, input, resource lifetime, networking, serialization or rendering can break real applications.</p>
 <p>The test suite helps turn discovered compatibility problems into permanent regression tests.</p>
@@ -71,7 +80,7 @@
 <div class="table-wrap"><table><thead><tr><th>Area</th><th>Non-generated production code</th></tr></thead><tbody><tr><td>Renderers</td><td>122,272 lines</td></tr><tr><td>Content and Content Pipeline</td><td>71,215 lines</td></tr><tr><td>Platform</td><td>12,681 lines</td></tr><tr><td>Graphics</td><td>36,907 lines</td></tr><tr><td>Gamer Services</td><td>17,811 lines</td></tr><tr><td>Audio</td><td>11,533 lines</td></tr><tr><td>Networking</td><td>9,419 lines</td></tr><tr><td>Math</td><td>7,185 lines</td></tr><tr><td>Input</td><td>6,610 lines</td></tr><tr><td>Devices and Device Extensions</td><td>5,588 lines</td></tr><tr><td>Media</td><td>5,127 lines</td></tr><tr><td>Runtime</td><td>4,195 lines</td></tr><tr><td>Inspector</td><td>3,826 lines</td></tr><tr><td>Diagnostics</td><td>1,898 lines</td></tr><tr><td>Graphics Extensions / CNAEXT</td><td>1,743 lines</td></tr><tr><td>Core</td><td>1,689 lines</td></tr><tr><td>Design</td><td>895 lines</td></tr><tr><td>Video, Storage and Phone</td><td>1,848 lines</td></tr><tr><td>Framework total, excluding C API</td><td>322,442 lines</td></tr></tbody></table></div>
 <p>These numbers change frequently because CNA is still under active development.</p>
 <h2 id="14-graphics-renderers">14 graphics renderers</h2>
-<p>CNA currently exposes <strong>14 public renderers</strong> implemented through <strong>12 renderer families</strong>.</p>
+<p>CNA currently exposes <strong>14 public renderers</strong> implemented through <strong>12 renderer families</strong>.</p>
 <p>The shared EasyGL renderer family provides three public identities:</p>
 <ul><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>WebGL 2</li></ul>
 <p>CNA also contains renderer implementations for:</p>
