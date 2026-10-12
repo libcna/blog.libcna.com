@@ -367,7 +367,7 @@ This decomposition is one of the most important mechanisms allowing radically di
 
 ## Capabilities are essential
 
-An abstraction across 25 very different renderers cannot work by pretending that every renderer has identical capabilities.
+An abstraction across 14 very different renderers cannot work by pretending that every renderer has identical capabilities.
 
 CNA still has the broader `GraphicsCapability` concept for high-level capability questions.
 
@@ -744,7 +744,7 @@ Much of CNA has already moved toward descriptor-, registry- and interface-driven
 
 There is still room to simplify the architecture further.
 
-But supporting 18 public identities across 14 implementation families already demonstrates that the central separation works.
+But supporting 14 public identities across 12 implementation families already demonstrates that the central separation works.
 
 ## One graphics model, many implementations
 

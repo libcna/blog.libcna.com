@@ -177,15 +177,15 @@ C therefore serves two roles:
 
 ## C#
 
-[https://github.com/libcna/cna-cs](https://github.com/libcna/cna-cs)
+[https://github.com/libcna/cna-dotnet](https://github.com/libcna/cna-dotnet)
 
-[https://github.com/libcna/cna-cs-template](https://github.com/libcna/cna-cs-template)
+[https://github.com/libcna/cna-dotnet-template](https://github.com/libcna/cna-dotnet-template)
 
-[https://github.com/libcna/cna-cs-samples](https://github.com/libcna/cna-cs-samples)
+[https://github.com/libcna/cna-dotnet-samples](https://github.com/libcna/cna-dotnet-samples)
 
 C# has a special place in CNA because **XNA itself was primarily a C# framework**.
 
-The CNA.NET / `cna-cs` stack can expose the familiar XNA programming model while eventually reaching the native CNA implementation:
+The CNA.NET / `cna-dotnet` stack can expose the familiar XNA programming model while eventually reaching the native CNA implementation:
 
 ```text
 C# XNA application

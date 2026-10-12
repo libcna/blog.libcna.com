@@ -77,7 +77,7 @@ Together with C++, the long-term target is therefore CNA applications written in
 
 One binding currently have their own repository:
 
-### cna-cs
+### cna-dotnet
 
 C# bindings for CNA.
 
@@ -91,7 +91,7 @@ The organization therefore contains a set of small template repositories:
 
 - `cna-template` — C++
 - `cna-c-template` — C
-- `cna-cs-template` — C#
+- `cna-dotnet-template` — C#
 
 These are intentionally separate from the binding implementations.
 
@@ -108,7 +108,7 @@ It contains C++ ports of official Microsoft XNA Game Studio 4.0 samples.
 
 These samples are not only demonstrations. They are also compatibility tests that regularly uncover missing or incorrect CNA behavior.
 
-### cna-cs-samples
+### cna-dotnet-samples
 
 The corresponding C# sample compatibility workspace.
 
