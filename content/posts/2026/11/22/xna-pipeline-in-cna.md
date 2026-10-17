@@ -1,7 +1,7 @@
 ---
 title: XNA Pipeline in CNA
 date: 2026-11-22T16:21:40Z
-updated: 2026-09-13T16:38:22Z
+updated: 2026-10-17T15:14:22Z
 description: |
   One of the most difficult parts of XNA compatibility is not rendering.
 author: Robert Vokac
@@ -1079,4 +1079,3 @@ And today, across the complete measured corpus, the number of unexplained differ
 
 **CNA:** [github.com/libcna/cna](https://github.com/libcna/cna)
 **xna4-spec:** [github.com/libcna/xna4-spec](https://github.com/libcna/xna4-spec)
-**CNA Bible:** [github.com/libcna/bible.libcna.com](https://github.com/libcna/bible.libcna.com)
