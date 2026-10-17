@@ -39,7 +39,7 @@
       <link>https://blog.libcna.com/2026/10/04/renderer-api-in-cna/</link>
       <guid isPermaLink="true">https://blog.libcna.com/2026/10/04/renderer-api-in-cna/</guid>
       <pubDate>Sun, 04 Oct 2026 12:33:36 GMT</pubDate>
-      <description>CNA currently exposes 14 renderers across 12 implementation families.</description>
+      <description>CNA currently exposes 10 renderers across 8 implementation families.</description>
     </item>
     <item>
       <title>CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings</title>

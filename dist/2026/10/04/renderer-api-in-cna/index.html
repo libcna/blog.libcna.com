@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Renderer API in CNA | CNA&#39;s Blog</title>
-  <meta name="description" content="CNA currently exposes 14 renderers across 12 implementation families.">
+  <meta name="description" content="CNA currently exposes 10 renderers across 8 implementation families.">
 
   <link rel="canonical" href="https://blog.libcna.com/2026/10/04/renderer-api-in-cna/">
   <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/assets/style.css">
   <meta property="og:type" content="article">
   <meta property="og:title" content="Renderer API in CNA">
-  <meta property="og:description" content="CNA currently exposes 14 renderers across 12 implementation families.">
+  <meta property="og:description" content="CNA currently exposes 10 renderers across 8 implementation families.">
   <meta property="og:url" content="https://blog.libcna.com/2026/10/04/renderer-api-in-cna/">
   <meta property="og:site_name" content="CNA&#39;s Blog">
 
@@ -40,13 +40,13 @@
   <div class="page-shell single-layout">
     <main class="main-content" id="content"><article class="article">
     <header class="article-header">
-      <div class="meta"><span>Published <time datetime="2026-10-04T12:33:36Z">October 4, 2026</time></span><span>Updated <time datetime="2026-10-04T07:17:57Z">October 4, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/graphics/">Graphics</a></span></div>
+      <div class="meta"><span>Published <time datetime="2026-10-04T12:33:36Z">October 4, 2026</time></span><span>Updated <time datetime="2026-10-17T12:52:56Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/graphics/">Graphics</a></span></div>
       <h1 class="article-title">Renderer API in CNA</h1>
-      <p class="article-description">CNA currently exposes 14 renderers across 12 implementation families.</p>
+      <p class="article-description">CNA currently exposes 10 renderers across 8 implementation families.</p>
     </header>
-    <div class="article-body"><p>CNA currently exposes <strong>14 renderers across 12 implementation families</strong>.</p>
+    <div class="article-body"><p>CNA currently exposes <strong>10 renderers across 8 implementation families</strong>.</p>
 <p>Those renderers are extremely different.</p>
-<p>Vulkan, Direct3D 11, OpenGL, SDL Renderer, software rendering, Headless does not have much in common at the native API level.</p>
+<p>OpenGL, WebGPU, Direct3D 9, SDL_GPU, FNA3D, software rendering and Headless do not have much in common at the native API level.</p>
 <p>Yet all of them can sit underneath the same XNA-style <code>GraphicsDevice</code>.</p>
 <p>The reason is CNA&#39;s internal <strong>Renderer API</strong>.</p>
 <h2 id="the-application-never-talks-directly-to-the-renderer">The application never talks directly to the renderer</h2>
@@ -59,28 +59,22 @@ Textures / Buffers / Effects / SpriteBatch
  ↓
 CNA Renderer API
  ↓
-Vulkan / Direct3D / OpenGL / Software / Web / ...</code></pre>
+OpenGL / WebGPU / Direct3D 9 / SDL_GPU / Software / ...</code></pre>
 <p>Renderer-specific classes live below the public XNA API.</p>
-<p>The application does not normally construct a <code>VulkanRenderer</code> or call Direct3D directly.</p>
+<p>The application does not normally construct a <code>WebGPURenderer</code> or call Direct3D directly.</p>
 <p>Instead, <code>GraphicsDevice</code> translates the common CNA/XNA graphics model into the renderer contract.</p>
 <p>That boundary is what allows the implementation underneath an application to change without changing the application&#39;s high-level graphics API.</p>
 <h2 id="graphicsrenderertype">GraphicsRendererType</h2>
 <p>Every public renderer identity is represented by:</p>
 <pre><code class="language-cpp">CNA::GraphicsRendererType</code></pre>
-<p>The current public set contains 18 identities:</p>
-<pre><code class="language-text">SDL_RENDERER
-
-OPENGLES3
+<p>The current public set contains 10 identities:</p>
+<pre><code class="language-text">OPENGLES3
 OPENGL33
 WEBGL2
 
-VULKAN
 WEBGPU
 
 DIRECTX9
-DIRECTX11
-
-METAL
 
 SDL_GPU
 FNA3D
@@ -89,13 +83,15 @@ SOFTWARE
 
 HEADLESS
 STUB</code></pre>
+<p>The set was deliberately reduced on 13 October 2026. <code>VULKAN</code>, <code>DIRECTX11</code>, <code>METAL</code> and <code>SDL_RENDERER</code> were retired rather than aliased to another renderer. Their C ABI values remain permanently reserved, and configuration or runtime selection that still names one of them is refused with a retirement-specific error.</p>
+<p><code>SDL_GPU</code> is now CNA&#39;s modern native path. SDL chooses Vulkan, Direct3D 12 or Metal underneath it according to the host platform. <code>WEBGPU</code> remains CNA&#39;s direct modern renderer for native and browser targets.</p>
 <p>An identity does not necessarily mean a completely independent implementation.</p>
 <p>The most important example is <strong>EasyGL</strong>.</p>
 <p>OpenGL ES 3, OpenGL 3.3 and WebGL 2 are three separate public identities, but they share one EasyGL implementation family.</p>
 <p><code>GraphicsRendererType</code> describes which renderer CNA exposes to the rest of the framework.</p>
 <h2 id="selection-is-normally-compile-time">Selection is normally compile-time</h2>
 <p>The simplest and recommended CNA configuration still builds one renderer:</p>
-<pre><code class="language-text">CNA_GRAPHICS_RENDERER=VULKAN</code></pre>
+<pre><code class="language-text">CNA_GRAPHICS_RENDERER=SDL_GPU</code></pre>
 <p>In that configuration there is almost no runtime renderer-selection problem.</p>
 <p>The application has one renderer family and CNA uses it.</p>
 <p>But CNA also supports optional multi-renderer builds.</p>
@@ -127,40 +123,37 @@ Default()</code></pre>
 <p>Renderer abstraction has a chicken-and-egg problem.</p>
 <p>Some decisions must be made <strong>before the renderer object itself can be constructed</strong>.</p>
 <p>For example:</p>
-<ul><li>Does it need a window?</li><li>What kind of window does it need?</li><li>Does it need an OpenGL context?</li><li>Does it need a Vulkan surface?</li><li>Does it need high-DPI support?</li><li>Does it need particular framebuffer attributes?</li><li>Does it need a platform surface presenter?</li><li>Is the renderer worth attempting on this machine?</li><li>Which platform services must be supplied to it?</li></ul>
+<ul><li>Does it need a window?</li><li>What kind of window does it need?</li><li>Does it need an OpenGL context?</li><li>Does it need particular framebuffer attributes?</li><li>Does it need a platform surface presenter?</li><li>Is the renderer worth attempting on this machine?</li><li>Which platform services must be supplied to it?</li></ul>
 <p>A virtual method on <code>IGraphicsRenderer</code> cannot answer these questions because the renderer has not been created yet.</p>
 <p>CNA solves this with:</p>
 <pre><code class="language-cpp">GraphicsRendererDescriptor</code></pre>
 <p>Every renderer family provides a static descriptor describing the information that must be known before construction.</p>
 <p>The descriptor contains data such as:</p>
-<ul><li>renderer identity and public name</li><li>required window kind</li><li>whether a real window is needed</li><li>whether video/window-system initialization is needed</li><li>high-DPI requirements</li><li>OpenGL framebuffer requirements</li><li>required narrow platform services</li><li>a cheap availability probe</li><li>the renderer creation function</li><li>adapter-level query hooks</li></ul>
+<ul><li>renderer identity and public name</li><li>required window kind</li><li>whether a real window is needed</li><li>whether video/window-system initialization is needed</li><li>OpenGL framebuffer requirements</li><li>required narrow platform services</li><li>a cheap availability probe</li><li>the renderer creation function</li><li>adapter-level query hooks</li></ul>
 <p>This keeps renderer creation declarative instead of filling <code>GraphicsDevice</code> with a growing collection of renderer-specific branches.</p>
 <h2 id="rendererwindowkind">RendererWindowKind</h2>
 <p>One important part of the descriptor is <code>RendererWindowKind</code>:</p>
 <pre><code class="language-text">None
 Plain
-OpenGL
-Vulkan
-Metal</code></pre>
+OpenGL</code></pre>
 <p>This describes the coarse kind of window environment required before the renderer exists.</p>
 <p>A Headless or CPU-oriented renderer may not need a graphics window at all.</p>
-<p>Direct3D normally needs a plain native window.</p>
+<p>Direct3D 9, SDL_GPU and WebGPU use a plain window.</p>
 <p>OpenGL requires a window/context configuration appropriate for OpenGL.</p>
-<p>Vulkan requires a surface-compatible window.</p>
-<p>Metal has its own platform requirements.</p>
+<p>Headless, Software and Stub use <code>None</code> because they do not require a graphics window.</p>
 <p>This also matters when renderer fallback is enabled.</p>
 <p>If one renderer fails and CNA wants to attempt another, the existing window may or may not be compatible with the next renderer.</p>
-<p>A window prepared for Vulkan is not automatically interchangeable with one prepared for OpenGL.</p>
+<p>A plain window is not automatically interchangeable with one prepared for OpenGL.</p>
 <p>The descriptor gives CNA enough information to make this decision before constructing the next backend.</p>
 <h2 id="the-renderer-api-no-longer-assumes-sdl-owns-the-platform">The Renderer API no longer assumes SDL owns the platform</h2>
 <p>The renderer architecture is closely connected to CNA&#39;s Platform API.</p>
 <p>But the two are separate.</p>
-<p>CNA now has multiple platform implementations including:</p>
+<p>CNA now has three platform implementations:</p>
 <ul><li>SDL3</li><li>Headless</li><li>Terminal</li></ul>
 <p>The renderer should not need to know which one created the host environment.</p>
 <p>A Direct3D renderer should care that it has an appropriate Windows native handle.</p>
-<p>It should not fundamentally care whether that handle originated from SDL3 or the native Win32 backend.</p>
-<p>Likewise, Vulkan can receive an appropriate presentation surface through CNA&#39;s Platform API rather than embedding one window-system implementation directly into the renderer.</p>
+<p>It should not reach through the platform implementation to obtain it. CNA&#39;s current windowed platform is SDL3; the direct Win32, X11 and Wayland platform implementations were retired on 6 October 2026.</p>
+<p>Headless and Terminal cover hosts without a graphical window system, while renderers continue to consume only the platform data and services they actually need.</p>
 <h2 id="platform-services-are-deliberately-narrow">Platform services are deliberately narrow</h2>
 <p>A renderer does not simply receive the entire platform implementation and gain unrestricted access to it.</p>
 <p><code>GraphicsRendererCreateArgs</code> contains platform-neutral information such as a renderer surface snapshot:</p>
@@ -170,10 +163,8 @@ drawable size
 display scale</code></pre>
 <p>Depending on the renderer descriptor, a renderer can also receive narrow services such as:</p>
 <pre><code class="language-text">IPlatformGlContext
-IPlatformVulkanSurface
 IPlatformSurfacePresenter</code></pre>
 <p>An OpenGL renderer can ask for an OpenGL context.</p>
-<p>Vulkan can ask for a presentation surface.</p>
 <p>A CPU renderer can hand completed pixels to a platform surface presenter.</p>
 <p>The renderer does not need to become a second platform implementation.</p>
 <p>This is one of the architectural boundaries that allows CNA&#39;s renderer layer to remain independent from SDL and from any single native window system.</p>
@@ -182,10 +173,10 @@ IPlatformSurfacePresenter</code></pre>
 <pre><code class="language-cpp">CNA::Internal::Renderers::IGraphicsRenderer</code></pre>
 <p>This is the main bridge between <code>GraphicsDevice</code> and the active renderer implementation.</p>
 <p>It covers areas including:</p>
-<ul><li>clearing and presenting</li><li>viewport and presentation management</li><li>render targets</li><li>textures</li><li>vertex and index buffers</li><li>graphics state</li><li>draw calls</li><li>effects and shaders</li><li>compute</li><li>storage buffers and storage textures</li><li>GPU timers</li><li>resource limits</li><li>format support</li><li>context and device recovery</li><li>capability queries</li><li>coordinate conversion</li></ul>
+<ul><li>clearing and presenting</li><li>viewport and presentation management</li><li>render targets</li><li>textures</li><li>vertex and index buffers</li><li>graphics state</li><li>draw calls</li><li>effects and shaders</li><li>resource limits</li><li>format support</li><li>context and device recovery</li><li>capability queries</li><li>coordinate conversion</li></ul>
 <p>The interface also contains default behavior for functionality that not every renderer implements.</p>
 <p>That is important.</p>
-<p>A simple 2D renderer does not need to fake compute shaders simply to satisfy the common interface.</p>
+<p>A renderer that cannot rasterize 3D geometry or sample a volume texture does not need to fake that functionality simply to satisfy the common interface.</p>
 <p>It can refuse unsupported functionality explicitly.</p>
 <h2 id="resource-interfaces">Resource interfaces</h2>
 <p>Not everything is placed directly inside <code>IGraphicsRenderer</code>.</p>
@@ -193,36 +184,31 @@ IPlatformSurfacePresenter</code></pre>
 <pre><code class="language-text">IVertexBufferRenderer
 IIndexBufferRenderer
 
+IOcclusionQueryRenderer
+
 ITextureRenderer
 ITextureCubeRenderer
 ITexture3DRenderer
-ITexture2DArrayRenderer
-IStorageTexture2DRenderer
 
 IRenderTargetRenderer
 IRenderTargetCubeRenderer
 
 ISpriteBatchRenderer
-IEffectRenderer
-
-IComputeShaderRenderer
-IStorageBufferRenderer
-
-IGpuTimerRenderer
-IOcclusionQueryRenderer</code></pre>
+IEffectRenderer</code></pre>
 <p>A public XNA-style <code>Texture2D</code> therefore does not need to know whether its implementation is:</p>
-<ul><li>a Vulkan image</li><li>a Direct3D resource</li><li>an OpenGL texture object</li><li>a WebGPU texture</li><li>or CPU-owned memory</li></ul>
+<ul><li>an OpenGL texture object</li><li>a WebGPU texture</li><li>an SDL_GPU texture</li><li>a Direct3D 9 resource</li><li>or CPU-owned memory</li></ul>
 <p>It communicates through the common renderer-side resource contract.</p>
 <p>This decomposition is one of the most important mechanisms allowing radically different rendering technologies to live underneath the same framework.</p>
 <h2 id="capabilities-are-essential">Capabilities are essential</h2>
-<p>An abstraction across 14 very different renderers cannot work by pretending that every renderer has identical capabilities.</p>
+<p>An abstraction across 10 very different renderers cannot work by pretending that every renderer has identical capabilities.</p>
 <p>CNA still has the broader <code>GraphicsCapability</code> concept for high-level capability questions.</p>
 <p>But modern CNA also contains a substantially more detailed renderer-capability model.</p>
 <p>This matters because simply knowing the name of a renderer often does not tell an application enough.</p>
 <h2 id="rendererfeature">RendererFeature</h2>
-<p><code>RendererFeature</code> currently defines <strong>32 atomic renderer features</strong>.</p>
+<p><code>RendererFeature</code> currently defines <strong>28 live atomic renderer features</strong>.</p>
+<p>Its public numeric space still reaches ordinal 31. Four ordinals formerly used by the retired modern GPU layer remain reserved so the C ABI never silently reassigns an old feature number.</p>
 <p>Instead of asking only whether a backend vaguely &quot;supports shaders&quot;, CNA can distinguish things such as:</p>
-<ul><li>a complete 3D graphics pipeline</li><li>depth/stencil support</li><li>MSAA</li><li>multiple render targets</li><li>anisotropic filtering</li><li>wireframe rasterization</li><li>occlusion queries</li><li>accepting source-based <code>ShaderEffect</code> objects</li><li>actually executing the supplied shader source</li><li>compiled XNA effects</li><li>Texture3D storage</li><li>Texture3D sampling</li><li>instancing</li><li>base-instance drawing</li><li>compute shaders</li><li>compute-image binding</li><li>indirect drawing</li><li>shadow sampling</li><li>image-based lighting</li><li>GPU timers</li><li>particular shader dialects</li></ul>
+<ul><li>a complete 3D graphics pipeline</li><li>depth/stencil support</li><li>MSAA</li><li>multiple render targets</li><li>anisotropic filtering</li><li>wireframe rasterization</li><li>occlusion queries</li><li>accepting source-based <code>ShaderEffect</code> objects</li><li>actually executing the supplied shader source</li><li>compiled XNA effects</li><li>Texture3D storage</li><li>Texture3D sampling</li><li>instancing</li><li>base-instance drawing</li><li>shadow sampling</li><li>image-based lighting</li><li>particular shader dialects</li></ul>
 <p>Each feature has a <code>RendererFeatureSupport</code> value:</p>
 <pre><code class="language-text">Unknown
 Unsupported
@@ -236,23 +222,21 @@ Restricted</code></pre>
 <h2 id="numeric-limits">Numeric limits</h2>
 <p>Feature support is only part of the problem.</p>
 <p>Graphics devices also have numerical limits.</p>
-<p><code>RendererLimit</code> currently defines <strong>22 numeric limits</strong>, including:</p>
-<ul><li>maximum texture dimension</li><li>maximum vertex streams</li><li>compute work-group counts</li><li>compute work-group sizes</li><li>maximum storage-buffer size</li><li>maximum uniform-buffer size</li><li>maximum compute storage-buffer bindings</li><li>maximum texture-array layers</li><li>maximum sampled textures per shader stage</li><li>maximum storage images</li><li>maximum vertex input bindings</li><li>maximum vertex attributes</li><li>maximum color attachments</li><li>storage-buffer alignment</li><li>uniform-buffer alignment</li><li>GPU timestamp period</li></ul>
+<p><code>RendererLimit</code> currently defines <strong>8 live numeric limits</strong>:</p>
+<ul><li>maximum texture dimension</li><li>maximum vertex streams</li><li>maximum uniform-buffer size</li><li>maximum sampled textures per shader stage</li><li>maximum vertex input bindings</li><li>maximum vertex attributes</li><li>maximum color attachments</li><li>uniform-buffer alignment</li></ul>
+<p>As with renderer features, retired limit ordinals remain reserved in the public numeric space.</p>
 <p>This prevents higher-level code from assuming that every renderer and every physical device has identical hardware limits.</p>
 <h2 id="surface-formats-have-their-own-capability-model">Surface formats have their own capability model</h2>
 <p>Even saying that a renderer &quot;supports a format&quot; is too vague.</p>
 <p>A format might work as a texture but not as a render target.</p>
 <p>It may be renderable but not filterable.</p>
-<p>It may support transfer operations but not storage-image writes.</p>
+<p>It may support transfer operations but not mipmapping or multisampling.</p>
 <p><code>RendererFormatUsage</code> therefore represents individual uses:</p>
 <pre><code class="language-text">TextureStorage
 Sampled
 Filterable
 RenderTarget
 Blendable
-StorageRead
-StorageWrite
-StorageAtomic
 TransferSource
 TransferDestination
 Mipmapped
@@ -272,7 +256,7 @@ ColorTransfer</code></pre>
 <p>Applications, tests and developer tools should increasingly be able to ask:</p>
 <blockquote><p>What can the active renderer actually do?</p></blockquote>
 <p>rather than:</p>
-<blockquote><p>Is the renderer named Vulkan?</p></blockquote>
+<blockquote><p>Is the renderer named WebGPU?</p></blockquote>
 <p>The first question scales much better.</p>
 <p>It also works better in multi-renderer builds and with translation layers whose behavior may depend on the actual device underneath them.</p>
 <h2 id="shader-dialects">Shader dialects</h2>
@@ -286,12 +270,13 @@ Hlsl
 Msl
 Wgsl
 SpirV</code></pre>
+<p>These are shader payload dialects, not a second list of renderer identities. The presence of <code>GlslVulkan</code> or <code>Msl</code> therefore does not imply that CNA still exposes direct <code>VULKAN</code> or <code>METAL</code> renderers; the public enum and its C ABI values remain stable independently of the renderer inventory.</p>
 <p>An application using CNAEXT shader functionality can therefore ask the active renderer which shader payload it expects rather than hard-coding an assumption based only on a renderer name.</p>
 <p>This matters increasingly as CNA supports native APIs, browser APIs and translation layers through one graphics abstraction.</p>
 <h2 id="fallback-is-explicit">Fallback is explicit</h2>
 <p>CNA can optionally attempt another renderer when the preferred renderer is unavailable.</p>
 <p>But fallback is <strong>disabled by default</strong>.</p>
-<p>If an application asks for Vulkan, CNA should not quietly give it Software rendering and pretend nothing happened.</p>
+<p>If an application asks for WebGPU, CNA should not quietly give it Software rendering and pretend nothing happened.</p>
 <p>When fallback is explicitly enabled, CNA records why candidates were rejected.</p>
 <p><code>GraphicsRendererFallbackReason</code> includes:</p>
 <pre><code class="language-text">NotCompiledIn
@@ -301,7 +286,7 @@ WindowKindConflict</code></pre>
 <p>The application can inspect the fallback history and understand what actually happened.</p>
 <p>Renderer independence should not mean hidden behavior.</p>
 <h2 id="why-this-architecture-can-support-many-renderers">Why this architecture can support many renderers</h2>
-<p>There is no single trick that allows 25 public identities to coexist.</p>
+<p>There is no single trick that allows 10 public identities to coexist.</p>
 <p>It is the combination of several boundaries:</p>
 <pre><code class="language-text">GraphicsRendererType
         ↓
@@ -329,38 +314,36 @@ capability / format / limit reporting</code></pre>
 <p>Resource interfaces hide native resource objects.</p>
 <p>Capability profiles describe differences explicitly.</p>
 <p>This is what allows the same framework to host:</p>
-<ul><li>an explicit modern GPU API such as Vulkan</li><li>an XNA-era API such as Direct3D 9</li><li>a CPU rasterizer</li><li>a browser Canvas or DOM backend</li><li>a translation layer such as FNA3D</li><li>and a renderer that deliberately produces no pixels</li></ul>
+<ul><li>OpenGL through the shared EasyGL family</li><li>WebGPU on native and browser targets</li><li>an XNA-era API such as Direct3D 9</li><li>SDL_GPU across Vulkan, Direct3D 12 and Metal hosts</li><li>a CPU rasterizer</li><li>a translation layer such as FNA3D</li><li>and renderers that deliberately produce no pixels</li></ul>
 <p>without exposing those implementation details through the public XNA-facing graphics API.</p>
 <h2 id="the-renderer-api-has-also-become-large">The Renderer API has also become large</h2>
 <p>Supporting this much functionality has created an architectural challenge of its own.</p>
 <p>Several renderer implementations are very large.</p>
 <p>In the current snapshot:</p>
-<ul><li><code>VulkanRenderer.cpp</code> is approximately <strong>23,100 lines</strong></li><li><code>WebGPURenderer.cpp</code> is approximately <strong>14,100 lines</strong></li><li><code>EasyGLRenderer.cpp</code> is approximately <strong>14,000 lines</strong></li><li><code>SdlGpuRenderer.cpp</code> is approximately <strong>11,900 lines</strong></li></ul>
+<ul><li><code>WebGPURenderer.cpp</code> is approximately <strong>17,100 lines</strong></li><li><code>SdlGpuRenderer.cpp</code> is approximately <strong>13,800 lines</strong></li><li><code>EasyGLRenderer.cpp</code> is approximately <strong>11,600 lines</strong></li><li><code>SoftwareRenderer.cpp</code> is approximately <strong>7,700 lines</strong></li></ul>
 <p>These are physical source-file line counts and include comments and formatting, so they should not be confused with the non-comment production LOC figures used elsewhere when measuring CNA&#39;s overall size.</p>
-<p>The common <code>IGraphicsRenderer.hpp</code> file itself is now approximately <strong>4,075 physical lines</strong>.</p>
-<p>The central <code>IGraphicsRenderer</code> class occupies roughly <strong>1,480 lines</strong> of that file and still contains well over one hundred virtual operations and extension hooks.</p>
+<p>The common <code>IGraphicsRenderer.hpp</code> file itself is now approximately <strong>3,430 physical lines</strong>.</p>
+<p>The central <code>IGraphicsRenderer</code> class occupies roughly <strong>1,280 lines</strong> of that file and still contains well over one hundred virtual operations and extension hooks.</p>
 <p>That growth happened gradually.</p>
 <p>Every new graphics capability naturally needed somewhere to cross the renderer boundary:</p>
 <pre><code class="language-text">Texture3D
-texture arrays
-compute
-storage buffers
-storage textures
+cube maps
+multiple render targets
+compiled XNA effects
+instancing
 HDR formats
-GPU timers
-indirect drawing
 device recovery
-modern effects
+format and capability reporting
 new presentation behavior
 ...</code></pre>
 <p>Adding another method was often the smallest immediate change.</p>
 <p>Repeated across years of development, that produces a large central contract.</p>
 <h2 id="the-implementation-classes-have-the-same-problem">The implementation classes have the same problem</h2>
 <p>The challenge is not limited to the interface.</p>
-<p>A renderer such as Vulkan has responsibilities around:</p>
-<ul><li>instance and device creation</li><li>adapter selection</li><li>presentation and swapchains</li><li>synchronization</li><li>textures</li><li>buffers</li><li>render targets</li><li>pipelines</li><li>descriptor management</li><li>shader handling</li><li>state translation</li><li>draw submission</li><li>compute</li><li>readback</li><li>recovery</li><li>capability discovery</li></ul>
-<p>All of those responsibilities belong somewhere inside the Vulkan implementation.</p>
-<p>They do not necessarily need to belong to <strong>one enormous VulkanRenderer class</strong>.</p>
+<p>A renderer such as WebGPU has responsibilities around:</p>
+<ul><li>instance and device creation</li><li>adapter selection</li><li>presentation and swapchains</li><li>synchronization</li><li>textures</li><li>buffers</li><li>render targets</li><li>pipelines</li><li>descriptor management</li><li>shader handling</li><li>state translation</li><li>draw submission</li><li>readback</li><li>recovery</li><li>capability discovery</li></ul>
+<p>All of those responsibilities belong somewhere inside the WebGPU implementation.</p>
+<p>They do not necessarily need to belong to <strong>one enormous WebGPURenderer class</strong>.</p>
 <p>The same problem exists to different degrees in several of CNA&#39;s larger renderer families.</p>
 <p>Very large implementation units are harder to navigate, review, test and maintain.</p>
 <h2 id="the-next-stage-should-favor-decomposition">The next stage should favor decomposition</h2>
@@ -377,7 +360,6 @@ new presentation behavior
  ├── Pipeline and state
  ├── Draw submission
  ├── Effects / shaders
- ├── Compute
  ├── Capabilities
  └── Debug / recovery</code></pre>
 <p>Some of this decomposition already exists through renderer resource interfaces and shared renderer infrastructure.</p>
@@ -391,11 +373,12 @@ new presentation behavior
 <p>branches.</p>
 <p>Much of CNA has already moved toward descriptor-, registry- and interface-driven renderer integration.</p>
 <p>There is still room to simplify the architecture further.</p>
-<p>But supporting 14 public identities across 12 implementation families already demonstrates that the central separation works.</p>
+<p>But supporting 10 public identities across 8 implementation families already demonstrates that the central separation works.</p>
 <h2 id="one-graphics-model-many-implementations">One graphics model, many implementations</h2>
-<p>CNA&#39;s Renderer API is not based on the idea that Vulkan, Direct3D, OpenGL, WebGPU.</p>
+<p>CNA&#39;s Renderer API is not based on the idea that OpenGL, Direct3D 9, WebGPU, SDL_GPU and a CPU rasterizer are alike.</p>
 <p>The abstraction instead tries to define the common contract at the CNA/XNA level and describe genuine differences explicitly through:</p>
-<ul><li>renderer descriptors</li><li>window requirements</li><li>narrow platform services</li><li>resource interfaces</li><li>feature support</li><li>numeric limits</li><li>format capabilities</li><li>shader dialects</li></ul></div>
+<ul><li>renderer descriptors</li><li>window requirements</li><li>narrow platform services</li><li>resource interfaces</li><li>feature support</li><li>numeric limits</li><li>format capabilities</li><li>shader dialects</li></ul>
+<p>That separation keeps the XNA-facing API stable while CNA changes which implementations it is willing to maintain. The October retirement reduced the renderer set substantially, but it did not require applications to learn a different graphics model. That is the clearest evidence that the Renderer API is doing its job.</p></div>
     <footer class="taxonomy-links"><a href="/category/graphics/">Graphics</a><a href="/tag/renderers/">#Renderers</a><a href="/tag/architecture/">#Architecture</a><a href="/tag/renderer-api/">#Renderer API</a><a href="/tag/graphicsdevice/">#GraphicsDevice</a><a href="/tag/capabilities/">#Capabilities</a><a href="/tag/cnaext/">#CNAEXT</a><a href="/tag/refactoring/">#Refactoring</a></footer>
   </article></main>
     <aside class="sidebar" aria-label="Additional information">
