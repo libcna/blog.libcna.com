@@ -1,7 +1,7 @@
 ---
 title: CNA Content Pipeline and the format CNB
 date: 2026-11-29T17:28:18Z
-updated: 2026-09-13T17:36:57Z
+updated: 2026-10-17T15:16:00Z
 description: |
   Games rarely use their original source assets exactly as artists created them.
 author: Robert Vokac
@@ -792,7 +792,6 @@ Effect.cnb
            ↓
 
 OpenGL renderer?
-Vulkan renderer?
 SDL_GPU renderer?
 other CNA renderers?
 ```
