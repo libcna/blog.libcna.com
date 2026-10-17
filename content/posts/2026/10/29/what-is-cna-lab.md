@@ -1,9 +1,9 @@
 ---
 title: What is CNA Lab?
 date: 2026-10-29T13:51:55Z
-updated: 2026-10-02T14:58:39Z
+updated: 2026-10-17T15:13:39Z
 description: |
-  CNA Lab is the experimental area of the CNA ecosystem.
+  CNA Lab is the experimental area of the CNA ecosystem.Follow the framework's development, architecture, graphics work, tools, releases, and related projects.
 author: Robert Vokac
 categories:
   - Projects
