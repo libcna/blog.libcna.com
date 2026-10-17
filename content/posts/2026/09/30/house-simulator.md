@@ -25,7 +25,7 @@ There is no score, no win condition and no life-simulation system. The goal is s
 
 **Play online:** [https://demos.libcna.com/house-simulator/index.html](https://demos.libcna.com/house-simulator/index.html)
 
-![Representative day exterior front](https://raw.githubusercontent.com/libcna/house-simulator/develop/tests/render/reference/representative-day-exterior-front.png)
+![Representative day exterior front](https://raw.githubusercontent.com/libcnalab/house-simulator/develop/tests/render/reference/representative-day-exterior-front.png)
 
 ## A Whole House to Explore
 
@@ -35,7 +35,7 @@ The current world contains 96 spatial cells, 90 of which are accessible to the p
 
 Real staircases connect the floors, so exploring the building feels like moving through one continuous structure rather than loading a collection of unrelated scenes.
 
-![Representative day living composition](https://raw.githubusercontent.com/libcna/house-simulator/develop/tests/render/reference/representative-day-living-composition.png)
+![Representative day living composition](https://raw.githubusercontent.com/libcnalab/house-simulator/develop/tests/render/reference/representative-day-living-composition.png)
 
 The amount of interior variety is important for CNA as well. A single renderer has to deal with many different combinations of geometry, furniture, textures, lighting conditions and viewing distances while keeping the same XNA-style application code.
 
@@ -59,7 +59,7 @@ Time can advance automatically, with a default 24-minute day, or it can be selec
 
 Clear weather, overcast conditions, rain and a snow state are supported. Rain is kept out of covered areas, wet surfaces react to weather, fog changes with atmospheric conditions and interior lighting follows its own schedule.
 
-![Environment front rain noon](https://raw.githubusercontent.com/libcna/house-simulator/develop/tests/render/reference/environment-front-rain-noon.png)
+![Environment front rain noon](https://raw.githubusercontent.com/libcnalab/house-simulator/develop/tests/render/reference/environment-front-rain-noon.png)
 
 These systems are particularly useful for testing a renderer because the same property can be observed under radically different conditions without replacing the level.
 
@@ -71,11 +71,11 @@ Some rooms receive considerably more detail than would be necessary for a basic 
 
 The basement, for example, includes its own cinema.
 
-![Representative day basement cinema](https://raw.githubusercontent.com/libcna/house-simulator/develop/tests/render/reference/representative-day-basement-cinema.png)
+![Representative day basement cinema](https://raw.githubusercontent.com/libcnalab/house-simulator/develop/tests/render/reference/representative-day-basement-cinema.png)
 
 Higher in the house, rooms such as the library provide another combination of furniture, lighting, windows and interior materials.
 
-![Representative day library](https://raw.githubusercontent.com/libcna/house-simulator/develop/tests/render/reference/representative-day-library.png)
+![Representative day library](https://raw.githubusercontent.com/libcnalab/house-simulator/develop/tests/render/reference/representative-day-library.png)
 
 The environment is also accompanied by audio. House Simulator has footsteps for multiple surface categories, interior room tone, exterior daytime and nighttime ambience, rain and wind layers, and spatial differences between indoor and outdoor sound.
 
@@ -119,7 +119,7 @@ House Simulator shows the type of application CNA is intended to support: a subs
 
 Source code and additional screenshots are available on GitHub:
 
-**GitHub:** [https://github.com/libcna/house-simulator](https://github.com/libcna/house-simulator)
+**GitHub:** [https://github.com/libcnalab/house-simulator](https://github.com/libcna/house-simulator)
 
 **Play online:** [https://demos.libcna.com/house-simulator/index.html](https://demos.libcna.com/house-simulator/index.html)
 
