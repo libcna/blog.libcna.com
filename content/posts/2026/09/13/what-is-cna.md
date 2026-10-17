@@ -1,7 +1,7 @@
 ---
 title: What is CNA?
 date: 2026-09-13T10:46:24Z
-updated: 2026-10-02T13:23:22Z
+updated: 2026-10-17T14:00:22Z
 description: |
   CNA is an open-source C++23 reimplementation of the Microsoft XNA 4.0 programming model.
 author: Robert Vokac
