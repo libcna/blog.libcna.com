@@ -1,7 +1,7 @@
 ---
 title: CNA Modules
 date: 2026-11-19T16:16:21Z
-updated: 2026-10-09T18:02:52Z
+updated: 2026-10-17T13:15:00Z
 description: |
   CNA is a large framework, but it is not built as one giant C++ library.
 author: Robert Vokac
@@ -58,9 +58,9 @@ modules/
 
 The 22-module count refers to the physical framework modules outside `renderers/`.
 
-The renderer tree forms another modular layer of its own, currently containing **12 implementation families that provide 14 public renderer identities**.
+The renderer tree forms another modular layer of its own, currently containing **8 implementation families that provide 10 public renderer identities**.
 
-Some modules are optional or conditional. For example, the C API must be explicitly enabled, FFmpeg is an optional video backend, Gamer Services and networking depend on networking being enabled, and Design is deliberately an opt-in tooling module.
+Some modules are optional or conditional. For example, the C API must be explicitly enabled, FFmpeg is an optional video backend, Gamer Services has its own switch, networking requires Gamer Services, and Design is deliberately an opt-in tooling module.
 
 **GitHub:** [github.com/libcna/cna](https://github.com/libcna/cna)
 
@@ -247,7 +247,6 @@ It defines abstractions for areas such as:
 - cameras
 - clipboard and system services
 - OpenGL contexts
-- Vulkan surfaces
 - CPU surface presentation
 
 Current implementations include:
@@ -256,9 +255,9 @@ Current implementations include:
 - **Headless**
 - **POSIX Terminal**
 
-SDL3 remains the default portable backend.
+SDL3 remains the default and CNA's only windowed backend. It reaches Win32, X11, Wayland, Cocoa, Android and the browser through SDL's own platform drivers.
 
-CNA had real native Win32, X11 and Wayland implementations, which were retired due the cost of their maintenance
+CNA's direct Win32, X11 and Wayland implementations were retired on 6 October 2026 because maintaining parallel window-system implementations no longer justified their cost.
 
 The Platform API therefore represents CNA concepts rather than SDL concepts.
 
@@ -296,7 +295,7 @@ It also contains shared renderer infrastructure such as:
 - image loading
 - graphics-resource management
 
-Graphics does not itself mean OpenGL, Vulkan, Direct3D or another native API.
+Graphics does not itself mean OpenGL, WebGPU, SDL_GPU, Direct3D or another native API.
 
 Those implementations live separately under `modules/renderers/`.
 
@@ -306,29 +305,23 @@ The Graphics module also owns the core `PbrEffect`, `SkinnedPbrEffect` and custo
 
 The renderer tree is effectively another modular architecture inside CNA.
 
-CNA currently exposes **14 public renderer identities implemented through 12 renderer families**.
+CNA currently exposes **10 public renderer identities implemented through 8 renderer families**.
 
 The implementation-family tree currently includes:
 
 ```text
 modules/renderers/
-├── easygl/
-├── vulkan/
-├── webgpu/
 ├── directx9/
-├── directx11/
-├── metal/
-├── sdl-renderer/
-├── sdl-gpu/
+├── easygl/
 ├── fna3d/
-├── software/
 ├── headless/
-└── stub/
+├── sdl-gpu/
+├── software/
+├── stub/
+└── webgpu/
 ```
 
-There is also internal shared renderer infrastructure under areas such as `renderers/common/`.
-
-That common infrastructure is not another public renderer family.
+There is also internal shared renderer infrastructure under `renderers/common/`. It includes the MojoShader-to-CNA support used by families that execute compiled XNA effects, but it is not another public renderer family.
 
 Three public identities share the EasyGL family:
 
@@ -336,23 +329,23 @@ Three public identities share the EasyGL family:
 - OpenGL 3.3
 - WebGL 2
 
-This is why CNA has more public renderer identities than independent implementation families.
+The other seven identities each map to one family: WebGPU, Direct3D 9, SDL_GPU, FNA3D, Software, Headless and Stub.
 
 Each renderer family owns its native implementation and renderer-specific dependencies.
 
-Vulkan code stays inside the Vulkan family.
-
-Direct3D implementation code stays in the DirectX families.
+Direct3D 9 implementation code stays in its family.
 
 OpenGL-specific implementation details stay in EasyGL.
 
-Browser-specific implementation code stays in the browser renderer families.
+Native and browser WebGPU code stays in WebGPU.
 
-CPU rendering stays in Software.
+SDL_GPU owns CNA's modern native path while SDL selects Vulkan, Direct3D 12 or Metal underneath it.
 
-Shared implementation code can live in internal renderer helper modules, such as the Direct3D common layer used by Direct3D 11.
+CPU rendering stays in Software, while Headless and Stub provide non-rasterizing implementations for their distinct testing and placeholder roles.
 
-This separation is a major reason CNA can support many substantially different rendering technologies without filling `GraphicsDevice` with native graphics API code.
+The direct Vulkan, Direct3D 11, Metal and SDL Renderer families were retired on 13 October 2026 rather than aliased to surviving renderers. Their public identity values remain reserved, but their implementation directories are no longer part of the module tree.
+
+This separation is a major reason CNA can support substantially different rendering technologies without filling `GraphicsDevice` with native graphics API code.
 
 ## Input
 
@@ -655,7 +648,13 @@ The original Xbox Live infrastructure obviously cannot simply be recreated insid
 
 The module therefore focuses on API compatibility and local behavior that can reasonably exist independently of Microsoft's historical online infrastructure.
 
-Gamer Services is part of CNA's networking-enabled module group.
+Gamer Services is controlled independently:
+
+```text
+CNA_ENABLE_GAMER_SERVICES=ON|OFF
+```
+
+The option defaults to the value of `CNA_ENABLE_NET`, preserving the traditional combined configuration. It can also remain enabled while networking is disabled, which allows applications to use areas such as Guide, profiles, achievements, leaderboards and avatars without pulling in ENet.
 
 ## Networking
 
@@ -679,7 +678,9 @@ Networking can be disabled at configure time:
 CNA_ENABLE_NET=OFF
 ```
 
-When networking is disabled, the Net and Gamer Services implementation modules do not need to enter the build and ENet does not become an unnecessary application dependency.
+`CNA_ENABLE_NET=ON` requires Gamer Services because the XNA networking model uses its gamer identities. The reverse is not required: Gamer Services can be built without Net.
+
+When networking is disabled, the Net module does not enter the build and ENet does not become an unnecessary application dependency.
 
 ## Phone
 
@@ -779,8 +780,8 @@ One of the most important purposes of modularization is dependency ownership.
 For example:
 
 ```text
-SDL
-    → SDL platform/audio implementations
+SDL3
+    → SDL3 platform/audio implementations and SDL-backed renderer families
 
 ENet
     → Net
@@ -960,7 +961,7 @@ It also creates replaceable implementation boundaries.
 
 The Platform contract can be implemented by SDL3, Headless or Terminal.
 
-The Graphics contract can be implemented by 14 public renderer identities.
+The Graphics contract can be implemented by 10 public renderer identities.
 
 Video can use the optional FFmpeg implementation without making FFmpeg part of the Media API itself.
 
@@ -980,7 +981,7 @@ target_link_libraries(MyGame PRIVATE CNA)
 
 Underneath that simple target, however, CNA is composed from a much more explicit graph of independently owned systems.
 
-There are currently **22 physical framework modules**, together with **12 renderer implementation families providing 14 public renderer identities**.
+There are currently **22 physical framework modules**, together with **8 renderer implementation families providing 10 public renderer identities**.
 
 The purpose is not to make users think about twenty-two libraries every time they start a game.
 
