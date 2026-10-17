@@ -30,20 +30,25 @@
   <url><loc>https://blog.libcna.com/2026/10/10/cna-0-1-0-was-released/</loc></url>
   <url><loc>https://blog.libcna.com/2026/10/12/</loc></url>
   <url><loc>https://blog.libcna.com/2026/10/12/xna-4-0-c-sharp-games-run-on-cna-net-too/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/10/17/</loc></url>
+  <url><loc>https://blog.libcna.com/2026/10/17/cna-craft/</loc></url>
   <url><loc>https://blog.libcna.com/about/</loc></url>
   <url><loc>https://blog.libcna.com/archive/</loc></url>
   <url><loc>https://blog.libcna.com/categories/</loc></url>
   <url><loc>https://blog.libcna.com/category/about/</loc></url>
   <url><loc>https://blog.libcna.com/category/c/</loc></url>
   <url><loc>https://blog.libcna.com/category/development/</loc></url>
+  <url><loc>https://blog.libcna.com/category/games/</loc></url>
   <url><loc>https://blog.libcna.com/category/graphics/</loc></url>
   <url><loc>https://blog.libcna.com/category/projects/</loc></url>
   <url><loc>https://blog.libcna.com/tag/3d/</loc></url>
   <url><loc>https://blog.libcna.com/tag/architecture/</loc></url>
   <url><loc>https://blog.libcna.com/tag/bindings/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/c-23/</loc></url>
   <url><loc>https://blog.libcna.com/tag/c-api/</loc></url>
   <url><loc>https://blog.libcna.com/tag/c/</loc></url>
   <url><loc>https://blog.libcna.com/tag/capabilities/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/cna-craft/</loc></url>
   <url><loc>https://blog.libcna.com/tag/cna-ecosystem/</loc></url>
   <url><loc>https://blog.libcna.com/tag/cna-net/</loc></url>
   <url><loc>https://blog.libcna.com/tag/cna/</loc></url>
@@ -51,6 +56,7 @@
   <url><loc>https://blog.libcna.com/tag/cnb/</loc></url>
   <url><loc>https://blog.libcna.com/tag/cocoa/</loc></url>
   <url><loc>https://blog.libcna.com/tag/common-lisp/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/craft/</loc></url>
   <url><loc>https://blog.libcna.com/tag/directx/</loc></url>
   <url><loc>https://blog.libcna.com/tag/documentation/</loc></url>
   <url><loc>https://blog.libcna.com/tag/emscripten/</loc></url>
@@ -62,6 +68,7 @@
   <url><loc>https://blog.libcna.com/tag/graphicsdevice/</loc></url>
   <url><loc>https://blog.libcna.com/tag/hdr/</loc></url>
   <url><loc>https://blog.libcna.com/tag/java/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/multiplayer/</loc></url>
   <url><loc>https://blog.libcna.com/tag/net/</loc></url>
   <url><loc>https://blog.libcna.com/tag/online-demo/</loc></url>
   <url><loc>https://blog.libcna.com/tag/opengl/</loc></url>
@@ -84,9 +91,11 @@
   <url><loc>https://blog.libcna.com/tag/simulation/</loc></url>
   <url><loc>https://blog.libcna.com/tag/software-preservation/</loc></url>
   <url><loc>https://blog.libcna.com/tag/software-rendering/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/sqlite/</loc></url>
   <url><loc>https://blog.libcna.com/tag/street-simulator/</loc></url>
   <url><loc>https://blog.libcna.com/tag/swift/</loc></url>
   <url><loc>https://blog.libcna.com/tag/typescript/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/voxel/</loc></url>
   <url><loc>https://blog.libcna.com/tag/vulkan/</loc></url>
   <url><loc>https://blog.libcna.com/tag/wayland/</loc></url>
   <url><loc>https://blog.libcna.com/tag/webassembly/</loc></url>

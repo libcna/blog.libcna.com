@@ -5,7 +5,14 @@
     <link>https://blog.libcna.com/</link>
     <description>Building a portable XNA-style framework for the long term.</description>
     <language>en</language>
-    <lastBuildDate>Mon, 12 Oct 2026 10:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 17 Oct 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>CNA Craft</title>
+      <link>https://blog.libcna.com/2026/10/17/cna-craft/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2026/10/17/cna-craft/</guid>
+      <pubDate>Sat, 17 Oct 2026 12:00:00 GMT</pubDate>
+      <description>CNA Craft ports Michael Fogleman&#39;s open-source Craft voxel game to C++23 and the CNA implementation of the XNA 4.0 programming model.</description>
+    </item>
     <item>
       <title>XNA 4.0 C# games run on CNA.NET too</title>
       <link>https://blog.libcna.com/2026/10/12/xna-4-0-c-sharp-games-run-on-cna-net-too/</link>

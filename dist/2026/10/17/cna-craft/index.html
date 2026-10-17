@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNA Craft | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA Craft ports Michael Fogleman&#39;s open-source Craft voxel game to C++23 and the CNA implementation of the XNA 4.0 programming model.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/10/17/cna-craft/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNA Craft">
+  <meta property="og:description" content="CNA Craft ports Michael Fogleman&#39;s open-source Craft voxel game to C++23 and the CNA implementation of the XNA 4.0 programming model.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/10/17/cna-craft/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-10-17T12:00:00Z">October 17, 2026</time></span><span>Updated <time datetime="2026-10-17T14:06:31Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a>, <a href="/category/games/">Games</a></span></div>
+      <h1 class="article-title">CNA Craft</h1>
+      <p class="article-description">CNA Craft ports Michael Fogleman&#39;s open-source Craft voxel game to C++23 and the CNA implementation of the XNA 4.0 programming model.</p>
+    </header>
+    <div class="article-body"><p><strong>CNA Craft</strong> is a C++23 port of Michael Fogleman&#39;s open-source <a href="https://github.com/fogleman/Craft">Craft</a> project onto <a href="/2026/09/13/what-is-cna/">CNA</a>.</p>
+<p>It is a derivative work, not merely a game inspired by Craft.</p>
+<p><strong>Source:</strong> <a href="https://github.com/libcnalab/cna-craft">https://github.com/libcnalab/cna-craft</a></p>
+<p><strong>Play the deployed browser build:</strong> <a href="https://demos.libcna.com/cna-craft/CnaCraft.html">https://demos.libcna.com/cna-craft/CnaCraft.html</a></p>
+<p><img src="/wp-content/uploads/2026/09/cna-craft_screenshot.jpg" alt="CNA Craft running in the browser" loading="lazy"></p>
+<p>The project ports Craft&#39;s gameplay and data model to a different engine and language while keeping the original project&#39;s MIT attribution.</p>
+<p>Its current README classifies it honestly:</p>
+<blockquote><p>Early prototype / active development. Not a finished game.</p></blockquote>
+<hr>
+<h2 id="what-is-already-implemented">What is already implemented</h2>
+<p>CNA Craft is much larger than a rendering proof.</p>
+<p>The current source contains:</p>
+<ul><li>an unbounded, chunk-streamed voxel world;</li><li>deterministic procedural terrain;</li><li>hidden-face-culled chunk meshes;</li><li>baked per-vertex ambient occlusion;</li><li>a textured day/night sky;</li><li>54 selectable block types;</li><li>block breaking, placement and eyedropper selection;</li><li>signs attached to block faces;</li><li>Craft-style world-editing commands;</li><li>SQLite persistence for local world changes;</li><li>a standalone multiplayer server;</li><li>live player, chat and world-edit synchronization;</li><li>native desktop and WebAssembly/WebGL 2 targets.</li></ul>
+<p>The world is regenerated deterministically. Only player edits need to be stored, so the native application saves deltas rather than serializing every generated block.</p>
+<hr>
+<h2 id="a-port-of-craft">A port of Craft</h2>
+<p>The project tracks its behavior against the real Craft source in <strong>CRAFT_PARITY.md</strong>.</p>
+<p>That comparison covers areas such as:</p>
+<p>~<del>text input and camera movement and collision terrain generation chunk creation and deletion meshing and ambient occlusion block selection and editing signs and commands persistence multiplayer protocol rendering </del>~</p>
+<p>Not every detail is copied literally.</p>
+<p>For example, CNA Craft uses C++23, CNA&#39;s game loop and XNA-style graphics objects instead of Craft&#39;s C, GLFW and direct OpenGL code. Some controls deliberately follow a more familiar creative-mode convention.</p>
+<p>The important distinction is:</p>
+<p>~<del>text behavior and design are ported from Craft implementation is rebuilt for CNA </del>~</p>
+<p>No original Craft source files are shipped verbatim. The project includes Craft&#39;s MIT notice and documents the derivation in <strong>THIRD<em>PARTY</em>NOTICES.md</strong>.</p>
+<hr>
+<h2 id="how-cna-is-used">How CNA is used</h2>
+<p>Craft talks directly to OpenGL.</p>
+<p>CNA Craft instead expresses the game through CNA&#39;s XNA-compatible API:</p>
+<p>~<del>text Vector3 and Matrix VertexBuffer and IndexBuffer BasicEffect Texture2D Keyboard and Mouse Game and GameTime </del>~</p>
+<p>The rendering path is conceptually:</p>
+<p>~<del>text procedural voxel data │ ▼ visible-face chunk mesher │ ▼ vertex and index buffers │ ▼ BasicEffect │ ▼ CNA renderer </del>~</p>
+<p>This makes the project a useful CNA stress test. A voxel world continually creates and discards geometry, changes buffers, performs selection raycasts, streams terrain and keeps a first-person camera moving through a large generated environment.</p>
+<hr>
+<h2 id="world-interaction">World interaction</h2>
+<p>The basic controls follow the creative voxel-game model:</p>
+<div class="table-wrap"><table><thead><tr><th>Input</th><th>Action</th></tr></thead><tbody><tr><td>W/A/S/D</td><td>Move and strafe</td></tr><tr><td>Mouse</td><td>Look</td></tr><tr><td>Space</td><td>Jump or ascend while flying</td></tr><tr><td>Shift</td><td>Descend while flying</td></tr><tr><td>Tab</td><td>Toggle flying</td></tr><tr><td>Left click</td><td>Break a block</td></tr><tr><td>Right click or Ctrl+left click</td><td>Place a block</td></tr><tr><td>Middle click</td><td>Select the targeted block type</td></tr><tr><td>1–9 and 0</td><td>Select the first ten hotbar slots</td></tr><tr><td>E/R or wheel</td><td>Cycle through all 54 blocks</td></tr><tr><td>Backtick</td><td>Write a sign</td></tr><tr><td>Slash</td><td>Enter a world-editing command</td></tr></tbody></table></div>
+<p>The command system includes boxes, spheres, circles, cylinders, arrays, trees and copy/paste regions. Most commands use the last one or two edited blocks as their marks, following Craft&#39;s original interaction model.</p>
+<p>Placed signs and command-generated blocks are persisted like ordinary edits.</p>
+<hr>
+<h2 id="persistence">Persistence</h2>
+<p>The native build stores changes in SQLite.</p>
+<p>~<del>text procedural seed │ ▼ base terrain regenerated │ ▼ saved block/sign deltas applied per chunk </del>~</p>
+<p>This has two useful properties:</p>
+<ol><li>the world is not bounded by the size of a save file;</li><li>untouched generated terrain consumes no database rows.</li></ol>
+<p>Chunks stream in as the player approaches and unload when they are far behind. The database restores edits when a chunk is created again.</p>
+<p>The current schema is deliberately version-sensitive. Very old project databases are detected as incompatible instead of being interpreted incorrectly.</p>
+<hr>
+<h2 id="multiplayer">Multiplayer</h2>
+<p>CNA Craft includes its own headless <strong>CnaCraftServer</strong>.</p>
+<p>Players can:</p>
+<ul><li>join the same generated world;</li><li>see remote players;</li><li>exchange public and private chat;</li><li>receive a shared seed and day/night clock;</li><li>synchronize block edits;</li><li>observe another player through a picture-in-picture view.</li></ul>
+<p>The server validates edits and remains authoritative. A rejected local change is corrected on the client.</p>
+<p>The protocol is a faithful dialect of Craft&#39;s line-oriented design, but the project is intentionally not compatible with original Craft servers. Terrain, chunk dimensions and block identifiers differ.</p>
+<p>Online cache databases are kept separate from the local single-player world.</p>
+<hr>
+<h2 id="browser-build">Browser build</h2>
+<p>The WebAssembly build uses CNA&#39;s <strong>WEBGL2</strong> renderer.</p>
+<p>Terrain streaming, ambient occlusion, the sky, HUD and block interaction run in the browser. Recent project commits specifically repaired Firefox behavior, pointer capture and page responsiveness.</p>
+<p>The browser target has two important boundaries:</p>
+<ul><li>it is single-player because a normal browser page cannot host or open the raw TCP connection used by the native server;</li><li>edits are not persisted through SQLite, so the deployed world resets when the page is reloaded.</li></ul>
+<p>The portable build is single-threaded. A separate Chromium-oriented pthread build is possible, but requires cross-origin isolation headers for SharedArrayBuffer.</p>
+<hr>
+<h2 id="current-source-boundary">Current source boundary</h2>
+<p>The standalone repository preserves the project that previously lived in CNA Lab.</p>
+<p>Its source is substantial, with dedicated modules for rendering, worlds, persistence, networking and the server, plus focused smoke tests for world behavior, SQLite and the network protocol.</p>
+<p>The snapshot also predates CNA&#39;s October 2026 renderer consolidation. Some older project notes still name renderer selectors that current CNA has retired.</p>
+<p>That means two claims should remain separate:</p>
+<p>~~~text the deployed browser demo is playable</p>
+<p>the source is an active prototype whose dependency revision and renderer selection must be aligned before building ~~~</p>
+<p>The repository&#39;s CMake files and current CNA documentation, not an old CNA Lab article, are the place to verify a new checkout.</p>
+<hr>
+<h2 id="why-cna-craft-matters">Why CNA Craft matters</h2>
+<p>CNA Craft tests a combination rarely covered by a small framework sample:</p>
+<p>~<del>text large dynamic 3D geometry continuous world streaming procedural textures and terrain persistent edits first-person input native networking browser deployment </del>~</p>
+<p>It also demonstrates a practical kind of port.</p>
+<p>The result is recognizably Craft, but its graphics, input, timing and application lifecycle run through CNA&#39;s XNA-style programming model rather than through the original direct-OpenGL stack.</p>
+<p>That is the point of CNA Craft: preserve the substance of an open-source game while proving that CNA can host a demanding voxel application.</p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/category/games/">Games</a><a href="/tag/cna/">#CNA</a><a href="/tag/cna-craft/">#CNA Craft</a><a href="/tag/craft/">#Craft</a><a href="/tag/c-23/">#C++23</a><a href="/tag/voxel/">#Voxel</a><a href="/tag/3d/">#3D</a><a href="/tag/webassembly/">#WebAssembly</a><a href="/tag/multiplayer/">#Multiplayer</a><a href="/tag/sqlite/">#SQLite</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2026/10/17/cna-craft/">CNA Craft</a></li><li><a href="/2026/10/12/xna-4-0-c-sharp-games-run-on-cna-net-too/">XNA 4.0 C# games run on CNA.NET too</a></li><li><a href="/2026/10/10/cna-0-1-0-was-released/">CNA 0.1.0 was released</a></li><li><a href="/2026/10/08/cna-repositories-at-github-com/">CNA repositories at github.com</a></li><li><a href="/2026/10/05/cna-goes-online-gamer-services-avatars-and-networking/">CNA Goes Online: Gamer Services, Avatars and Networking</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">7</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">4</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">1</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">2</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/craft/">Craft</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/games/">Games</a><a href="/tag/github/">GitHub</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/pbr/">PBR</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/projects/">Projects</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/x11/">X11</a><a href="/tag/xna/">XNA</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>
