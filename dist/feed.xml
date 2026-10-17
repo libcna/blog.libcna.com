@@ -88,7 +88,7 @@
       <link>https://blog.libcna.com/2026/09/17/how-large-is-cna/</link>
       <guid isPermaLink="true">https://blog.libcna.com/2026/09/17/how-large-is-cna/</guid>
       <pubDate>Thu, 17 Sep 2026 10:58:05 GMT</pubDate>
-      <description>Today, CNA contains the XNA-compatible framework, 14 graphics renderers a content system and content pipeline, audio, input, networking, portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.</description>
+      <description>Today, CNA contains the XNA-compatible framework, 10 graphics renderers, a content system and content pipeline, audio, input, networking, portable platform backends, focused graphics and device extensions, XNA Design support, a native C API, a large test suite, and supporting tools.</description>
     </item>
     <item>
       <title>What is CNA?</title>
