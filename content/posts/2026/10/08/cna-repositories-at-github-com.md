@@ -1,7 +1,7 @@
 ---
 title: CNA repositories at github.com
 date: 2026-10-08T12:42:49Z
-updated: 2026-10-02T14:55:42Z
+updated: 2026-10-17T14:48:42Z
 description: |
   CNA is no a single Git repository.
 author: Robert Vokac
@@ -158,11 +158,13 @@ A framework can pass thousands of isolated tests and still reveal very different
 
 ## Experimental workspace
 
-### cna-lab
+### github.com/libcnalab
+
+https://github.com/libcnalab
 
 Not every CNA-related experiment needs to immediately become a permanent standalone project.
 
-`cna-lab` is a workspace for experimental CNA-related repositories, integrated using Git subtrees so that their history can be preserved while the projects are tested and developed together.
+`libcnalab` is a workspace for experimental CNA-related repositories.
 
 Some experiments may eventually become important projects.
 
