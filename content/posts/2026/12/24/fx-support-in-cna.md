@@ -1,19 +1,20 @@
 ---
 title: FX support in CNA
 date: 2026-12-24T18:45:36Z
-updated: 2026-09-13T18:56:00Z
+updated: 2026-10-17T13:51:23Z
 description: |
-  XNA 4.0 did not treat shaders as isolated vertex and pixel programs.
+  CNA can load and execute compiled XNA/FNA Effect Framework binaries across six renderer families, while keeping legacy FX separate from ShaderEffect.
 author: Robert Vokac
 categories:
   - Development
 tags:
   - DirectX
-  - Vulkan
+  - OpenGL
   - WebGPU
   - Graphics
   - XNB
   - SDL GPU
+  - Software Rendering
   - FNA
   - XNA
   - FX
@@ -28,31 +29,11 @@ classicpressStatus: future
 draft: false
 ---
 
-XNA 4.0 did not treat shaders as isolated vertex and pixel programs.
+XNA 4.0 did not treat a shader as only a vertex program plus a pixel program.
 
-Its main programmable shader abstraction was the **Effect Framework**.
+Its main programmable-shader abstraction was the **Effect Framework**. Developers wrote an HLSL `.fx` file containing parameters, techniques, passes, shaders, annotations and state assignments. The XNA Content Pipeline compiled that source into a Direct3D 9 Effect Framework binary, usually stored inside an XNB asset.
 
-Developers normally wrote an HLSL `.fx` file containing:
-
-```text
-parameters
-techniques
-passes
-vertex shaders
-pixel shaders
-sampler declarations
-render states
-sampler states
-annotations
-```
-
-The XNA Content Pipeline compiled that source into Effect Framework bytecode, normally stored inside an `.xnb` asset.
-
-CNA now supports this model as a real compatibility path.
-
-That means CNA can load and execute compiled effects created for the XNA/FNA Effect Framework rather than requiring every old custom shader to be rewritten as a CNA-specific shader.
-
-The basic path is:
+CNA supports that model as a compatibility path:
 
 ```text
 HLSL .fx
@@ -61,10 +42,9 @@ HLSL .fx
 XNA-compatible FX compiler
     │
     ▼
-compiled Effect Framework binary
+Effect Framework binary
     │
-    ├── .fxb
-    │
+    ├── standalone .fxb
     └── Effect payload inside XNB
             │
             ▼
@@ -74,19 +54,19 @@ compiled Effect Framework binary
     renderer-specific execution
 ```
 
-This is separate from CNA's newer `ShaderEffect` API.
+An XNA or FNA game can therefore retain its original custom effects instead of rewriting them all before the first correct frame can be rendered.
 
-That distinction is fundamental to understanding shader support in CNA.
+This path is deliberately separate from CNA's newer `ShaderEffect` API.
 
 ---
 
-## Three different things called an "effect"
+## Three different kinds of effect
 
-When discussing CNA graphics, the word **Effect** can refer to several related but different systems.
+The word **effect** refers to three related but different systems in CNA.
 
-## XNA stock effects
+### Stock effects
 
-These include familiar framework types such as:
+The XNA-compatible stock types include:
 
 ```text
 BasicEffect
@@ -96,232 +76,69 @@ EnvironmentMapEffect
 SkinnedEffect
 ```
 
-along with CNA's additional modern effects such as:
+CNA also provides modern framework effects such as:
 
 ```text
 PbrEffect
 SkinnedPbrEffect
 ```
 
-These are predefined framework shaders.
+These are portable framework APIs. Applications configure their properties, but do not supply an arbitrary Effect Framework program.
 
-The developer configures their properties, but does not provide an arbitrary Effect Framework program.
+### Compiled XNA effects
 
----
+This is the compatibility path described in this article.
 
-## Compiled XNA effects
-
-This article is primarily about this category.
-
-A game provides binary shader content originally produced from an XNA-style `.fx` source.
-
-The public API is the normal:
-
-```cpp
-Microsoft::Xna::Framework::Graphics::Effect
-```
-
-including:
+The game supplies XNA/FNA Direct3D 9 Effect Framework bytecode and uses the familiar object model:
 
 ```text
+Effect
 EffectParameter
 EffectTechnique
 EffectPass
 EffectAnnotation
 ```
 
-These are genuine Effect Framework semantics.
+CNA reconstructs the reflected object graph and executes the compiled shaders, pass state and sampler state.
 
----
+### ShaderEffect
 
-## ShaderEffect
+`CNAEXT::ShaderEffect` is for application-owned, backend-oriented shader packages such as GLSL, SPIR-V or WGSL source pairs.
 
-CNA also has:
+It does not reinterpret those formats as XNA Effect Framework bytecode and does not add XNA techniques, annotations or pass-state semantics.
 
-```cpp
-CNAEXT::ShaderEffect
-```
-
-for applications that own modern backend-oriented shader code.
-
-This is a different contract.
-
-It does not pretend GLSL, SPIR-V, WGSL or another native shader representation is an XNA Effect Framework binary.
-
-The two systems are therefore:
-
-```text
-Compiled XNA Effect
-
-    XNA/FNA Effect Framework
-    techniques
-    passes
-    reflection
-    annotations
-    render state
-    sampler state
-
-ShaderEffect
-
-    modern custom shader representation
-    supplied for the selected backend
-```
-
-Support for one does **not** imply support for the other.
-
----
-
-## Two independent capabilities
-
-CNA explicitly exposes this difference through graphics capabilities.
-
-Compiled XNA effects use:
+The two custom-shader capabilities are independent:
 
 ```cpp
-CNA::GraphicsCapability::CompiledEffects
+device.SupportsCapability(CNA::GraphicsCapability::CompiledEffects);
+device.SupportsCapability(CNA::GraphicsCapability::CustomEffects);
 ```
 
-while `ShaderEffect` uses:
-
-```text
-CustomEffects
-```
-
-A renderer may support:
-
-```text
-CompiledEffects = true
-CustomEffects   = false
-```
-
-or the opposite.
-
-Applications should therefore ask for the capability they actually require.
-
-For example:
-
-```cpp
-if (device.SupportsCapability(
-        CNA::GraphicsCapability::CompiledEffects))
-{
-    // XNA/FNA compiled Effect Framework binaries can run.
-}
-```
-
-CNA deliberately does not treat:
-
-```text
-custom shader support
-```
-
-as equivalent to:
-
-```text
-XNA Effect support
-```
-
-because executing shader instructions is only one part of the Effect Framework contract.
+A renderer may support either one, both or neither. Stock effects require neither capability.
 
 ---
 
-## What is an .fx file?
+## What CNA accepts
 
-A traditional XNA effect starts as HLSL source.
+The runtime contract is intentionally narrow and explicit.
 
-A simplified example might look conceptually like:
+| Input | Accepted | Route |
+| --- | --- | --- |
+| XNA/FNA Direct3D 9 Effect Framework binary (`.fxb`) | Yes | `Effect(GraphicsDevice&, byte[])` |
+| XNA 4-wrapped Effect payload in XNB | Yes | `ContentManager` and `EffectReader` |
+| HLSL `.fx` source | Build time only | CNA Content Pipeline plus an external compiler |
+| MonoGame `MGFX` / `.mgfxo` | No | Different container and runtime contract |
+| GLSL, SPIR-V or WGSL packages | Not through `Effect` | Use `CNAEXT::ShaderEffect` |
 
-```hlsl
-float4x4 WorldViewProjection;
-float4 Tint;
+The accepted binary is the legacy Effect Framework format used by XNA and FNA, including XNA 4's outer wrapper. It can contain the original Direct3D 9-era Shader Model programs as well as the Effect object graph around them.
 
-Texture2D Texture;
-
-sampler TextureSampler = sampler_state
-{
-    Texture = <Texture>;
-    MinFilter = Linear;
-    MagFilter = Linear;
-};
-
-float4 PixelShaderFunction(float4 color : COLOR0) : COLOR0
-{
-    return color * Tint;
-}
-
-technique Main
-{
-    pass Pass0
-    {
-        PixelShader =
-            compile ps_2_0 PixelShaderFunction();
-    }
-}
-```
-
-Real XNA effects may contain much more:
-
-```text
-multiple techniques
-multiple passes
-vertex + pixel shaders
-arrays
-structures
-annotations
-textures
-samplers
-render-state changes
-```
-
-The `.fx` file itself is source code.
-
-CNA does **not** compile this HLSL source at runtime.
+The runtime constructor never treats arbitrary text as HLSL source and never guesses whether an unknown blob might be MGFX.
 
 ---
 
-## What is an .fxb file?
+## Loading compiled bytes
 
-An `.fxb` file contains the compiled Direct3D 9 Effect Framework representation.
-
-That binary contains much more than raw shader machine code.
-
-It also describes the Effect object graph:
-
-```text
-parameters
-    │
-    ├── types
-    ├── semantics
-    ├── defaults
-    ├── arrays
-    ├── structures
-    └── annotations
-
-techniques
-    │
-    └── passes
-            │
-            ├── shaders
-            ├── render states
-            └── sampler states
-```
-
-This is the binary format consumed by XNA/FNA's normal:
-
-```csharp
-new Effect(graphicsDevice, effectCode)
-```
-
-path.
-
-CNA implements the corresponding native C++ API.
-
----
-
-## Loading an effect directly from bytes
-
-A compiled effect can be constructed directly.
-
-Conceptually:
+A standalone compiled effect can be created directly:
 
 ```cpp
 #include "Microsoft/Xna/Framework/Graphics/Effect.hpp"
@@ -332,23 +149,31 @@ std::vector<SharpRuntime::bytecs> bytes =
 Effect effect(device, bytes);
 ```
 
-CNA parses the Effect Framework binary and constructs the public reflection graph.
+The constructor validates the input, creates the renderer-specific runtime, reconstructs reflection data and initially selects the first technique.
 
-The first technique is selected initially, matching the expected XNA/FNA behavior.
+Applications should query the exact capability before choosing this path:
 
-The effect is then used much like an XNA effect.
+```cpp
+if (!device.SupportsCapability(
+        CNA::GraphicsCapability::CompiledEffects))
+{
+    // Select another renderer, use a stock effect or report the requirement.
+}
+```
+
+An unsupported renderer throws `NotSupportedException`. Invalid or truncated bytecode produces an argument-related error instead, so a platform mismatch is distinguishable from corrupt content.
 
 ---
 
 ## Loading an Effect from XNB
 
-CNA's XNB implementation also contains the canonical:
+CNA registers the canonical:
 
 ```text
 Microsoft.Xna.Framework.Content.EffectReader
 ```
 
-So an original XNA content asset can be loaded through `ContentManager`:
+An original XNA asset can therefore be loaded through `ContentManager`:
 
 ```cpp
 auto effect =
@@ -356,131 +181,65 @@ auto effect =
         "Effects/Bloom");
 ```
 
-The path is:
+The reader:
 
-```text
-Bloom.xnb
-    │
-    ▼
-ContentManager
-    │
-    ▼
-EffectReader
-    │
-    ▼
-compiled Effect Framework payload
-    │
-    ▼
-Effect
-```
+- enforces the content allocation limit before allocating;
+- requires an exact payload read;
+- assigns the asset name;
+- wraps construction failures in `ContentLoadException` while preserving the underlying diagnostic.
 
-The XNB reader validates the payload length, requires an exact read and retains the asset name for useful error reporting.
-
-The resulting effect uses the same compiled-effect runtime as one constructed directly from bytes.
+An XNB-loaded effect and a directly loaded `.fxb` use the same runtime and expose the same behavior.
 
 ---
 
-## Reflection
+## Reflection is part of compatibility
 
-A major part of XNA's Effect API is runtime reflection.
+An XNA effect is not only shader bytecode. Games can inspect its object graph at runtime.
 
-A game can inspect parameters:
+For example:
 
 ```cpp
 for (int i = 0;
      i < effect.getParametersProperty().getCountProperty();
      ++i)
 {
-    const auto& parameter =
+    const EffectParameter& parameter =
         effect.getParametersProperty()[i];
 
     parameter.getNameProperty();
     parameter.getSemanticProperty();
     parameter.getParameterClassProperty();
     parameter.getParameterTypeProperty();
+    parameter.getRowCountProperty();
+    parameter.getColumnCountProperty();
+    parameter.getAnnotationsProperty();
+    parameter.getElementsProperty();
+    parameter.getStructureMembersProperty();
 }
 ```
 
-CNA reconstructs the reflected Effect graph including:
+CNA preserves:
 
 ```text
-parameter names
-
+parameter order and names
 semantics
-
-scalar / vector / matrix classes
-
-numeric types
-
-texture types
-
+scalar, vector, matrix, object and structure classes
+numeric and texture types
 row and column counts
-
-arrays
-
-structure members
-
+arrays and nested structures
 annotations
+techniques and passes
 ```
 
-Reflection order follows the compiled Effect binary.
+Name lookup returns `nullptr` for a parameter that the effect does not declare. Sampler and shader objects are not exposed as public parameters, matching XNA and FNA; a texture reaches a sampler through the reflected texture parameter referenced by that sampler.
 
-This matters because some games do more than look up a parameter by name.
-
-They may enumerate the complete Effect structure.
+Numeric storage keeps the Effect Framework's float4 register padding internally while getters and setters expose the logical XNA shape. A `float3` array therefore remains a `float3` array instead of leaking its register padding into game code.
 
 ---
 
-## Arrays and structures
+## Setting parameters
 
-Effect Framework parameters are not limited to:
-
-```text
-float
-float4
-matrix
-Texture2D
-```
-
-They can also contain:
-
-```text
-arrays
-structures
-nested structure members
-```
-
-CNA exposes these through:
-
-```text
-EffectParameter.Elements
-EffectParameter.StructureMembers
-```
-
-Conceptually:
-
-```text
-LightData Lights[4]
-
-Lights
- ├── [0]
- │    ├── Position
- │    └── Color
- ├── [1]
- │    ├── Position
- │    └── Color
- ...
-```
-
-Views into array elements and structure members modify the underlying parent Effect parameter rather than disconnected copies.
-
----
-
-## Parameter values
-
-Compiled Effect parameters can be modified using the familiar model.
-
-For example:
+The API follows the familiar XNA model:
 
 ```cpp
 effect.getParametersProperty()["WorldViewProj"]
@@ -489,50 +248,36 @@ effect.getParametersProperty()["WorldViewProj"]
 effect.getParametersProperty()["Threshold"]
     ->SetValue(0.25f);
 
+effect.getParametersProperty()["Weights"]
+    ->SetValue(std::vector<float>{0.2f, 0.8f});
+
 effect.getParametersProperty()["Texture"]
     ->SetValue(&texture);
 ```
 
-CNA supports the logical XNA parameter types while internally preserving the register layout expected by the Effect Framework.
+Setters validate the reflected type and count. Array-element and structure-member views update their parent's storage rather than disconnected copies.
 
-That detail matters particularly for arrays and vectors.
-
-Direct3D 9 effect constant storage is based heavily around `float4` register layout.
-
-CNA must therefore preserve that storage model internally without exposing padding as if it were part of the user's `float3`.
-
----
-
-## Dirty parameter uploads
-
-Setting a parameter does not require CNA to blindly re-upload the entire Effect state before every draw.
-
-Mutable top-level parameters are tracked.
-
-When something changes:
+Mutable top-level parameters are dirty-tracked:
 
 ```text
-parameter.SetValue(...)
-        │
-        ▼
+SetValue(...)
+    │
+    ▼
 parameter becomes dirty
-        │
-        ▼
-next pass application
-        │
-        ▼
-changed data uploaded
+    │
+    ▼
+next pass application uploads it
 ```
 
-If nothing changes, the runtime does not needlessly upload the same values again.
+If nothing changed, CNA does not upload the same values again.
+
+String parameters follow XNA 4.0 semantics. A string value is CPU-side reflection data, belongs to its `Effect` instance and is copied independently by `Clone()`.
 
 ---
 
-## Techniques and passes
+## Techniques and exact pass selection
 
-The Effect Framework's technique/pass model is fully meaningful in CNA.
-
-For example:
+Compiled effects retain their real technique/pass structure:
 
 ```cpp
 effect.setCurrentTechniqueProperty(
@@ -551,203 +296,54 @@ for (auto& pass :
 }
 ```
 
-A compiled effect may therefore contain:
+`EffectPass::Apply()` applies the exact selected pass. It never collapses every request to pass zero.
 
-```text
-Technique A
-    Pass 0
-    Pass 1
+For the base compiled `Effect`, `Effect::Apply()` means pass zero of `CurrentTechnique`. Subclasses still receive the `OnApply()` hook before the pass is applied.
 
-Technique B
-    Pass 0
-    Pass 1
-    Pass 2
-```
-
-CNA does not simply execute:
-
-```text
-first shader found
-```
-
-and ignore the rest.
-
-`EffectPass::Apply()` applies the actual selected pass.
-
-This is important for old XNA games where one technique may contain multiple rendering phases.
+Applying a pass performs more than shader selection. In order, CNA validates ownership, calls `OnApply()`, uploads dirty values and textures, selects the native technique and pass, translates its state assignments and selects the effect for subsequent draws.
 
 ---
 
-## Effect::Apply()
+## Pass state is real device state
 
-CNA also retains its owner-level effect application behavior.
-
-For a compiled base `Effect`:
+An Effect Framework pass may assign:
 
 ```text
-Effect::Apply()
-```
-
-is defined as applying:
-
-```text
-pass 0
-of CurrentTechnique
-```
-
-while directly using:
-
-```text
-EffectPass::Apply()
-```
-
-selects the exact pass requested.
-
-Stock effects continue to use their normal stock-effect path.
-
----
-
-## Pass state is part of the Effect
-
-One of the hardest parts of implementing XNA FX compatibility is that the shader program is only part of a pass.
-
-A pass can also change graphics-device state.
-
-For example:
-
-```text
-blending
-depth testing
-depth writes
-culling
-fill mode
-scissor state
+blend state
+depth and stencil state
+rasterizer state
+texture bindings
 sampler filtering
 texture addressing
 anisotropy
-LOD rules
+mipmap limits and LOD bias
 ```
 
-When:
+CNA translates those assignments into its normal XNA-style device state. After `pass.Apply()`, the corresponding `GraphicsDevice` state objects and collections reflect the pass.
 
-```cpp
-pass.Apply();
+State groups that the pass does not assign remain untouched:
+
+```text
+before pass             after pass that changes blending only
+
+BlendState A            BlendState changed by the effect
+DepthStencilState B     DepthStencilState remains B
+RasterizerState C       RasterizerState remains C
 ```
 
-is called, CNA translates supported Effect Framework state assignments back into CNA's normal XNA-style state objects.
+Unknown render-state or sampler-state tokens are rejected by name. CNA does not silently ignore them or publish a half-translated state group.
 
-That means after a pass:
-
-```cpp
-device.getBlendStateProperty();
-device.getDepthStencilStateProperty();
-device.getRasterizerStateProperty();
-device.getSamplerStatesProperty()[0];
-```
-
-reflect the state selected by that pass.
-
-This is critical for compatibility.
-
-A renderer that translated only the shaders while ignoring the pass's state block would **not** have real FX support.
+`Border` and `MirrorOnce` addressing are also refused because XNA 4.0's `SamplerState` cannot represent them.
 
 ---
 
-## State that the effect did not assign remains untouched
+## SpriteBatch and normal 3D draws
 
-Another subtle XNA rule is equally important.
+Compiled effects are not restricted to one drawing helper.
 
-Suppose the game selects:
+They work with ordinary buffered, user, indexed and non-indexed draws, including non-zero offsets. Multi-stream and instanced routes are exercised where the selected renderer advertises those underlying capabilities.
 
-```text
-BlendState A
-DepthStencilState B
-RasterizerState C
-```
-
-and the Effect pass changes only blending.
-
-The correct behavior is not:
-
-```text
-reset everything to defaults
-```
-
-It is:
-
-```text
-BlendState       changed by effect
-
-DepthStencil     remains B
-
-RasterizerState  remains C
-```
-
-CNA tests this behavior explicitly.
-
-An Effect pass modifies the state groups it actually assigns.
-
-It does not indiscriminately overwrite the rest of the device state.
-
----
-
-## Samplers and textures
-
-Sampler behavior is another difficult part of Effect compatibility.
-
-In an FX source, a sampler may refer to a texture parameter:
-
-```text
-TextureParameter
-       │
-       ▼
-Sampler
-       │
-       ▼
-shader register
-```
-
-CNA preserves this relationship.
-
-The runtime does not simply guess:
-
-> This uniform happens to have a similar name, so perhaps this texture belongs here.
-
-Texture binding follows the reflected Effect metadata.
-
-Sampler state may also carry information such as:
-
-```text
-filter
-
-AddressU
-AddressV
-AddressW
-
-MaxAnisotropy
-
-MaxMipLevel
-
-MipMapLevelOfDetailBias
-```
-
-How much of that can reach the GPU depends on the selected renderer.
-
-Where an underlying graphics API cannot represent a particular state, CNA reports that limitation explicitly.
-
----
-
-## SpriteBatch with custom FX
-
-XNA applications frequently use custom Effects with:
-
-```text
-SpriteBatch
-```
-
-CNA supports this path as well.
-
-Conceptually:
+They also work with `SpriteBatch`:
 
 ```cpp
 spriteBatch.Begin(
@@ -759,157 +355,52 @@ spriteBatch.Begin(
     &effect);
 
 spriteBatch.Draw(texture, destination, Color::White);
-
 spriteBatch.End();
 ```
 
-For a compiled effect, the actual Effect pass is executed.
+Every pass runs at XNA's batch granularity. SpriteBatch reconnects the sprite texture to slot zero after applying the pass, matching FNA behavior, and preserves source rectangles and sprite flips.
 
-CNA does not silently replace it with the ordinary SpriteBatch shader.
+The shared tests also cover compiled effects sampling render targets, switching between compiled and stock effects, inheriting a stock vertex stage from a pixel-only pass and alternating between effects and clones.
 
-As in FNA, SpriteBatch reconnects its sprite texture to texture slot zero after applying the pass.
-
-That behavior matters for many original XNA post-processing and 2D shader effects.
-
----
-
-## Compiled effects work with normal 3D draws too
-
-FX support is not restricted to SpriteBatch.
-
-The shared conformance suite exercises routes including:
-
-```text
-DrawPrimitives
-
-DrawIndexedPrimitives
-
-DrawUserPrimitives
-
-DrawUserIndexedPrimitives
-
-instanced draws where supported
-
-multiple vertex streams where supported
-```
-
-and tests non-zero offsets such as:
-
-```text
-baseVertex
-startIndex
-vertexStart
-```
-
-This was an important quality gate in CNA's FX implementation.
-
-A renderer is not considered to support compiled effects merely because it can parse reflection information.
-
-The actual shader must survive all applicable draw routes.
-
----
-
-## No silent stock-shader fallback
-
-This is one of the strongest rules in CNA's FX implementation.
-
-Suppose a renderer successfully parses:
-
-```text
-Bloom.fxb
-```
-
-but cannot actually execute its shader.
-
-The wrong response would be:
-
-```text
-pretend success
-
-draw with BasicEffect instead
-```
-
-The frame may still show something, making the defect look like an art problem.
-
-CNA instead requires:
-
-```text
-CompiledEffects == false
-```
-
-or a clear draw-time refusal for the specific unsupported route.
-
-A backend is promoted to compiled-effect support only after the shared conformance suite proves actual rendering.
+A renderer is not promoted to compiled-effect support merely because it can parse reflection metadata. The effect's own parameter must survive the real draw route and appear in the read-back pixel.
 
 ---
 
 ## Renderer support today
 
-Compiled Effect support is renderer-dependent.
+CNA currently exposes exactly ten renderer identities over eight implementation families.
 
-In the current CNA source tree the implemented set is approximately:
+Compiled FX is implemented by six families:
 
-| Renderer | Compiled XNA FX |
-| --- | --- |
-| FNA3D | Supported |
-| SDL GPU | Supported when CNA_SDL_GPU_COMPILED_EFFECTS=ON |
-| EasyGL family | Supported when CNA_EASYGL_COMPILED_EFFECTS=ON |
-| Vulkan | Supported when CNA_VULKAN_COMPILED_EFFECTS=ON |
-| WebGPU | Supported when CNA_WEBGPU_COMPILED_EFFECTS=ON |
-| DirectX 9 | Supported when CNA_DIRECTX9_COMPILED_EFFECTS=ON |
-| DirectX 11 | Supported when CNA_DIRECTX11_COMPILED_EFFECTS=ON |
-| DirectX 12 | Supported when CNA_DIRECTX12_COMPILED_EFFECTS=ON |
-| Metal | Not implemented yet |
-| fixed-function / 2D / CPU renderers | Generally unsupported by design |
+| Renderer identity | `CompiledEffects` | Build option |
+| --- | --- | --- |
+| `OPENGLES3` | True when included | `CNA_EASYGL_COMPILED_EFFECTS` |
+| `OPENGL33` | True when included | `CNA_EASYGL_COMPILED_EFFECTS` |
+| `WEBGL2` | True when included | `CNA_EASYGL_COMPILED_EFFECTS` |
+| `WEBGPU` | True when included | `CNA_WEBGPU_COMPILED_EFFECTS` |
+| `HEADLESS` | False | None |
+| `SOFTWARE` | True when included | `CNA_SOFTWARE_COMPILED_EFFECTS` |
+| `STUB` | False | None |
+| `DIRECTX9` | True when included | `CNA_DIRECTX9_COMPILED_EFFECTS` |
+| `SDL_GPU` | True when included | `CNA_SDL_GPU_COMPILED_EFFECTS` |
+| `FNA3D` | True | Always included |
 
-FNA3D provides the natural reference implementation because FNA itself already uses FNA3D and MojoShader for this purpose.
+The five optional flags are off by default because they add MojoShader to renderer builds that do not otherwise need it. With a flag off, the renderer continues to work normally, reports `CompiledEffects == false` and explicitly refuses compiled Effect construction.
 
-The other renderers implement the same public contract through their own adapters.
-
----
-
-## Why most FX backends are opt-in
-
-A renderer such as Vulkan does not otherwise need MojoShader merely to render normal CNA content.
-
-Compiled XNA effects introduce that dependency.
-
-For this reason several renderer implementations place the feature behind configuration options such as:
-
-```text
-CNA_VULKAN_COMPILED_EFFECTS
-
-CNA_EASYGL_COMPILED_EFFECTS
-
-CNA_DIRECTX11_COMPILED_EFFECTS
-
-CNA_DIRECTX12_COMPILED_EFFECTS
-```
-
-When the option is disabled:
-
-```text
-renderer continues to work normally
-
-CompiledEffects = false
-
-compiled Effect construction is refused explicitly
-```
-
-The build does not claim a capability whose runtime code was not included.
+The capability describes the binary that is actually running, not what another build of the same renderer could support.
 
 ---
 
-## FNA3D
+## How the six implementations execute FX
 
-FNA3D is the most natural backend for compiled effects.
+The public `Effect` API stays the same, but the last part of the route differs by renderer.
 
-FNA has already solved the problem of taking XNA Effect Framework data and executing it on modern graphics systems.
+### FNA3D
 
-CNA uses the same broad architecture:
+FNA3D owns the mature MojoShader Effect Framework integration used by FNA:
 
 ```text
-Effect Framework binary
+XNA Effect Framework binary
         │
         ▼
     MojoShader
@@ -918,64 +409,28 @@ Effect Framework binary
       FNA3D
         │
         ▼
-selected graphics driver
+selected FNA3D driver
 ```
 
-FNA3D therefore serves both as a working implementation and an important behavioral reference.
+This is the natural reference path and is always present in a CNA `FNA3D` build.
 
-CNA's FNA3D path is tested against FNA-generated reflection and rendered output.
+### EasyGL: OpenGL ES 3, OpenGL 3.3 and WebGL 2
 
----
+The three public GL identities share CNA's EasyGL implementation and MojoShader's OpenGL adapter.
 
-## EasyGL
+`OPENGL33` uses the `glsl120` translation profile. `OPENGLES3` and `WEBGL2` use `glsles3`.
 
-The EasyGL family uses MojoShader's OpenGL-oriented translation.
+The explicit choice matters. CNA does not let a driver silently choose a different MojoShader profile whose assumptions do not fit XNA passes that assign only one shader stage and inherit the other.
 
-That includes CNA renderer identities such as:
+### SDL_GPU
 
-```text
-OPENGLES2
-OPENGLES3
-OPENGL33
-WEBGL1
-WEBGL2
-```
+The `SDL_GPU` route uses MojoShader's SDL GPU adapter and its SPIR-V output. SDL may then execute through Vulkan, Direct3D 12 or Metal depending on the host and available SDL GPU driver.
 
-Different identities need different shader dialects.
+Those are internal SDL choices, not additional CNA renderer identities.
 
-For example:
+### WebGPU
 
-```text
-desktop OpenGL 3.3
-    glsl120-compatible Effect translation path
-
-OpenGL ES / WebGL
-    GLES-oriented MojoShader profiles
-```
-
-The Effect runtime therefore selects the appropriate shader representation according to the actual EasyGL renderer instance.
-
-Some older GLES/WebGL profiles naturally have additional sampler-state or shader-language limitations.
-
-Those remain explicit.
-
----
-
-## Vulkan
-
-Vulkan required a more substantial implementation.
-
-There is no ready-made:
-
-```text
-mojoshader_vulkan.c
-```
-
-equivalent to some of MojoShader's other adapters.
-
-CNA therefore implements its own Effect backend around MojoShader's SPIR-V output.
-
-Conceptually:
+The native WebGPU path consumes CNA's MojoShader SPIR-V integration. In the browser, CNA translates that SPIR-V into WGSL before creating the WebGPU shader module:
 
 ```text
 XNA FX bytecode
@@ -986,64 +441,25 @@ XNA FX bytecode
       ▼
     SPIR-V
       │
-      ▼
-CNA Vulkan Effect runtime
-      │
-      ▼
-VkPipeline / descriptors / uniforms
+      └── browser build ─► WGSL
+                              │
+                              ▼
+                           WebGPU
 ```
 
-This includes translating the old Effect Framework's register-oriented model into Vulkan's descriptor and pipeline model.
+The adapter also maps the old combined-sampler model onto WebGPU's separate images and samplers.
 
-It is not a trivial shader text conversion.
+### Software
 
----
+`SOFTWARE` is no longer a blanket exception to arbitrary FX.
 
-## WebGPU
+Its optional compiled-effect runtime executes the supported legacy Shader Model programs on the CPU and participates in the same public reflection, state, SpriteBatch and pixel-output contracts as the GPU renderers.
 
-WebGPU presented another interesting problem.
+This is functional compatibility, not a performance claim. The renderer remains a bounded CPU implementation.
 
-The native route can work from SPIR-V, while browser WebGPU primarily expects WGSL.
+### DirectX 9
 
-CNA therefore has a path approximately like:
-
-```text
-XNA Effect bytecode
-       │
-       ▼
-   MojoShader
-       │
-       ▼
-     SPIR-V
-       │
-       ├──────── native WebGPU
-       │
-       └──► CNA SPIR-V transformation
-                  │
-                  ▼
-                 WGSL
-                  │
-                  ▼
-            browser WebGPU
-```
-
-This required solving differences such as WebGPU's separate image/sampler model versus MojoShader's combined sampler representation.
-
-The result is particularly interesting historically:
-
-an XNA-era Direct3D 9 Effect can ultimately execute through a modern browser graphics API.
-
----
-
-## DirectX 9
-
-DirectX 9 is structurally the closest graphics API to the original compiled Effect content.
-
-That is because an XNA 4 Effect contains Direct3D 9-era shader bytecode.
-
-The route can therefore preserve the original shader token programs much more directly.
-
-Conceptually:
+An XNA 4 Effect already contains Direct3D 9-era shader tokens. `DIRECTX9` can therefore create native vertex and pixel shaders from those programs directly:
 
 ```text
 XNA Effect
@@ -1051,934 +467,225 @@ XNA Effect
     ▼
 D3D9 shader tokens
     │
-    ▼
-IDirect3DVertexShader9
-IDirect3DPixelShader9
+    ├── IDirect3DVertexShader9
+    └── IDirect3DPixelShader9
 ```
 
-CNA still needs to handle:
-
-```text
-reflection
-techniques
-passes
-parameters
-states
-samplers
-draw routing
-```
-
-but the actual shader instruction format is native to the graphics API.
+MojoShader still supplies the Effect container runtime and reflection. CNA supplies the parameter, technique, pass, state, sampler and draw integration around it.
 
 ---
 
-## DirectX 11
+## Vulkan, DirectX 11, DirectX 12 and Metal are not CNA renderer identities
 
-DirectX 11 cannot directly execute old Shader Model 2/3 bytecode as a normal modern D3D11 program.
+Earlier versions of this article described separate CNA implementations for Vulkan, DirectX 11, DirectX 12 and Metal.
 
-CNA therefore uses a translation path through MojoShader's DirectX 11 integration.
+Those identities have been retired.
 
-The current route has been tested with:
-
-```text
-ordinary draws
-
-indexed draws
-
-multi-stream input
-
-instancing
-
-SpriteBatch
-
-Texture2D
-
-TextureCube
-
-Texture3D
-```
-
-and pass/state/sampler semantics.
-
-This is a useful example of why:
+The current architecture is:
 
 ```text
-Effect support
+SDL_GPU
+    ├── Vulkan selected internally by SDL
+    ├── Direct3D 12 selected internally by SDL
+    └── Metal selected internally by SDL
+
+FNA3D
+    ├── SDL_GPU selected internally by FNA3D
+    ├── Direct3D 11 selected internally by FNA3D
+    └── OpenGL selected internally by FNA3D
 ```
 
-is larger than:
-
-```text
-can compile old HLSL
-```
-
-The runtime has to reproduce the whole XNA Effect contract.
+An effect can still ultimately run on those graphics APIs. The important correction is that applications select `SDL_GPU` or `FNA3D`, query that renderer's capability and do not select a retired CNA identity.
 
 ---
 
-## DirectX 12
+## No silent stock-shader fallback
 
-DirectX 12 is even further removed architecturally from the old D3D9 Effect Framework.
+Suppose a renderer can parse `Bloom.fxb` but cannot execute its shader on a particular draw route.
 
-CNA implements a translation/binding path that produces shader code suitable for its D3D12 pipeline and then maps the old Effect model onto:
+The wrong behavior would be:
 
 ```text
-root signatures
-pipeline state
-resource bindings
-uniform storage
-frame lifetime
+pretend success
+draw with BasicEffect or the normal SpriteBatch shader
 ```
 
-The public application still sees:
+The frame might still contain plausible geometry, turning a compatibility defect into an apparent art problem.
 
-```cpp
-Effect
-EffectTechnique
-EffectPass
-EffectParameter
-```
+CNA instead follows two rules:
 
-rather than DirectX 12-specific objects.
+1. A renderer without a complete runtime reports `CompiledEffects == false` and refuses construction.
+2. A supported renderer refuses a specific unrepresentable shader, sampler or draw route by name rather than silently substituting another shader.
 
-That is precisely what a compatibility layer is supposed to accomplish.
+The capability becomes true only after the shared conformance suite proves real output.
 
 ---
 
-## Metal remains unfinished
+## Current boundaries
 
-Metal is the major remaining modern renderer without compiled XNA Effect support in the current implementation.
+Compiled FX does not manufacture capabilities that the selected renderer lacks.
 
-There is a technically plausible path because MojoShader can produce Metal-oriented shader source and CNA already has a Metal renderer.
+Important current boundaries include:
 
-However, CNA does not currently claim support.
+- vertex-stage texture sampling is unavailable across CNA's renderer contract;
+- volume-texture sampling remains renderer and profile dependent;
+- cube sampling is supported across the compiled-effect implementations;
+- `MipMapLevelOfDetailBias` has no OpenGL ES representation, although the pass assignment is still visible in CNA's state object;
+- the SPIR-V path explicitly refuses the Shader Model 1.4 `BEM` instruction it cannot implement;
+- an EasyGL context recreation invalidates the underlying MojoShader context, so the application must recreate compiled `Effect` instances from their bytecode;
+- a renderer's ordinary multi-stream and instancing limits also apply to its compiled-effect draws.
 
-Metal work requires actual macOS execution and validation.
+These are explicit errors or documented representational limits. They are not replaced by nearby behavior.
 
-CNA's policy is:
-
-```text
-do not advertise a backend written blind
-```
-
-A capability becomes true only after the real execution gate passes.
-
----
-
-## Why many renderers will never support arbitrary FX
-
-CNA contains renderers based on technologies such as:
-
-```text
-GDI
-Direct2D
-SDL Renderer
-Canvas
-SVG
-software rasterizers
-old fixed-function Direct3D
-OpenGL 1
-OpenGL ES 1
-```
-
-Some of these have no programmable shader stage capable of running an arbitrary Shader Model 2/3 program.
-
-Trying to emulate every XNA Effect on them would defeat the purpose of those renderers.
-
-So:
-
-```text
-CompiledEffects = false
-```
-
-is not necessarily unfinished work.
-
-For many renderer identities it is the correct permanent capability result.
+Sampler support is tested through rendered pixels, not only by reading state objects back. The tests distinguish `Wrap`, `Clamp` and `Mirror`, exercise filtering away from texel boundaries and select different-colored mip levels to verify mip limits and LOD behavior.
 
 ---
 
-## The build-time .fx route
+## Building `.fx` source
 
-CNA's native Content Pipeline also understands:
-
-```text
-.fx
-```
-
-and:
+CNA's Content Pipeline accepts both `.fxb` and `.fx` inputs, but the routes differ at their first step.
 
 ```text
-.fxb
+already compiled .fxb ───────────────┐
+                                     │
+.fx source                           │
+    │                                │
+    ▼                                │
+external fxc-compatible compiler     │
+    │                                │
+    └────────► compiled bytecode ◄────┘
+                         │
+                         ▼
+               XNB Effect asset
 ```
 
-sources.
+CNA deliberately does not embed an HLSL Effect compiler. Source compilation is an authoring-time operation.
 
-The two routes converge after compilation.
-
-Conceptually:
-
-```text
-effect.fx
-   │
-   ▼
-external fxc-compatible compiler
-   │
-   ▼
-compiled Effect Framework data
-   │
-   ┐
-   │
-effect.fxb
-   │
-   ┘
-   ▼
-CompiledEffectProcessor
-   │
-   ▼
-XNB Effect
-```
-
-A precompiled `.fxb` needs no compiler.
-
-A `.fx` source does.
-
----
-
-## CNA does not embed fxc
-
-CNA deliberately does **not** contain an HLSL Effect compiler.
-
-Compiling `.fx` is an authoring/build-time operation.
-
-The Content Pipeline can invoke an external `fxc`-compatible executable.
-
-For example:
+The command-line tool can be pointed at an external compiler:
 
 ```bash
-cna-content build Content -o bin \
-    --format xnb \
+cna-content build Content -o bin --format xnb \
     --fx-compiler "/path/to/fxc.exe"
 ```
 
-On a non-Windows build machine, the compiler can be launched through another program:
+On a non-Windows build machine it can launch that compiler through Wine:
 
 ```bash
-cna-content build Content -o bin \
-    --format xnb \
+cna-content build Content -o bin --format xnb \
     --fx-compiler "/path/to/fxc.exe" \
     --fx-compiler-launcher wine
 ```
 
-The compiler can also be selected through configuration and environment variables.
+The compiler and launcher can also be selected through the `CNA_FXC` and `CNA_FXC_LAUNCHER` environment variables or the `CNA_FXC_EXECUTABLE` and `CNA_FXC_LAUNCHER` CMake settings.
 
-This keeps a legacy shader compiler out of the runtime framework.
+The pipeline records the compiler identity, processor parameters and the complete `#include` dependency tree in its fingerprint. Changing the compiler, `profile`, `defines`, `debug` setting or an included `.fxh` file rebuilds the effect.
 
----
+Both `.fx` and `.fxb` currently produce an Effect only for `--format xnb`. CNB reserves an Effect identifier but deliberately has no native schema for Direct3D 9 Effect Framework content.
 
-## .fx includes are dependencies
-
-If an Effect source contains:
-
-```hlsl
-#include "Lighting.fxh"
-```
-
-that include file is part of the build dependency graph.
-
-CNA's pipeline resolves and records the include tree.
-
-So:
-
-```text
-Lighting.fxh changes
-       │
-       ▼
-dependent .fx asset becomes dirty
-       │
-       ▼
-effect is rebuilt
-```
-
-This is important for incremental content builds.
-
-The pipeline cannot correctly cache an `.fx` compilation if it fingerprints only the top-level source file.
+Runtime code therefore receives compiled `.fxb` or XNB payloads, never `.fx` source.
 
 ---
 
-## Effect compiler identity is part of the build
+## Cloning and lifetime
 
-The compiler itself can affect output.
-
-CNA therefore includes the selected compiler identity in the content-build fingerprint.
-
-This prevents:
-
-```text
-compile with compiler A
-       │
-       ▼
-cache output
-       │
-switch to compiler B
-       │
-       ▼
-incorrectly reuse A's output
-```
-
-Changing the compiler causes the affected Effect assets to rebuild.
-
-The same applies to important processor parameters.
-
----
-
-## Effect processor parameters
-
-The build-time `.fx` route supports parameters including concepts such as:
-
-```text
-profile
-
-defines
-
-debug
-```
-
-These participate in the content fingerprint.
-
-Changing:
-
-```text
-DebugMode
-
-preprocessor definition
-
-target profile
-```
-
-therefore invalidates the previous output.
-
-This makes Effect compilation behave like a real build-system component rather than an opaque external command.
-
----
-
-## FX currently produces XNB, not CNB
-
-This is an important CNA content-format distinction.
-
-Both:
-
-```text
-.fx
-```
-
-and:
-
-```text
-.fxb
-```
-
-currently produce an Effect only when the Content Pipeline is targeting:
-
-```text
---format xnb
-```
-
-CNB reserves an Effect asset identifier, but CNA currently defines **no native CNB Effect schema**.
-
-So:
-
-```text
-effect.fx
-   │
-   ▼
-CNA Content Pipeline
-   │
-   ▼
-XNB
-```
-
-is supported.
-
-But:
-
-```text
-effect.fx
-   │
-   ▼
-native Effect.cnb
-```
-
-is not currently a CNA content contract.
-
-This is deliberate.
-
-Compiled XNA Effect Framework content remains part of the XNA compatibility path rather than being relabeled as CNA-native content without a properly designed portable schema.
-
----
-
-## MGFX is not FX bytecode
-
-MonoGame has its own compiled effect format commonly associated with:
-
-```text
-MGFX
-mgfxo
-```
-
-This is **not** the same binary format as XNA/FNA Effect Framework bytecode.
-
-CNA explicitly rejects MGFX input rather than trying to guess what it is.
-
-The accepted compiled format is:
-
-```text
-XNA/FNA Direct3D 9 Effect Framework binary
-```
-
-including the wrapper used by XNA 4.
-
-So:
-
-```text
-XNA .fxb      yes
-
-XNA XNB Effect payload
-              yes
-
-MonoGame MGFX
-              no
-```
-
-Supporting MGFX would require a separate runtime contract.
-
----
-
-## .fx source is not accepted by the runtime constructor
-
-Another useful distinction is:
-
-```cpp
-Effect(device, bytes)
-```
-
-does **not** mean:
-
-```text
-feed HLSL text into Effect()
-```
-
-The constructor expects already compiled Effect Framework data.
-
-Runtime source compilation is deliberately outside the v1 compiled-effect contract.
-
-So this:
-
-```text
-.fx source
-```
-
-belongs to:
-
-```text
-build-time content pipeline
-```
-
-while this:
-
-```text
-.fxb / XNB Effect payload
-```
-
-belongs to:
-
-```text
-runtime Effect loader
-```
-
----
-
-## MojoShader
-
-A major part of CNA's FX implementation relies on **MojoShader**.
-
-MojoShader understands the Direct3D 9-era Effect Framework and Shader Model bytecode used by XNA/FNA.
-
-Its responsibilities include areas such as:
-
-```text
-Effect container parsing
-
-parameter reflection
-
-technique/pass reflection
-
-Shader Model 2/3 parsing
-
-translation into backend shader representations
-```
-
-CNA then connects that information to its renderer abstractions.
-
-The relationship is roughly:
-
-```text
-XNA Effect Framework binary
-          │
-          ▼
-      MojoShader
-          │
-          ▼
-renderer-specific adapter
-          │
-          ▼
-CNA GraphicsDevice
-```
-
-FNA/FNA3D use the same broad technology.
-
-This gives CNA a valuable compatibility reference rather than requiring a completely new parser for one of XNA's most complicated binary formats.
-
----
-
-## But CNA does not simply delegate everything to MojoShader
-
-MojoShader solves shader and Effect parsing problems.
-
-CNA still has to integrate the result into its own framework.
-
-That includes:
-
-```text
-EffectParameter objects
-
-EffectTechnique objects
-
-EffectPass objects
-
-GraphicsDevice state
-
-Texture bindings
-
-SamplerState
-
-SpriteBatch
-
-vertex declarations
-
-instancing
-
-resource lifetime
-
-device reset
-
-renderer capabilities
-```
-
-A MojoShader parse succeeding therefore does **not** mean CNA considers the renderer finished.
-
-The final rendered result must pass CNA's shared conformance suite.
-
----
-
-## Cloning
-
-Original XNA effects can be cloned.
-
-CNA supports:
+Compiled effects can be cloned:
 
 ```cpp
 std::unique_ptr<Effect> copy(effect.Clone());
 ```
 
-The clone remains on the same graphics device, but has independent mutable state.
-
-That includes:
+The clone remains on the same graphics device but owns independent mutable state:
 
 ```text
-parameter values
-string values
+parameter and string values
 texture references
 current technique
 native Effect runtime state
 ```
 
-Changing the clone should not modify the original.
+Either object may be disposed first. Only immutable compiled shader artifacts may be shared internally.
 
-Either object can be disposed first.
+CNA also defines device-reset and teardown behavior. A selected effect is removed when disposed, using a disposed effect raises `ObjectDisposedException`, disposal is idempotent and an existing effect survives an ordinary `GraphicsDevice::Reset()`.
 
-Only genuinely immutable compiled shader information may be shared internally.
-
----
-
-## Lifetime behavior
-
-Effect lifetime is also explicitly defined.
-
-CNA tests situations such as:
-
-```text
-effect disposed while selected
-
-device reset
-
-device destroyed before application-owned effect
-
-effect cloned then original destroyed
-
-same effect repeatedly created and disposed
-```
-
-Using a disposed effect produces an appropriate disposed-object error.
-
-Disposal is idempotent.
-
-This may sound unrelated to shaders, but resource lifetime is one of the areas most likely to differ between:
-
-```text
-OpenGL
-Vulkan
-D3D11
-D3D12
-WebGPU
-```
-
-while the public XNA API is expected to remain consistent.
+Construction belongs at content-load time rather than in the frame loop. If a game needs many instances of the same effect, `Clone()` reuses the already translated immutable artifacts and is substantially cheaper than constructing each instance from bytecode again.
 
 ---
 
-## Security and malformed input
+## Malformed input and fuzzing
 
-Compiled Effect data is a native binary format parsed by native code.
+Effect bytecode is a native binary format and must be treated as untrusted structured data.
 
-That makes malformed input a security and robustness concern.
+CNA bounds a compiled Effect at 64 MiB and checks sizes, counts, offsets, arrays, nested structures and shader objects before building the public graph.
 
-CNA places explicit bounds on areas such as:
+The parser and both major FNA3D translation routes were exercised with coverage-guided fuzzing under AddressSanitizer. The recorded campaigns exceeded three million executions on the OpenGL/GLSL route and two and a half million on the SDL GPU/SPIR-V route. Forty-one distinct crash classes found during the work became parser fixes and regression inputs.
 
-```text
-payload size
-reflection counts
-offset arithmetic
-arrays
-structure members
-shader objects
-```
-
-The direct constructor rejects malformed FX data with an argument-related error.
-
-An unsupported renderer produces a support-related error.
-
-The XNB ContentReader wraps failures with the asset context.
-
-These error categories are intentionally distinct.
+That is strong measured hardening, not a mathematical proof that arbitrary hostile bytecode is safe. Shipping game-owned effects and accepting user-supplied shader binaries are different trust decisions.
 
 ---
 
-## FX fuzzing
+## How CNA tests FX compatibility
 
-The compiled Effect implementation has also undergone extensive coverage-guided fuzzing.
+Every renderer claiming `CompiledEffects` runs the same renderer-neutral conformance contract.
 
-During development, malformed Effect binaries exposed many crash classes in the Effect parser and shader translators.
-
-Those cases were fixed and retained as regression inputs.
-
-The campaign eventually ran millions of Effect executions through the FNA3D shader paths under AddressSanitizer.
-
-The important lesson is not the exact execution count.
-
-It is that CNA treats:
+It covers:
 
 ```text
-binary shader content
+format rejection and truncation boundaries
+reflection, arrays, structures and annotations
+all public parameter getters and setters
+technique and exact-pass selection
+render, depth, rasterizer and sampler state
+texture binding and dimension checks
+cloning, disposal and device lifetime
+buffered, user, indexed and non-indexed draws
+multi-stream and instancing where supported
+SpriteBatch, multiple passes and inherited stages
+render-target sampling and orientation
+switching between compiled, cloned and stock effects
 ```
 
-as untrusted structured data rather than assuming that every input was produced by Microsoft's compiler.
+The drawing sections read pixels back. A route that binds the wrong pass, loses a parameter, uses the wrong vertex stream or falls back to a stock shader produces the wrong color and fails.
 
-Still, fuzzing is not a mathematical proof of safety.
+FNA supplies an independent behavioral reference. The fixture set also includes binaries produced by Microsoft's historical June 2010 `fxc`, the same generation used by the XNA 4 toolchain.
 
-CNA's documentation therefore distinguishes:
-
-```text
-heavily hardened and measured
-```
-
-from:
-
-```text
-arbitrary hostile Effect bytecode is guaranteed safe
-```
-
-The latter is not claimed.
+Recent compatibility work has gone beyond basic Shader Model 2/3 examples. Shared tests cover legacy Shader Model 1 through 3 instructions and found real translation differences in predicated `TEXKILL`, `vPos`, `vFace`, bump-environment instructions, pixel-center correction, GLSL ES precision and vertex-color clamping. CNA either repaired those routes or kept a precise refusal for the remaining unsupported case.
 
 ---
 
-## Testing against FNA
+## Choosing the right path
 
-Because FNA has a mature XNA Effect implementation, CNA can use it as an independent compatibility oracle.
-
-The FX test infrastructure compares things such as:
+For an existing XNA or FNA game:
 
 ```text
-reflection
-
-parameter metadata
-
-techniques
-
-passes
-
-render state
-
-rendered pixels
-```
-
-against FNA's own behavior.
-
-A particularly valuable test shape is:
-
-```text
-same .fxb
-   │
-   ├──► FNA
-   │      │
-   │      ▼
-   │   oracle
-   │
-   └──► CNA
-          │
-          ▼
-       compare
-```
-
-This provides much stronger evidence than implementing an Effect parser and writing tests that merely repeat the same interpretation.
-
----
-
-## Real Microsoft fxc
-
-CNA's conformance work also contains Effect binaries compiled with Microsoft's historical:
-
-```text
-fxc
-```
-
-from the June 2010 DirectX SDK — the same generation of Effect compiler used by XNA's own tooling.
-
-This is valuable because it validates CNA against genuine XNA-era Effect Framework output rather than only synthetic binary fixtures.
-
-The compiler remains a build-time tool.
-
-CNA applications do not need `fxc` installed merely to load an already compiled Effect.
-
----
-
-## The six stock effects are different
-
-Compiled FX support should also not be confused with CNA's stock-effect coverage.
-
-Types such as:
-
-```text
-BasicEffect
-AlphaTestEffect
-DualTextureEffect
-EnvironmentMapEffect
-SkinnedEffect
-```
-
-are portable CNA framework APIs.
-
-They do **not** require:
-
-```text
-GraphicsCapability::CompiledEffects
-```
-
-The renderer implements their semantics directly through the normal CNA renderer contract.
-
-So a renderer can legitimately support:
-
-```text
-BasicEffect
-```
-
-while refusing:
-
-```text
-arbitrary game-provided .fxb
-```
-
-Those are different capability levels.
-
----
-
-## PbrEffect is not an XNA FX file
-
-Likewise:
-
-```text
-PbrEffect
-SkinnedPbrEffect
-```
-
-are CNA extensions.
-
-They provide a modern PBR material model used by systems such as CNA's glTF importer.
-
-They are not compiled `.fx` files hidden behind another name.
-
-The architecture is:
-
-```text
-XNA stock effects
-        │
-        ├── BasicEffect
-        ├── SkinnedEffect
-        └── ...
-
-CNA modern stock effects
-        │
-        ├── PbrEffect
-        └── SkinnedPbrEffect
-
-arbitrary XNA compiled Effect
-        │
-        └── Effect(.fxb)
-
-modern application-owned shader
-        │
-        └── ShaderEffect
-```
-
-Keeping those categories separate makes CNA's graphics architecture much easier to reason about.
-
----
-
-## Why keep old FX support?
-
-It might be tempting to say:
-
-> Direct3D 9 Effect Framework bytecode is old. Just rewrite the shaders.
-
-That is reasonable for a new small project.
-
-It is much less reasonable for a large existing XNA game.
-
-A game may contain:
-
-```text
-dozens
-hundreds
-or more
-```
-
-custom effects.
-
-Those shaders may encode important game-specific rendering behavior.
-
-Forcing every XNA port to rewrite them before the game can render correctly would dramatically reduce CNA's compatibility value.
-
-FX support therefore serves one of CNA's central goals:
-
-```text
-old XNA content
-      │
-      ▼
-modern CNA renderer
-```
-
-without requiring the original game's shader architecture to be discarded first.
-
----
-
-## Why keep ShaderEffect as well?
-
-The inverse question is equally important.
-
-If CNA can execute old `.fxb`, why have `ShaderEffect`?
-
-Because an XNA Effect is designed around the Direct3D 9 era.
-
-A new CNA application may want:
-
-```text
-modern GLSL
-
-SPIR-V
-
-WGSL
-
-modern resource binding
-
-new GPU capabilities
-```
-
-without reproducing:
-
-```text
-D3D9 Effect techniques
-legacy pass states
-Shader Model 2/3 constraints
-```
-
-So:
-
-```text
-compiled Effect
-```
-
-is primarily a **compatibility technology**.
-
-`ShaderEffect` is a **modern custom-shader technology**.
-
-Both are useful.
-
-They solve different problems.
-
----
-
-## A useful decision rule
-
-For an existing XNA game:
-
-```text
-already has .fx/.fxb/XNB Effects
+already owns .fxb or XNB Effects
         │
         ▼
-use compiled Effect support
+query CompiledEffects and retain the Effect API
 ```
 
-For a new CNA application that needs custom shaders:
+For a new CNA application with its own backend shader packages:
 
 ```text
-owns the shader code
-does not need XNA Effect Framework semantics
+does not need XNA techniques, annotations or pass state
         │
         ▼
-consider ShaderEffect / modern CNA shader APIs
+query CustomEffects and use ShaderEffect
 ```
 
-For ordinary standard materials:
+For ordinary framework materials:
 
 ```text
 no custom shader required
         │
         ▼
-use stock effects
+use BasicEffect, PbrEffect or another stock effect
 ```
 
-such as:
-
-```text
-BasicEffect
-PbrEffect
-SkinnedPbrEffect
-```
+Compiled `Effect` is primarily a compatibility technology. `ShaderEffect` is the application-owned custom-shader technology. Stock effects are the portable framework-provided path.
 
 ---
 
 ## Current architecture
-
-The overall shader picture in CNA now looks approximately like:
 
 ```text
                          CNA Graphics
@@ -1986,193 +693,95 @@ The overall shader picture in CNA now looks approximately like:
           ┌───────────────────┼────────────────────┐
           │                   │                    │
           ▼                   ▼                    ▼
-
     Stock Effects       XNA Compiled FX       ShaderEffect
           │                   │                    │
-    BasicEffect              .fxb            backend-oriented
-    SkinnedEffect            XNB Effect       shader package/source
+    BasicEffect              .fxb           ShaderPackageEXT
+    SkinnedEffect            XNB Effect      GLSL/SPIR-V/WGSL
     PbrEffect                  │                    │
-          │                    │                    │
-          └────────────────────┼────────────────────┘
-                               ▼
-                         Renderer API
-                               │
-          ┌────────────────────┼────────────────────┐
-          ▼                    ▼                    ▼
-       EasyGL               Vulkan              DirectX
-          │                    │                    │
-       WebGPU               SDL GPU              ...
+          │                   │                    │
+          └───────────────────┼────────────────────┘
+                              ▼
+                        Renderer contract
+                              │
+             ┌────────────────┼────────────────┐
+             │                │                │
+             ├── EasyGL       ├── WebGPU       ├── Software
+             ├── SDL_GPU      ├── DirectX 9    └── FNA3D
 ```
 
-Not every renderer supports every branch.
-
-Capabilities say which paths are real for the selected renderer.
+Not every renderer supports every branch. Capability queries state which path is real in the selected build.
 
 ---
 
-## Source code
+## Source code and documentation
 
 The CNA repository is available at:
 
 [https://github.com/libcna/cna](https://github.com/libcna/cna)
 
-The primary porter-facing compiled-effect documentation is:
+The primary guides are:
 
 ```text
 docs/fx-compiled-effects.md
-```
-
-The distinction between old XNA FX and CNA's newer shader API is documented in:
-
-```text
 docs/shader-effect-vs-fx-bytecode.md
-```
-
-FX robustness work is documented in:
-
-```text
 docs/fx-bytecode-fuzzing.md
-```
-
-and the implementation/rollout history is tracked in:
-
-```text
-plans/plan_fx.md
-```
-
-Content Pipeline support for `.fx` and `.fxb` is documented in:
-
-```text
 docs/content-pipeline.md
+docs/renderer-registry.md
 ```
 
-The shared cross-renderer conformance framework lives around:
+The active renderer implementations are under:
+
+```text
+modules/renderers/fna3d/
+modules/renderers/easygl/
+modules/renderers/sdl-gpu/
+modules/renderers/webgpu/
+modules/renderers/software/
+modules/renderers/directx9/
+```
+
+Shared MojoShader integration lives in:
+
+```text
+modules/renderers/common/mojoshader/
+```
+
+The renderer-neutral conformance suite is centered on:
 
 ```text
 tests/support/CNA/TestSupport/CompiledEffectConformance.hpp
 tests/support/CNA/TestSupport/CompiledEffectFixtures.hpp
 ```
 
-Renderer implementations include areas such as:
-
-```text
-modules/renderers/fna3d/
-modules/renderers/easygl/
-modules/renderers/sdl-gpu/
-modules/renderers/vulkan/
-modules/renderers/webgpu/
-modules/renderers/directx9/
-modules/renderers/directx11/
-modules/renderers/directx12/
-```
-
-and shared MojoShader integration is under:
-
-```text
-modules/renderers/common/mojoshader/
-```
-
-CNA also contains development tools such as:
+Development tools include:
 
 ```text
 tools/graphics/mojoshader_effect_probe.cpp
 tools/graphics/mojoshader_gl_probe.cpp
-tools/graphics/mojoshader_vulkan_probe.cpp
 tools/graphics/mojoshader_sdlgpu_probe.cpp
 tools/graphics/compiled_effect_fuzzer.cpp
+tools/graphics/compiled_effect_benchmark.cpp
 ```
 
 ---
 
 ## Conclusion
 
-FX support in CNA now covers much more than recognizing an old shader file.
+FX support in CNA is no longer limited to recognizing an old shader file.
 
-CNA can load genuine XNA/FNA Effect Framework binaries, reconstruct their public reflection model and execute their shader programs through multiple modern renderer architectures.
+CNA loads genuine XNA/FNA Effect Framework binaries, reconstructs their public reflection model and executes their techniques, passes, shaders, states and samplers through FNA3D, EasyGL, SDL GPU, WebGPU, Software and DirectX 9.
 
-The supported runtime contract includes:
-
-```text
-parameters
-arrays
-structures
-annotations
-
-techniques
-passes
-
-textures
-samplers
-
-render state
-depth state
-rasterizer state
-
-SpriteBatch
-3D draws
-instancing where available
-
-clone
-lifetime
-ContentManager / XNB loading
-```
-
-The current path begins with a fundamentally old technology:
-
-```text
-XNA 4.0
-Direct3D 9
-Shader Model 2/3
-Effect Framework
-```
-
-but can end on technologies such as:
-
-```text
-OpenGL
-Vulkan
-WebGPU
-DirectX 11
-DirectX 12
-SDL GPU
-```
-
-through CNA's renderer adapters.
-
-At the same time, CNA does not confuse this compatibility system with its modern shader APIs.
-
-The distinction remains:
+At the same time, the project keeps three contracts distinct:
 
 ```text
 Stock Effects
-    portable framework-provided effects
+    portable framework-provided materials
 
 Compiled Effect
     compatibility with XNA/FNA .fxb and XNB Effects
 
 ShaderEffect
-    modern application-owned custom shaders
+    modern application-owned shader packages
 ```
 
-And at build time:
-
-```text
-.fx source
-    │
-    ▼
-external XNA-compatible compiler
-    │
-    ▼
-FX bytecode
-    │
-    ▼
-XNB
-```
-
-while already compiled `.fxb` content can enter the pipeline directly.
-
-This separation gives CNA an important property:
-
-> An old XNA game can retain its original Effect architecture, while a new CNA application is not forced to design new shaders around a Direct3D 9-era format.
-
-That is the purpose of FX support in CNA: preserve the old contract faithfully without making it the limit of CNA's future graphics architecture.
+That separation lets an old XNA game retain its original Effect architecture without forcing a new CNA application to design its shaders around a Direct3D 9-era format.
