@@ -40,29 +40,33 @@
   <div class="page-shell single-layout">
     <main class="main-content" id="content"><article class="article">
     <header class="article-header">
-      <div class="meta"><span>Published <time datetime="2026-09-20T11:12:53Z">September 20, 2026</time></span><span>Updated <time datetime="2026-10-09T17:49:00Z">October 9, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/graphics/">Graphics</a></span></div>
+      <div class="meta"><span>Published <time datetime="2026-09-20T11:12:53Z">September 20, 2026</time></span><span>Updated <time datetime="2026-10-17T14:22:00Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/graphics/">Graphics</a></span></div>
       <h1 class="article-title">Renderers in CNA</h1>
       <p class="article-description">Graphics rendering is one of the largest parts of CNA.</p>
     </header>
     <div class="article-body"><p>Graphics rendering is one of the largest parts of CNA.</p>
-<p>CNA has <strong>14 renderers (12 implementation families)</strong>.</p>
-<p>They range from OpenGL ES, WebGL and Direct3D 9 to Vulkan, Direct3D 11, Metal and WebGPU.</p>
-<p>CNA also includes a CPU renderer, browser-native rendering paths, 2D backends, translation layers and diagnostic renderers that deliberately produce no pixels.</p>
+<p>CNA has <strong>10 renderers (8 implementation families)</strong>.</p>
+<p>They range from OpenGL ES, WebGL and Direct3D 9 to WebGPU.</p>
+<p>CNA also includes a CPU renderer, browser-native rendering paths, translation layers and diagnostic renderers that deliberately produce no pixels.</p>
 <p>They are not all intended for the same purpose.</p>
 <p>The maturity of renderers is classified as:</p>
-<ul><li><strong>6 Production</strong></li><li><strong>5 Supported</strong></li><li><strong>3 Experimental</strong></li></ul>
+<ul><li><strong>3 Production</strong></li><li><strong>5 Supported</strong></li><li><strong>2 Experimental</strong></li></ul>
 <p>The implementation technology of renderers is classified as:</p>
-<ul><li><strong>6 Native</strong></li><li><strong>4 TranslationLayer</strong></li><li><strong>1 Software</strong></li><li><strong>1 Web</strong></li><li><strong>2 Diagnostic</strong></li></ul>
-<p>A renderer can, for example, be a native graphics backend while still being Supported rather than Production</p>
+<ul><li><strong>3 Native</strong></li><li><strong>3 TranslationLayer</strong></li><li><strong>1 Software</strong></li><li><strong>1 Web</strong></li><li><strong>2 Diagnostic</strong></li></ul>
+<p>A renderer can, for example, use a translation layer while still being Supported rather than Experimental.</p>
 <h2 id="why-cna-has-many-renderers">Why CNA has many renderers</h2>
-<p>CNA applications do not depend on Vulkan, Direct3D, OpenGL, Metal, SDL GPU, WebGPU or any other single graphics technology.</p>
+<p>CNA applications do not depend on Direct3D, OpenGL, SDL GPU, WebGPU or any other single graphics technology.</p>
 <ul><li>They depend on CNA.</li></ul>
-<p>Every technology like OpenGL, Vulkan, Metal, WebGPU and SDL may be an important today. Decades from now, it may not be.</p>
+<p>Technologies such as OpenGL, Direct3D, WebGPU and SDL GPU may be important today. Decades from now, they may not be.</p>
 <p>If a future platform introduces another graphics API, CNA should be able to gain a new renderer underneath the framework without requiring applications to rewrite their high-level graphics code.</p>
-<h2 id="14-renderers-does-not-mean-14-separate-codebases">14 renderers does not mean 14 separate codebases</h2>
-<p>Three renderers share he same implementation. This implementation is named EasyGL, which is the CNA&#39;s shared OpenGL-family renderer.</p>
+<h2 id="10-renderers-does-not-mean-10-separate-codebases">10 renderers does not mean 10 separate codebases</h2>
+<p>Three renderer identities share the same implementation. It is named EasyGL and is CNA&#39;s shared OpenGL-family renderer.</p>
 <ul><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>WebGL 2</li></ul>
 <p>These three renderers expose different graphics profiles, shader languages, capabilities and platform requirements.</p>
+<h2 id="a-curated-renderer-set">A curated renderer set</h2>
+<p>Renderer count is not a goal by itself. CNA keeps a renderer only when it provides meaningful platform coverage, compatibility value, architectural value or a capability that the existing set does not reasonably cover.</p>
+<p>On 13 October 2026, CNA retired its own <code>VULKAN</code>, <code>DIRECTX11</code>, <code>METAL</code> and <code>SDL_RENDERER</code> identities. SDL GPU now provides the main modern cross-platform path and delegates Vulkan, Direct3D 12 and Metal to SDL. The old names are not aliases: CNA rejects them explicitly at configure time and at runtime.</p>
+<p>Altogether, CNA has retired 41 public renderer identities. Their C ABI values remain reserved and their implementations remain available in Git history, but they are not part of the current renderer registry.</p>
 <h2 id="easygl">EasyGL</h2>
 <h3 id="opengl-es-3-production">OpenGL ES 3 - Production</h3>
 <p>OpenGL ES 3 is one of CNA&#39;s primary EasyGL renderer profiles.</p>
@@ -76,49 +80,26 @@
 <p>WebGL 2 is CNA&#39;s browser-oriented EasyGL profile.</p>
 <p>It maps closely to the OpenGL ES 3 generation and provides CNA with a conventional GPU-accelerated graphics path inside modern browsers.</p>
 <h2 id="directx-and-windows-graphics">DirectX and Windows graphics</h2>
-<p>CNA supports two Direct3D generations on Windows.</p>
-<p>Together they span the XNA-era Direct3D 9 model and the mature programmable Direct3D 11 architecture.</p>
+<p>CNA has one public renderer identity that talks directly to Direct3D: Direct3D 9.</p>
 <h3 id="direct3d-9-production">Direct3D 9 - Production</h3>
 <p>Direct3D 9 is especially important to CNA because it belongs to the graphics generation from which XNA itself emerged.</p>
 <p>XNA 4.0 used Direct3D 9 on Windows, so CNA&#39;s Direct3D 9 renderer is useful for more than simply providing another backend.</p>
 <p>It provides a particularly valuable reference point when investigating XNA rendering behavior.</p>
-<h3 id="direct3d-11-production">Direct3D 11 - Production</h3>
-<p>Direct3D 11 is one of CNA&#39;s primary Windows renderers.</p>
-<p>It provides a mature programmable GPU model.</p>
-<p>That makes it an important practical renderer as well as a useful comparison point for other CNA backends.</p>
 <h2 id="cna-does-not-target-only-the-newest-graphics-apis">CNA does not target only the newest graphics APIs</h2>
-<p>SDL Renderer is very different from Vulkan.</p>
-<p>A CPU rasterizer is very different from Metal or WebGPU.</p>
-<p>XNA 4.0 was designed in a graphics environment very different from Vulkan, Metal or WebGPU.</p>
+<p>A CPU rasterizer is very different from WebGPU or SDL GPU.</p>
+<p>XNA 4.0 was designed in a graphics environment very different from WebGPU and SDL GPU&#39;s modern backends.</p>
 <p>Supporting both XNA-era and modern rendering architectures helps CNA preserve the high-level programming model while replacing the implementation underneath it.</p>
 <h2 id="modern-gpu-apis">Modern GPU APIs</h2>
-<h3 id="vulkan-production">Vulkan - Production</h3>
-<p>Vulkan is one of CNA&#39;s primary modern renderers.</p>
-<p>It provides explicit control over GPU resources, pipelines, synchronization and command submission.</p>
-<p>That makes it architecturally very different from OpenGL and from XNA&#39;s original Direct3D 9 environment.</p>
-<p>Vulkan has therefore become one of CNA&#39;s important renderer-parity targets.</p>
-<h3 id="webgpu-experimental">WebGPU - Experimental</h3>
+<h3 id="webgpu-supported">WebGPU - Supported</h3>
 <p>WebGPU provides CNA with a modern portable graphics model spanning native and browser environments.</p>
 <p>On native systems CNA can use <code>wgpu-native</code>.</p>
 <p>Browser builds can target WebGPU through Emscripten.</p>
 <p>CNA treats WebGPU as one public renderer identity even though the environment underneath it differs between native and web builds.</p>
-<p>The renderer is classified as a <strong>TranslationLayer</strong> because the WebGPU implementation can ultimately map the API onto lower-level platform graphics technologies.</p>
-<h3 id="metal-supported">Metal - Supported</h3>
-<p>Metal is CNA&#39;s native Apple GPU renderer.</p>
-<p>It provides a direct graphics path for Apple&#39;s modern graphics API and is an important part of CNA&#39;s broader Apple-platform direction.</p>
-<p>The renderer is independent of CNA&#39;s platform layer: graphics rendering and operating-system integration are deliberately separate architectural layers, and current Apple builds can pair Metal rendering with CNA&#39;s SDL3-based platform integration.</p>
-<h2 id="sdl-graphics-backends">SDL graphics backends</h2>
-<p>CNA supports two very different SDL graphics APIs.</p>
-<h3 id="sdl-renderer-production">SDL Renderer - Production</h3>
-<p>SDL Renderer uses SDL&#39;s high-level 2D rendering API.</p>
-<p>It is deliberately a 2D renderer.</p>
-<p>It is appropriate for XNA-style applications centered around functionality such as <code>SpriteBatch</code>, textures and compatible render targets.</p>
-<p>Unsupported 3D functionality does not need to be disguised as something it is not.</p>
-<p>A narrower renderer can still be Production quality within its supported scope.</p>
-<h3 id="sdl-gpu-supported">SDL GPU - Supported</h3>
+<p>The renderer is classified as a <strong>TranslationLayer</strong> because WebGPU ultimately maps onto lower-level platform graphics technologies.</p>
+<h2 id="sdl-gpu-supported">SDL GPU - Supported</h2>
 <p>SDL GPU uses SDL3&#39;s modern GPU API.</p>
-<p>Unlike SDL Renderer, it provides a programmable GPU architecture and can support a much broader subset of CNA&#39;s graphics model.</p>
-<p>SDL itself manages the lower-level graphics technology beneath that abstraction, so CNA classifies SDL GPU as a TranslationLayer renderer.</p>
+<p>It provides a programmable GPU architecture and supports a broad subset of CNA&#39;s graphics model.</p>
+<p>SDL itself manages the lower-level graphics technology beneath that abstraction. Depending on the platform, SDL GPU can use Vulkan, Direct3D 12 or Metal. Those are SDL backends, not additional CNA renderer identities, so CNA classifies SDL GPU as a TranslationLayer renderer.</p>
 <h2 id="fna3d-experimental">FNA3D - Experimental</h2>
 <p>FNA3D is the graphics library developed for FNA, another XNA-compatible framework.</p>
 <p>That makes it particularly interesting as a CNA renderer.</p>
@@ -129,10 +110,10 @@
 <p>It is also useful for finding assumptions in either implementation that would be difficult to notice when testing only against a native API.</p>
 <h2 id="translation-layers-are-useful">Translation layers are useful</h2>
 <p>FNA3D is only one example of a broader category.</p>
-<p>The current CNA renderer registry classifies four renderer identities as <strong>TranslationLayer</strong>:</p>
-<ul><li>SDL Renderer</li><li>SDL GPU</li><li>WebGPU</li><li>FNA3D</li></ul>
+<p>The current CNA renderer registry classifies three renderer identities as <strong>TranslationLayer</strong>:</p>
+<ul><li>SDL GPU</li><li>WebGPU</li><li>FNA3D</li></ul>
 <p>These are not all the same type of abstraction.</p>
-<p>SDL Renderer and SDL GPU expose SDL&#39;s graphics abstractions.</p>
+<p>SDL GPU exposes SDL&#39;s modern graphics abstraction.</p>
 <p>WebGPU presents a portable modern graphics model that can itself be implemented over lower-level native APIs.</p>
 <p>FNA3D provides a graphics API designed specifically for an XNA-compatible framework and can select its own lower-level graphics backend at runtime.</p>
 <h2 id="cpu-rendering">CPU rendering</h2>
@@ -140,7 +121,7 @@
 <p>CNA currently has one renderer identity classified explicitly as <strong>Software</strong> technology.</p>
 <h3 id="software-experimental">Software - Experimental</h3>
 <p>The Software renderer is CNA&#39;s own CPU rasterizer.</p>
-<p>It renders real graphics entirely on the CPU without relying on OpenGL, Vulkan, Direct3D or another GPU API.</p>
+<p>It renders real graphics entirely on the CPU without relying on OpenGL, Direct3D or another GPU API.</p>
 <p>It can rasterize actual geometry into a CPU-owned framebuffer, making correct pixel readback possible without a GPU or native display surface.</p>
 <p>That makes it useful for:</p>
 <ul><li>deterministic graphics testing</li><li>CI environments without GPU access</li><li>server environments</li><li>cross-renderer comparisons</li><li>investigating rendering behavior without involving a GPU driver</li></ul>
@@ -166,39 +147,37 @@
 <p>That makes it useful for testing code paths that should not depend on graphics output and for identifying accidental renderer dependencies elsewhere in an application or framework.</p>
 <p>Together, these backends demonstrate another important property of CNA&#39;s architecture:</p>
 <p><strong>the graphics API presented to an application does not necessarily require either a visible window or a GPU behind it.</strong></p>
-<h2 id="14-renderers-but-not-14-equal-renderers">14 renderers, but not 14 equal renderers</h2>
-<p>CNA does not have 14 completely interchangeable graphics renderers with identical capabilities.</p>
+<h2 id="10-renderers-but-not-10-equal-renderers">10 renderers, but not 10 equal renderers</h2>
+<p>CNA does not have 10 completely interchangeable graphics renderers with identical capabilities.</p>
 <p>Some:</p>
-<ul><li>are general-purpose GPU renderers</li><li>implement only 2D</li><li>render entirely on the CPU</li><li>depend on another graphics abstraction</li><li>exist only in browsers</li><li>render no pixels at all</li></ul>
+<ul><li>are general-purpose GPU renderers</li><li>render entirely on the CPU</li><li>depend on another graphics abstraction</li><li>exist only in browsers</li><li>render no pixels at all</li></ul>
 <p>A renderer&#39;s <strong>maturity</strong> describes how ready and validated its implementation is within the scope that it claims to support.</p>
 <p>Its <strong>capabilities</strong> describe what that renderer can actually do.</p>
-<p>For example, SDL Renderer is intentionally much narrower than Vulkan because SDL Renderer is a 2D abstraction.</p>
-<ul><li>That does not prevent SDL Renderer from being classified as Production within its supported scope.</li></ul>
-<p>SDL Renderer operates in an environment fundamentally different from general-purpose 3D renderers.</p>
+<p>For example, the Software renderer has different performance and capability boundaries from GPU-backed renderers, while FNA3D and SDL GPU place another graphics abstraction underneath CNA.</p>
 <p>Headless and Stub deliberately make no normal pixel-output claim.</p>
 <h2 id="production-renderers">Production renderers</h2>
-<p>CNA classifies these six renderers as <strong>Production</strong>:</p>
-<ul><li>SDL Renderer</li><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>Vulkan</li><li>Direct3D 9</li><li>Direct3D 11</li></ul>
+<p>CNA classifies these three renderers as <strong>Production</strong>:</p>
+<ul><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>Direct3D 9</li></ul>
 <p>Production is CNA&#39;s highest current renderer maturity level.</p>
 <p>It means the renderer is considered appropriate for regular use within the feature scope it claims to support, with broad and verified coverage.</p>
 <p>A Production renderer does not necessarily have the same capabilities as another Production renderer.</p>
 <h2 id="supported-renderers">Supported renderers</h2>
 <p>The current <strong>Supported</strong> renderers are:</p>
-<ul><li>WebGL 2</li><li>Headless</li><li>Stub</li><li>SDL GPU</li><li>Metal</li></ul>
+<ul><li>WebGL 2</li><li>WebGPU</li><li>Headless</li><li>Stub</li><li>SDL GPU</li></ul>
 <p>These renderers are functional and maintained.</p>
 <p>They may have narrower capability boundaries, less renderer-parity coverage, less hardware validation or other remaining work that keeps them below the Production maturity level.</p>
 <h2 id="experimental-renderers">Experimental renderers</h2>
-<p>The current <strong>Experimental</strong> renders are:</p>
-<ul><li>WebGPU</li><li>Software</li><li>FNA3D</li></ul>
+<p>The current <strong>Experimental</strong> renderers are:</p>
+<ul><li>Software</li><li>FNA3D</li></ul>
 <p>Experimental renderers are active CNA backends, but their public behavior, capability coverage or implementation may still require substantial development and validation.</p>
 <p>A renderer&#39;s maturity is not permanent and can change in the future.</p>
 <h2 id="technology-categories">Technology categories</h2>
-<p>The technology category answers: W<strong>hat kind of implementation is underneath it?</strong></p>
+<p>The technology category answers: <strong>What kind of implementation is underneath it?</strong></p>
 <p>The current renderer set is divided as follows.</p>
-<h3 id="native-6">Native - 6</h3>
-<ul><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>Vulkan</li><li>Direct3D 9</li><li>Direct3D 11</li><li>Metal</li></ul>
-<h3 id="translationlayer-4">TranslationLayer - 4</h3>
-<ul><li>SDL Renderer</li><li>SDL GPU</li><li>WebGPU</li><li>FNA3D</li></ul>
+<h3 id="native-3">Native - 3</h3>
+<ul><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>Direct3D 9</li></ul>
+<h3 id="translationlayer-3">TranslationLayer - 3</h3>
+<ul><li>SDL GPU</li><li>WebGPU</li><li>FNA3D</li></ul>
 <h3 id="software-1">Software - 1</h3>
 <ul><li>Software</li></ul>
 <h3 id="web-1">Web - 1</h3>
@@ -207,25 +186,26 @@
 <ul><li>Headless</li><li>Stub</li></ul>
 <h2 id="many-renderers-strengthen-the-abstraction">Many renderers strengthen the abstraction</h2>
 <p>Renderer diversity is also a testing strategy.</p>
-<p>OpenGL can allow behavior that Vulkan does not.</p>
-<p>Vulkan can expose resource-lifetime and synchronization mistakes hidden by a more implicit API.</p>
+<p>OpenGL can allow behavior that WebGPU or SDL GPU does not.</p>
+<p>WebGPU and SDL GPU can expose resource-lifetime, pipeline and synchronization assumptions hidden by a more implicit API.</p>
 <p>Direct3D can reveal different state, shader, texture-format and resource assumptions.</p>
 <p>A CPU renderer removes the GPU driver from the equation entirely.</p>
-<p>A 2D-only backend forces CNA to distinguish functionality that genuinely requires a general-purpose 3D graphics pipeline from functionality that does not.</p>
+<p>The no-pixel diagnostic backends force CNA to distinguish graphics-object lifecycle behavior from actual rasterization.</p>
 <p>This diversity can reveal bugs and make the abstraction stronger.</p>
 <h2 id="graphics-is-separate-from-the-platform">Graphics is separate from the platform</h2>
 <p>The important CNA design principle is that the <strong>renderer and platform are separate systems:</strong></p>
 <ul><li>The renderer determines how graphics are produced.</li><li>The platform determines things such as windows, operating-system events, input and native integration.</li></ul>
 <p>CNA&#39;s platform layer currently includes SDL3, Headless and Terminal platform implementations for specialized environments.</p>
-<p>The graphics renderer is not supposed to define the entire operating environment around the application</p>
+<p>The graphics renderer is not supposed to define the entire operating environment around the application.</p>
 <h2 id="you-normally-use-only-one-renderer">You normally use only one renderer</h2>
-<p>Having 14 renderers in CNA does not mean a normal game contains all of them.</p>
+<p>Having 10 renderers in CNA does not mean a normal game contains all of them.</p>
 <ul><li>The usual CNA configuration selects one renderer at build time with: <code>CNA_GRAPHICS_RENDERER</code></li></ul>
-<p>A project that only needs the SDL Renderer does not have to ship Vulkan, Metal or any other CNA renderer.</p>
-<p>An individual CNA game contains only those renderers, it needs.</p>
+<p>If no renderer is named, CNA currently defaults to WebGL 2 under Emscripten, SDL GPU on Windows, macOS and iOS, and OpenGL ES 3 on other systems.</p>
+<p>A project that only needs OpenGL ES 3 does not have to ship SDL GPU, WebGPU or any other CNA renderer.</p>
+<p>An individual CNA game contains only the renderer or renderers it needs.</p>
 <h2 id="multi-renderer-builds-are-possible">Multi-renderer builds are possible</h2>
-<p>CNA also supports an optional multi-renderer architecture through:<code>CNA_GRAPHICS_RENDERERS</code></p>
-<p>Several renderers can be compiled into the same application. One of these renderers is selected before the first <code>GraphicsDevice</code> is created via the CNA public extension <code>GraphicsRendererSelection.</code></p>
+<p>CNA also supports an optional multi-renderer architecture through <code>CNA_GRAPHICS_RENDERERS</code>.</p>
+<p>Several renderers can be compiled into the same application. One of them is selected before the first <code>GraphicsDevice</code> is created via the CNA public extension <code>GraphicsRendererSelection</code>.</p>
 <p>A preferred renderer can come from:</p>
 <ul><li>an explicit <code>GraphicsRendererSelection::SetPreferred()</code> call</li><li>the <code>CNA_GRAPHICS_RENDERER</code> environment variable</li><li>the build&#39;s compile-time default renderer</li></ul>
 <p>This selection cannot be changed after the first <code>GraphicsDevice</code> is created. After that the renderer underneath an already-running graphics system cannot be switched.</p>
@@ -240,7 +220,7 @@
 <ul><li>implementation work</li><li>maintenance</li><li>testing</li><li>documentation</li><li>platform validation</li><li>build complexity</li><li>renderer parity work</li><li>performance analysis</li><li>debugging</li></ul>
 <p>A change to CNA&#39;s shared graphics behavior may affect many renderer implementations.</p>
 <p>A renderer that appears correct on one machine may still require validation on different drivers and real hardware.</p>
-<p>CNA&#39;s renderer work increasingly focuses on: <strong>correctness, parity, testing, optimization, simplification and stabilization.</strong></p>
+<p>CNA&#39;s renderer work increasingly focuses on <strong>correctness, parity, testing, optimization, simplification and stabilization</strong>.</p>
 <h2 id="the-goal-is-a-limited-set-of-renderers">The goal is a limited set of renderers</h2>
 <p>The current set is intended to be useful and maintainable.</p>
 <p>What matters is what its diversity provides:</p>
@@ -248,9 +228,9 @@
 <p>The important work is making the existing implementations increasingly correct, understandable, tested and maintainable.</p>
 <h2 id="the-cna-framework-spans-a-wide-range-of-graphics-technologies">The CNA framework spans a wide range of graphics technologies</h2>
 <p>XNA was originally built on DirectX 9.</p>
-<p>There are APIs such as Vulkan, Metal and WebGPU, OpenGL, OpenGL ES, SDL abstractions, FNA3D, browser APIs, a CPU rasterizer and diagnostic backends.</p>
+<p>The current renderer set includes OpenGL and OpenGL ES profiles, Direct3D 9, WebGPU, SDL GPU, FNA3D, a CPU rasterizer and diagnostic backends. Through SDL GPU and FNA3D, CNA can also reach lower-level technologies such as Vulkan, Direct3D 11, Direct3D 12 and Metal without exposing each one as a separate CNA renderer identity.</p>
 <p>These technologies differ enormously.</p>
-<p>Any CNA application talks to CNA. The renderer is replaceable and the graphics API underneath CNA can change.</p></div>
+<p>Any CNA application talks to CNA. The renderer is replaceable and the graphics API underneath CNA can change.</p></div>
     <footer class="taxonomy-links"><a href="/category/graphics/">Graphics</a><a href="/tag/renderers/">#Renderers</a><a href="/tag/graphics-apis/">#Graphics APIs</a><a href="/tag/opengl/">#OpenGL</a><a href="/tag/directx/">#DirectX</a><a href="/tag/vulkan/">#Vulkan</a><a href="/tag/webgpu/">#WebGPU</a><a href="/tag/software-rendering/">#Software Rendering</a></footer>
   </article></main>
     <aside class="sidebar" aria-label="Additional information">
