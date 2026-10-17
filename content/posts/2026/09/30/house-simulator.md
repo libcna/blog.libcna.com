@@ -1,7 +1,7 @@
 ---
 title: House Simulator
 date: 2026-09-30T18:31:57Z
-updated: 2026-10-02T14:24:59Z
+updated: 2026-10-17T14:38:59Z
 description: |
   House Simulator is one of the largest showcase applications built on CNA so far.
 author: Robert Vokac
