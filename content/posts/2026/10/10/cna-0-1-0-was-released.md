@@ -1,7 +1,7 @@
 ---
 title: CNA 0.1.0 was released
 date: 2026-10-10T16:00:00Z
-updated: 2026-10-10T16:00:00Z
+updated: 2026-10-17T15:05:00Z
 description: |
   CNA 0.1.0 is the first final release of CNA. This article summarizes what changed since 0.1.0-alpha.1.
 author: Robert Vokac
@@ -76,11 +76,8 @@ CNA.NET has its own repository and its own schedule. It is not part of the CNA 0
 Most of the remaining commits went into the renderers that stayed.
 
 - **Software renderer** — the largest single area of work in this release, with almost 400 commits: classic render target formats, multiple render targets, compiled XNA effects and SpriteBatch.
-- **Vulkan** — about 250 commits, including base-instance drawing, indirect drawing with compute-generated arguments, and GPU timestamps.
-- **Metal and macOS** — CNA was qualified on real Apple silicon: compiled XNA effects on Metal through MojoShader and SPIRV-Cross, DXT, cube and volume textures, and instancing.
 - **WebGPU** — besides native `wgpu-native`, a real in-browser path through Emscripten.
 - **SDL GPU**, **Direct3D 11** and the **EasyGL** renderers received their own parity work.
-- **CNAEXT modern rendering** — clustered shading, GPU particles, GPU instance culling, auto exposure, volumetric fog, atmospheric sky and decals, as CNA extensions outside of XNA 4.0.
 
 ## Content
 
