@@ -1827,7 +1827,7 @@ Examples include projects such as:
 
 ```text
 cna-gltf-viewer
-cna-street
+street-simulator
 house-simulator
 ```
 
@@ -1835,7 +1835,7 @@ These are not replacements for CNA's formal test suite.
 
 They are integration workloads.
 
-For example, `cna-street` simultaneously exercises:
+For example, `street-simulator` simultaneously exercises:
 
 ```text
 ContentManager
@@ -2460,7 +2460,7 @@ Robustness testing
 LEVEL 9
 Real-world applications
     cna-gltf-viewer
-    cna-street
+    street-simulator
     larger CNA projects
 
 LEVEL 10

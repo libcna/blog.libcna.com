@@ -138,9 +138,9 @@ It defines one small 3D game, **CNA Starfield Courier**, which is ultimately int
 
 Currently only the C++ implementation is complete. The other nine language directories are intentionally still empty until they contain real CNA-powered ports.
 
-### cna-street
+### street-simulator
 
-A much larger graphics demonstration.
+A much larger graphics demonstration hosted at [github.com/libcnalab/street-simulator](https://github.com/libcnalab/street-simulator).
 
 It renders a detailed city street with traffic, pedestrians, shops, imported assets, PBR materials, shadows, reflections.
 

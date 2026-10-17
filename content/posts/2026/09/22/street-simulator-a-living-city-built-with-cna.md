@@ -1,9 +1,9 @@
 ---
-title: CNA Street - A Living City Built with CNA
+title: Street Simulator - A Living City Built with CNA
 date: 2026-09-22T17:30:30Z
-updated: 2026-10-02T14:04:10Z
+updated: 2026-10-17T12:33:33Z
 description: |
-  CNA Street is a large real-time 3D city demonstration built with the CNA framework.
+  Street Simulator is a large real-time 3D city demonstration built with the CNA framework.
 author: Robert Vokac
 categories:
   - Projects
@@ -16,29 +16,32 @@ tags:
   - WebAssembly
   - Emscripten
   - HDR
-  - cna-street
+  - street-simulator
   - WebGL2
   - Simulation
   - Online Demo
 originalUrl: https://blog.libcna.com/2026/09/22/cna-street-a-living-city-built-with-cna/
+permalink: /2026/09/22/street-simulator-a-living-city-built-with-cna/
+aliases:
+  - /2026/09/22/cna-street-a-living-city-built-with-cna/
 classicpressId: 175
 classicpressStatus: publish
 draft: false
 ---
 
-**CNA Street** is a large real-time 3D city demonstration built with the CNA framework.
+**Street Simulator** is a large real-time 3D city demonstration built with the CNA framework.
 
 It represents a continental-European inner-city crossroads with buildings, shops, moving traffic, pedestrians, street furniture, vegetation, physically based materials, an analytic sky, local reflection probes and spatial audio.
 
-**Play CNA Street online: **[https://demos.libcna.com/cna-street/cna-street.html](https://demos.libcna.com/cna-street/cna-street.html)
+**Play Street Simulator online: **[https://demos.libcna.com/street-simulator/street-simulator.html](https://demos.libcna.com/street-simulator/street-simulator.html)
 
-**GitHub: **[https://github.com/libcna/cna-street](https://github.com/libcna/cna-street)
+**GitHub: **[https://github.com/libcnalab/street-simulator](https://github.com/libcnalab/street-simulator)
 
 **YouTube Video:** [https://www.youtube.com/watch?v=hWiBU46D6h8](https://www.youtube.com/watch?v=hWiBU46D6h8)
 
-![CNA Street — footway looking south to the junction](https://raw.githubusercontent.com/libcna/cna-street/develop/docs/screenshots/01-footway-looking-south-to-the-junction.png)
+![Street Simulator — footway looking south to the junction](https://raw.githubusercontent.com/libcnalab/street-simulator/develop/docs/screenshots/01-footway-looking-south-to-the-junction.png)
 
-CNA Street is designed as a substantial real-world workload for CNA rather than a small isolated graphics sample. It combines rendering, content loading, procedural generation, animation, simulation, audio and WebAssembly inside one C++ application
+Street Simulator is designed as a substantial real-world workload for CNA rather than a small isolated graphics sample. It combines rendering, content loading, procedural generation, animation, simulation, audio and WebAssembly inside one C++ application.
 
 ## A living city street
 
@@ -70,7 +73,7 @@ The result is a small simulated urban environment that can be explored freely.
 
 ## Procedural city generation
 
-Much of CNA Street is generated directly by C++ code from a deterministic seed.
+Much of Street Simulator is generated directly by C++ code from a deterministic seed.
 
 Generated content includes large parts of the:
 
@@ -126,7 +129,7 @@ Repeated objects such as street furniture and vegetation can also be drawn using
 
 ## Rendering with CNA
 
-CNA Street uses CNA's 3D graphics APIs directly.
+Street Simulator uses CNA's 3D graphics APIs directly.
 
 The application's rendering code is organised around components such as:
 
@@ -168,7 +171,7 @@ level-of-detail selection
 sRGB output
 ```
 
-CNA Street can also report limitations of the selected renderer at runtime. For example, repeated geometry can fall back to ordinary draws when hardware instancing is unavailable.
+Street Simulator can also report limitations of the selected renderer at runtime. For example, repeated geometry can fall back to ordinary draws when hardware instancing is unavailable.
 
 ## Physically based materials
 
@@ -192,13 +195,13 @@ The same material system is used for generated geometry and imported models.
 
 ## Sky and image-based lighting
 
-CNA Street contains its own `SkySystem` built on CNA's shader APIs.
+Street Simulator contains its own `SkySystem` built on CNA's shader APIs.
 
 The sky responds to the configured sun elevation and azimuth and includes atmospheric colouring and procedural clouds.
 
 It is also used as a lighting source.
 
-CNA Street generates the image-based-lighting data needed by `PbrEffect`, including irradiance and prefiltered environment data. The same environment therefore influences both the visible sky and the appearance of PBR surfaces.
+Street Simulator generates the image-based-lighting data needed by `PbrEffect`, including irradiance and prefiltered environment data. The same environment therefore influences both the visible sky and the appearance of PBR surfaces.
 
 The sun can be moved interactively, making it possible to inspect the scene under different lighting directions without rebuilding it.
 
@@ -206,7 +209,7 @@ The sun can be moved interactively, making it possible to inspect the scene unde
 
 A single sky environment cannot describe everything reflected by objects inside a street canyon.
 
-CNA Street therefore places local reflection probes through the environment.
+Street Simulator therefore places local reflection probes through the environment.
 
 During scene construction, the static street is captured into cube maps from a number of positions. `EnvironmentBaker` then prepares those captures for image-based lighting.
 
@@ -224,7 +227,7 @@ Source `.glb` files are compiled by CNA's content tools and can be loaded at run
 ContentManager::Load<Model>()
 ```
 
-The resulting model parts are translated into CNA Street's material representation and drawn by the same renderer as the generated city geometry.
+The resulting model parts are translated into Street Simulator's material representation and drawn by the same renderer as the generated city geometry.
 
 The pipeline is therefore:
 
@@ -244,10 +247,10 @@ ContentManager
 Model
     │
     ▼
-CNA Street
+Street Simulator
 ```
 
-CNA Street also exercises imported skinning data, skeletons and animation clips through CNA's model and animation APIs.
+Street Simulator also exercises imported skinning data, skeletons and animation clips through CNA's model and animation APIs.
 
 ## Generated and external assets
 
@@ -278,7 +281,7 @@ The scene contains parked and moving vehicles.
 
 Traffic follows defined lanes through the crossroads and interacts with the traffic-signal system.
 
-Authored vehicle models can contain separate wheels whose rotation and orientation are handled independently. CNA Street also accounts for the actual axle orientation found in imported models rather than assuming that every wheel was authored around exactly the same local axis.
+Authored vehicle models can contain separate wheels whose rotation and orientation are handled independently. Street Simulator also accounts for the actual axle orientation found in imported models rather than assuming that every wheel was authored around exactly the same local axis.
 
 Moving vehicles can include drivers rendered through the same skinned-character path used by pedestrians.
 
@@ -301,7 +304,7 @@ play walking and idle animations
 
 Characters use a skeleton and animation clips and are rendered through CNA's `SkinnedPbrEffect` path.
 
-CNA Street can use its generated characters and also supports character data originating from the content pipeline.
+Street Simulator can use its generated characters and also supports character data originating from the content pipeline.
 
 ## Street-level detail
 
@@ -328,11 +331,11 @@ air-conditioning units
 
 These objects help give the environment the density expected from a real street.
 
-![CNA Street — pavement cafe](https://raw.githubusercontent.com/libcna/cna-street/develop/docs/screenshots/17-pavement-cafe.png)
+![Street Simulator — pavement cafe](https://raw.githubusercontent.com/libcnalab/street-simulator/develop/docs/screenshots/17-pavement-cafe.png)
 
 ## Spatial audio
 
-CNA Street also exercises CNA's XNA-style audio implementation.
+Street Simulator also exercises CNA's XNA-style audio implementation.
 
 Its soundscape can include:
 
@@ -353,7 +356,7 @@ Vehicle engines follow their vehicles, footsteps follow the player while walking
 
 The position of the sun controls the lighting environment.
 
-CNA Street can also be started with:
+Street Simulator can also be started with:
 
 ```text
 --night
@@ -365,7 +368,7 @@ At low sun elevations the city activates its night lighting, including street la
 
 ## Walking through the street
 
-CNA Street supports flying, walking and cinematic camera modes.
+Street Simulator supports flying, walking and cinematic camera modes.
 
 | Control | Action |
 | --- | --- |
@@ -415,9 +418,9 @@ texture count and memory
 scene build time
 ```
 
-CNA Street also contains fixed benchmark viewpoints and command-line benchmark support
+Street Simulator also contains fixed benchmark viewpoints and command-line benchmark support.
 
-## Testing CNA Street
+## Testing Street Simulator
 
 The repository contains a dedicated C++ test suite covering areas such as:
 
@@ -438,43 +441,43 @@ realism checks
 
 The normal test suite can be run through CTest.
 
-CNA Street also maintains eighteen fixed reference screenshots. Its screenshot workflow renders the same viewpoints and compares them against those references, making large visual changes easier to detect.
+Street Simulator also maintains eighteen fixed reference screenshots. Its screenshot workflow renders the same viewpoints and compares them against those references, making large visual changes easier to detect.
 
 The reference images are stored in:
 
-[https://github.com/libcna/cna-street/tree/develop/docs/screenshots](https://github.com/libcna/cna-street/tree/develop/docs/screenshots)
+[https://github.com/libcnalab/street-simulator/tree/develop/docs/screenshots](https://github.com/libcnalab/street-simulator/tree/develop/docs/screenshots)
 
-## CNA Street in the browser
+## Street Simulator in the browser
 
-CNA Street can also be built for the web with Emscripten and WebAssembly.
+Street Simulator can also be built for the web with Emscripten and WebAssembly.
 
 The browser build uses CNA's `WEBGL2` renderer and can be played directly at:
 
-[https://demos.libcna.com/cna-street/cna-street.html](https://demos.libcna.com/cna-street/cna-street.html)
+[https://demos.libcna.com/street-simulator/street-simulator.html](https://demos.libcna.com/street-simulator/street-simulator.html)
 
 The complete compiled content collection is intentionally not embedded in the web package because it is very large.
 
-Instead, the browser package contains the application configuration and CNA Street generates the surfaces it needs at startup. Optional imported assets that depend on the external compiled content are replaced by the generated scene content.
+Instead, the browser package contains the application configuration and Street Simulator generates the surfaces it needs at startup. Optional imported assets that depend on the external compiled content are replaced by the generated scene content.
 
 ## More screenshots
 
 ### Shop window
 
-![CNA Street — shop window](https://raw.githubusercontent.com/libcna/cna-street/develop/docs/screenshots/11-shop-window.png)
+![Street Simulator — shop window](https://raw.githubusercontent.com/libcnalab/street-simulator/develop/docs/screenshots/11-shop-window.png)
 
 ### Street tree
 
-![CNA Street — street tree](https://raw.githubusercontent.com/libcna/cna-street/develop/docs/screenshots/13-street-tree.png)
+![Street Simulator — street tree](https://raw.githubusercontent.com/libcnalab/street-simulator/develop/docs/screenshots/13-street-tree.png)
 
 ### Corner to corner
 
-![CNA Street — corner to corner](https://raw.githubusercontent.com/libcna/cna-street/develop/docs/screenshots/16-corner-to-corner.png)
+![Street Simulator — corner to corner](https://raw.githubusercontent.com/libcnalab/street-simulator/develop/docs/screenshots/16-corner-to-corner.png)
 
 The repository contains eighteen canonical screenshots covering the scene from fixed viewpoints.
 
 ## More than a visual demo
 
-CNA Street brings many CNA systems together in one application:
+Street Simulator brings many CNA systems together in one application:
 
 ```text
 3D rendering
@@ -494,20 +497,20 @@ WebAssembly
 
 That makes it useful not only as a city demonstration but also as an integration workload for CNA.
 
-Small samples can verify individual APIs. CNA Street tests what happens when a large number of those APIs are used together in a continuously running application.
+Small samples can verify individual APIs. Street Simulator tests what happens when a large number of those APIs are used together in a continuously running application.
 
-## Play CNA Street
+## Play Street Simulator
 
-The easiest way to experience CNA Street is directly in a browser:
+The easiest way to experience Street Simulator is directly in a browser:
 
 **Play online:**
 
-[https://demos.libcna.com/cna-street/cna-street.html](https://demos.libcna.com/cna-street/cna-street.html)
+[https://demos.libcna.com/street-simulator/street-simulator.html](https://demos.libcna.com/street-simulator/street-simulator.html)
 
 The complete source code is available on GitHub:
 
 **GitHub:**
 
-[https://github.com/libcna/cna-street](https://github.com/libcna/cna-street)
+[https://github.com/libcnalab/street-simulator](https://github.com/libcnalab/street-simulator)
 
-CNA Street is a procedural city built with CNA: a single C++ application combining rendering, content, simulation, animation, audio and WebAssembly.
+Street Simulator is a procedural city built with CNA: a single C++ application combining rendering, content, simulation, animation, audio and WebAssembly.

@@ -70,11 +70,11 @@
       <description>SDL is one of the most important technologies used by CNA today.</description>
     </item>
     <item>
-      <title>CNA Street - A Living City Built with CNA</title>
-      <link>https://blog.libcna.com/2026/09/22/cna-street-a-living-city-built-with-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2026/09/22/cna-street-a-living-city-built-with-cna/</guid>
+      <title>Street Simulator - A Living City Built with CNA</title>
+      <link>https://blog.libcna.com/2026/09/22/street-simulator-a-living-city-built-with-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2026/09/22/street-simulator-a-living-city-built-with-cna/</guid>
       <pubDate>Tue, 22 Sep 2026 17:30:30 GMT</pubDate>
-      <description>CNA Street is a large real-time 3D city demonstration built with the CNA framework.</description>
+      <description>Street Simulator is a large real-time 3D city demonstration built with the CNA framework.</description>
     </item>
     <item>
       <title>Renderers in CNA</title>
