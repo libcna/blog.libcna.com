@@ -1,9 +1,9 @@
 ---
 title: Operating Systems supported by CNA
 date: 2026-12-06T17:53:02Z
-updated: 2026-09-13T18:06:10Z
+updated: 2026-10-17T13:41:12Z
 description: |
-  CNA is a cross-platform C++ framework designed to let the same application code run across desktop computers, mobile devices and web browsers.
+  CNA targets Windows, Linux, macOS, Android, iOS/iPadOS and the Web, with explicitly different levels of build, runtime and hardware evidence.
 author: Robert Vokac
 categories:
   - Development
@@ -17,6 +17,7 @@ tags:
   - iPadOS
   - WebAssembly
   - Emscripten
+  - SDL3
   - Cross-platform
   - Operating Systems
 originalUrl: https://blog.libcna.com/2026/12/06/operating-systems-supported-by-cna/
@@ -25,9 +26,7 @@ classicpressStatus: future
 draft: false
 ---
 
-CNA is a cross-platform C++ framework designed to let the same application code run across desktop computers, mobile devices and web browsers.
-
-The major operating systems and target environments CNA is designed to support are:
+CNA targets six major operating-system or execution families:
 
 ```text
 Windows
@@ -38,17 +37,535 @@ iOS / iPadOS
 Web / WebAssembly
 ```
 
-There is, however, an important distinction between **a target supported by CNA's architecture and source code** and **a target that has already been tested on the real operating system**.
+They do not all have the same level of verification.
 
-At the current stage of CNA development, Windows, Linux, Android and Web have received practical execution and development attention. macOS and iOS/iPadOS are supported as target platforms in the architecture and significant code already exists for them, but they have **not yet been tested on actual macOS or iOS environments**.
+In CNA, the word **supported** therefore needs a qualifier. A target may be:
 
-This is primarily a matter of development time and access to the corresponding Apple environment, not a decision to exclude Apple platforms.
+```text
+recognized by the source and build system
+        │
+        ▼
+successfully cross-compiled
+        │
+        ▼
+final-linked as a real application
+        │
+        ▼
+executed in an emulator, simulator or browser
+        │
+        ▼
+executed on the native operating system
+        │
+        ▼
+qualified on physical hardware with broad tests
+```
 
-Testing and completing the Apple targets is planned, and CNA's architecture is deliberately being developed so that this work can happen without redesigning the framework.
+Those are different claims.
 
-For most application code, differences between operating systems are hidden behind CNA's XNA-compatible API.
+The current high-level status is:
 
-A game can use familiar types such as:
+| Target | Current evidence |
+| --- | --- |
+| Linux `x86_64` | Primary development environment; complete suites and the broadest renderer/platform matrix run here |
+| Windows | MinGW-w64 builds execute under Wine; DirectX 9 runs through DXVK and `SDL_GPU`'s Direct3D 12 path through vkd3d-proton; current real-Windows hardware qualification remains open |
+| macOS | Native Apple-silicon CI builds and runs portable platform/storage suites plus an application bundle smoke; `SDL_GPU`/Metal requalification is narrower and still in progress |
+| Android | NDK `x86_64` build and emulator execution with `OPENGLES3`; no physical-device qualification and no qualified `SDL_GPU` path |
+| iOS / iPadOS | Experimental; device and simulator applications final-link, and the `SOFTWARE` simulator app runs one frame; no physical-device run |
+| Web / WebAssembly | `WEBGL2` and `WEBGPU` execute in Chrome; the dedicated multi-renderer CI separately proves both can coexist in one Wasm bundle |
+
+This matrix is more useful than a single yes/no support label.
+
+---
+
+## Three independent meanings of platform
+
+Operating-system support in CNA is easier to understand when three independent axes are kept separate.
+
+### 1. Build target
+
+This answers:
+
+> Which operating system or execution environment is this binary being compiled for?
+
+Examples are Windows, Linux, Android and Web.
+
+### 2. Platform implementation
+
+This answers:
+
+> Who owns windows, events, input, timing and host-system services?
+
+The selectable implementations are:
+
+```text
+SDL3
+HEADLESS
+TERMINAL
+```
+
+### 3. Graphics renderer
+
+This answers:
+
+> How are pixels produced?
+
+Examples include:
+
+```text
+OPENGLES3
+WEBGL2
+WEBGPU
+SDL_GPU
+DIRECTX9
+SOFTWARE
+HEADLESS
+```
+
+These axes are related, but they are not interchangeable.
+
+For example:
+
+```text
+Windows target
+    + SDL3 platform
+    + SDL_GPU renderer
+```
+
+is one configuration, while:
+
+```text
+Linux target
+    + HEADLESS platform
+    + HEADLESS renderer
+```
+
+is another.
+
+The audio backend is a fourth independent selection: `SDL3`, `NULL` or Linux `ALSA`.
+
+---
+
+## SDL3 is the windowed platform layer
+
+SDL3 is CNA's only implementation that opens a graphical window.
+
+It reaches each native environment through SDL's own video drivers:
+
+```text
+Windows       windows
+Linux         x11 or wayland
+macOS         cocoa
+iOS           uikit
+Android       android
+Web           emscripten/browser canvas
+```
+
+CNA's former direct `WIN32`, `X11` and `WAYLAND` platform implementations were retired on 6 October 2026. SDL2 platform and audio support were retired two days earlier.
+
+That does **not** mean CNA stopped supporting Win32 windows, X11 or Wayland.
+
+It means those host systems are reached through SDL3 instead of through separate CNA-owned platform backends:
+
+```text
+CNA Game
+   │
+   ▼
+CNA Platform API
+   │
+   ▼
+SDL3
+   │
+   ├── Win32
+   ├── X11
+   ├── Wayland
+   ├── Cocoa / UIKit
+   ├── Android
+   └── Browser canvas
+```
+
+Renderers that need a native handle still receive it through the platform-neutral `NativeWindowHandle` contract. Depending on the active SDL driver, that can carry an `HWND`, X11 `Display*` plus window ID, Wayland display/surface, `NSWindow*` or `ANativeWindow*`.
+
+---
+
+## Headless and Terminal
+
+Not every CNA program needs a graphical desktop.
+
+`HEADLESS` is available for servers, automated tests and applications that deliberately own no native window. A fully SDL-free configuration can combine:
+
+```text
+CNA_PLATFORM=HEADLESS
+CNA_GRAPHICS_RENDERER=HEADLESS
+CNA_AUDIO_PLATFORM=NULL
+```
+
+`TERMINAL` is a POSIX-only platform implementation. With the `SOFTWARE` renderer it can present completed CPU frames in a terminal and receive keyboard/resize events through a real pseudo-TTY contract.
+
+These are platform implementations, not additional operating systems.
+
+---
+
+## Platform identification
+
+CNA exposes compile-time target identification through:
+
+```cpp
+CNA::TargetPlatform
+```
+
+The current values are:
+
+```cpp
+enum class TargetPlatform
+{
+    Desktop,
+    Android,
+    iOS,
+    Web
+};
+```
+
+Desktop operating systems are distinguished with:
+
+```cpp
+CNA::DesktopOS
+```
+
+whose values are:
+
+```cpp
+Windows
+Linux
+MacOSX
+Other
+```
+
+The resulting classification is:
+
+```text
+Desktop
+├── Windows
+├── Linux
+├── macOS
+└── Other
+
+Android
+iOS / iPadOS
+Web
+```
+
+Helpers include:
+
+```cpp
+CNA::getCurrentPlatform();
+CNA::getCurrentDesktopOS();
+CNA::getCurrentPlatformName();
+CNA::isMobilePlatform();
+CNA::isApplePlatform();
+```
+
+The `CNA_TARGET_APPLE`, `CNA_TARGET_MACOS` and `CNA_TARGET_IOS` macros distinguish Apple targets in preprocessor code. Their `CNA_TARGET_` prefix is intentionally different from `CNA_PLATFORM_`, which names the selected platform implementation.
+
+---
+
+## Default renderer by target
+
+When a build does not select a renderer explicitly, CNA currently chooses:
+
+| Target | Default renderer |
+| --- | --- |
+| Windows | `SDL_GPU` |
+| macOS | `SDL_GPU` |
+| iOS / iPadOS | `SDL_GPU` |
+| Web / Emscripten | `WEBGL2` |
+| Linux | `OPENGLES3` |
+| Android | `OPENGLES3` |
+
+This is a build default, not a blanket maturity claim.
+
+For example, `SDL_GPU` is the designated default on iOS, but the currently gating simulator smoke uses `SOFTWARE`; the `SDL_GPU` iOS legs remain experimental and non-gating.
+
+---
+
+## Linux
+
+Linux `x86_64` is CNA's primary development and qualification environment.
+
+It is where the broadest full CTest configurations run, using GCC or Clang and real or software-backed graphics drivers. Current Linux validation includes configurations for:
+
+```text
+OPENGLES3 / OPENGL33
+SDL_GPU over Vulkan
+WEBGPU through wgpu-native
+SOFTWARE
+FNA3D
+HEADLESS
+STUB
+```
+
+Linux also supplies the strongest platform-implementation matrix.
+
+SDL3 is exercised through both of its main Linux window-system drivers:
+
+```text
+SDL3 + X11    on a private Xvfb display
+SDL3 + Wayland on a private headless Weston compositor
+```
+
+The tests verify window behavior, native handles, selections, event translation and teardown. Separate configurations exercise Headless without `DISPLAY` or `WAYLAND_DISPLAY`, and Terminal through a pseudo-TTY.
+
+This is strong Linux evidence, but it still does not mean every distribution, compositor, GPU and proprietary driver combination has been tested.
+
+---
+
+## Windows
+
+Windows is a first-class build target, but its current evidence is split between cross-execution and native workflow definitions.
+
+CNA uses the SDL3 `windows` video driver for windows, events and input. The default renderer is `SDL_GPU`, for which SDL selects Direct3D 12 on Windows. CNA also retains an explicit `DIRECTX9` renderer for XNA 4.0 pixel authenticity.
+
+The routinely recorded Windows-oriented path from Linux is:
+
+```text
+MinGW-w64 build
+      │
+      ▼
+     Wine
+      │
+      ├── DIRECTX9 ─► DXVK ─► Vulkan
+      │
+      └── SDL_GPU / D3D12 ─► vkd3d-proton ─► Vulkan
+```
+
+This executes real Windows binaries and real graphics calls. The DirectX 9 suite has completed under DXVK, including the exact XNA pixel-oracle corpus.
+
+But Wine and translation layers are not equivalent to current qualification on a physical Windows machine.
+
+A manual MSVC GitHub Actions workflow defines native-Windows legs for the DirectX 9 suite and an `SDL_GPU` Direct3D 12 smoke set. At the latest project reconciliation, that workflow existed but had not yet supplied the missing real-hardware qualification evidence.
+
+The accurate Windows claim is therefore:
+
+```text
+implemented
+cross-built
+executed under Wine
+pixel-tested through DXVK / vkd3d-proton
+native hardware qualification still open
+```
+
+---
+
+## macOS
+
+macOS is no longer merely an architectural placeholder.
+
+CNA recognizes it as:
+
+```text
+TargetPlatform::Desktop
+DesktopOS::MacOSX
+```
+
+The native Apple workflow runs on Apple silicon. It builds CNA with the `SOFTWARE` renderer, executes the portable platform and storage suites, creates a self-contained `.app` bundle and launches a smoke application.
+
+The default renderer on macOS is `SDL_GPU`; SDL owns the Metal backend underneath it. CNA's former public `METAL` renderer identity has been retired.
+
+An `SDL_GPU`/Metal smoke job now exists to cover device creation, a swapchain, drawing and readback on macOS. That is narrower than the full Linux `SDL_GPU` qualification, and the latest reconciled project status still treats the post-retirement Apple renderer requalification as open.
+
+The current evidence boundary is:
+
+```text
+macOS arm64 native build       verified
+portable platform suites      verified
+application bundle launch     verified
+Intel macOS CI                not verified
+full current SDL_GPU matrix   not yet re-qualified
+```
+
+So it is now wrong to say that CNA has never run on macOS. It is also too broad to call every macOS graphics, audio, input and storage path fully qualified.
+
+---
+
+## Android
+
+Android is represented as:
+
+```text
+TargetPlatform::Android
+```
+
+The platform layer is SDL3 and the default/validated renderer is `OPENGLES3`, implemented by CNA's EasyGL family over OpenGL ES 3.0.
+
+Recorded evidence includes:
+
+```text
+Android NDK cross-build
+x86_64 android-24 target
+emulator execution
+real sample rendering
+portrait handling
+Android Back input
+```
+
+The current limitations are equally important:
+
+```text
+no physical Android device qualification
+no Android CI job
+no qualified SDL_GPU Android build or run
+no claim over every vendor GPU/driver/sensor combination
+```
+
+An emulator is useful evidence for build, lifecycle and graphics integration. It cannot prove compatibility with the entire Android hardware ecosystem.
+
+---
+
+## iOS and iPadOS
+
+iPhone and iPad builds use:
+
+```text
+TargetPlatform::iOS
+CNA_PLATFORM=SDL3
+```
+
+iOS support is experimental, but it is no longer source-only.
+
+CNA has:
+
+```text
+an iOS CMake toolchain
+device and simulator sysroots
+static SDL3 integration
+generated application bundles and Info.plist
+UIKit-compatible SDL entrypoint handling
+mobile lifecycle and orientation wiring
+a final-linked one-frame smoke application
+```
+
+CI final-links the application for an arm64 device target and for the simulator. The simulator build using `SOFTWARE` is installed and launched, constructs a real `Game` and completes one frame.
+
+What is not yet proven:
+
+```text
+execution on a physical iPhone or iPad
+device pixel correctness
+real touch and sensor behavior
+audio and storage on a physical device
+production signing or App Store packaging
+performance on real mobile hardware
+qualified SDL_GPU / Metal execution on iOS
+```
+
+`SDL_GPU` is the designated default renderer and is accepted by the iOS build, but its device and simulator legs remain experimental and non-gating. The gating platform smoke uses `SOFTWARE` precisely so a platform result is not confused with an unqualified GPU backend.
+
+tvOS, watchOS and visionOS are not current CNA targets and are rejected rather than silently treated as iOS.
+
+---
+
+## Web and WebAssembly
+
+The browser target is represented as:
+
+```text
+TargetPlatform::Web
+```
+
+CNA builds C++ through Emscripten into WebAssembly and JavaScript glue:
+
+```text
+CNA application
+      │
+      ▼
+  Emscripten
+      │
+      ▼
+WebAssembly + JavaScript
+      │
+      ▼
+    Browser
+```
+
+The current browser renderer identities are:
+
+```text
+WEBGL2
+WEBGPU
+```
+
+`WEBGL2` is EasyGL using an exact WebGL 2 / GLSL ES 3.00 contract. There is no implicit WebGL 1 fallback.
+
+`WEBGPU` uses Emscripten's emdawnwebgpu integration. Both 2D and 3D stock-effect paths have executed in headless Chrome.
+
+The WebGL 2 path has broader browser evidence, including:
+
+```text
+real Chrome execution
+threaded background content loading
+XNB model/resource loading
+touch and keyboard input
+gameplay rendering
+real WebGL context loss and restoration
+```
+
+The Emscripten multi-renderer workflow has a deliberately narrower purpose. It proves that `WEBGL2` and `WEBGPU` link into one Wasm bundle, register both identities and expose the JavaScript renderer-selection surface. That job does **not** launch a browser; dedicated scripts and recorded qualification runs provide the runtime evidence.
+
+CNA's retired WebGL 1, Canvas, SVG, DOM and PixiJS renderer experiments are not current browser backends.
+
+Browser support still depends on browser/GPU capabilities, cross-origin isolation for threaded builds, asynchronous lifecycle rules, sandboxed storage and audio-start restrictions.
+
+---
+
+## Mobile and browser lifecycle
+
+Portable source does not mean identical host behavior.
+
+Android, iOS and browsers can suspend, resize, recreate or invalidate resources under operating-system control. CNA adapts these events to the `Game` model, but applications still need to respect the lifecycle contract.
+
+Examples include:
+
+```text
+Android pause / resume and window recreation
+iOS background / foreground and orientation
+browser-controlled main loop
+WebGL context loss / restoration
+mobile touch and sensor availability
+sandboxed storage
+audio activation restrictions
+```
+
+This is why a successful cross-compile is only the first level of platform support.
+
+---
+
+## Graphics renderers remain a separate topic
+
+CNA exposes ten public renderer identities over eight implementation families:
+
+```text
+OPENGLES3
+OPENGL33
+WEBGL2
+WEBGPU
+HEADLESS
+SOFTWARE
+STUB
+DIRECTX9
+SDL_GPU
+FNA3D
+```
+
+The three GL identities share the internal EasyGL implementation. `SDL_GPU`'s Vulkan, Direct3D 12 and Metal drivers belong to SDL and do not create additional CNA renderer identities.
+
+Forty-one older identities have been retired. Renderer count is no longer a project goal.
+
+An operating system supporting CNA therefore does not imply that every renderer is available or equally tested there. The authoritative source for that question is CNA's renderer registry and feature matrix.
+
+---
+
+## What application code sees
+
+Most game code remains written against the XNA-compatible framework surface:
 
 ```cpp
 Game
@@ -62,687 +579,7 @@ Model
 SoundEffect
 ```
 
-without rewriting its entire architecture for every operating system.
-
-Conceptually:
-
-```text
-                    CNA application
-                         │
-                         ▼
-                 XNA-compatible API
-                         │
-        ┌────────────────┼────────────────┐
-        │                │                │
-        ▼                ▼                ▼
-     Windows           Linux            macOS
-        │                │                │
-        ├──────── Android / iOS ──────────┤
-        │                                 │
-        └────────── WebAssembly ──────────┘
-```
-
-The amount of practical verification behind each branch is not yet equal.
-
----
-
-## Platform identification
-
-CNA provides compile-time target identification through:
-
-```cpp
-CNA::TargetPlatform
-```
-
-The current high-level targets are:
-
-```cpp
-enum class TargetPlatform
-{
-    Desktop,
-    Android,
-    iOS,
-    Web
-};
-```
-
-Desktop operating systems are distinguished separately through:
-
-```cpp
-CNA::DesktopOS
-```
-
-with values such as:
-
-```cpp
-Windows
-Linux
-MacOSX
-Other
-```
-
-The resulting hierarchy is approximately:
-
-```text
-Desktop
-├── Windows
-├── Linux
-└── macOS
-
-Android
-
-iOS / iPadOS
-
-Web
-```
-
-CNA provides helpers including:
-
-```cpp
-CNA::getCurrentPlatform();
-CNA::getCurrentDesktopOS();
-CNA::getCurrentPlatformName();
-CNA::isMobilePlatform();
-CNA::isApplePlatform();
-```
-
-This is part of the framework's portable architecture.
-
-It does not imply that every target has already reached the same level of real-world testing.
-
----
-
-## Windows
-
-Windows is one of CNA's primary desktop targets.
-
-CNA identifies it as:
-
-```text
-TargetPlatform::Desktop
-DesktopOS::Windows
-```
-
-A normal CNA game can use essentially the same XNA-style application architecture as on Linux while CNA handles Windows-specific integration underneath it.
-
-Windows is particularly important to CNA because it also provides access to a very large range of graphics APIs.
-
-Depending on the selected renderer, CNA contains support for technologies such as:
-
-```text
-Direct3D
-Direct2D
-GDI
-OpenGL
-Vulkan
-SDL GPU
-Software rendering
-```
-
-along with CNA's experiments involving older generations of DirectX and other rendering technologies.
-
-Operating-system support and renderer support are separate concepts.
-
-For example:
-
-```text
-Windows
-    │
-    ├── Direct3D 11
-    ├── Direct3D 12
-    ├── Vulkan
-    ├── OpenGL
-    └── Software
-```
-
-can all represent the same operating-system target.
-
----
-
-## Windows development and testing
-
-CNA contains substantial Windows-specific code and build infrastructure.
-
-Windows binaries can also be cross-built using environments such as:
-
-```text
-MinGW-w64
-```
-
-while technologies including:
-
-```text
-Wine
-DXVK
-vkd3d-proton
-```
-
-make it possible to execute significant parts of Windows-oriented CNA code from Linux during development.
-
-For example:
-
-```text
-Direct3D 11
-     │
-     ▼
-    DXVK
-     │
-     ▼
-   Vulkan
-```
-
-can provide useful automated validation.
-
-This does not make Wine equivalent to testing every configuration on native Windows hardware.
-
-CNA therefore tries to distinguish between:
-
-```text
-implemented
-cross-tested
-native-tested
-```
-
-rather than treating those terms as interchangeable.
-
----
-
-## Linux
-
-Linux is currently the main CNA development environment and one of its most extensively exercised operating systems.
-
-CNA identifies Linux as:
-
-```text
-TargetPlatform::Desktop
-DesktopOS::Linux
-```
-
-The project is regularly developed using mainstream C++ toolchains such as:
-
-```text
-GCC
-Clang
-```
-
-Linux is particularly useful for CNA because a very large number of graphics technologies can be developed and tested there.
-
-Depending on the renderer, these include technologies such as:
-
-```text
-OpenGL
-OpenGL ES
-Vulkan
-WebGPU
-Software rendering
-PortableGL
-TinyGL
-bgfx
-FNA3D
-SDL-based rendering
-```
-
-and many other experimental CNA renderers.
-
-Linux therefore currently provides one of the strongest practical foundations for CNA development.
-
----
-
-## X11 and Wayland
-
-Linux desktop applications commonly run through one of two important display systems:
-
-```text
-X11
-Wayland
-```
-
-CNA understands both types of native environment and its graphics infrastructure can work with the native information required by renderers.
-
-For example, an X11 environment involves concepts such as:
-
-```text
-Display*
-Window
-```
-
-while Wayland uses objects such as:
-
-```text
-wl_display*
-wl_surface*
-```
-
-Applications built on CNA should not normally need to interact directly with these APIs.
-
-The details of how CNA abstracts windowing and host-system integration belong to the separate **CNA Platform API** topic.
-
----
-
-## macOS
-
-macOS is an intended CNA desktop target.
-
-CNA's source code already recognizes it as:
-
-```text
-TargetPlatform::Desktop
-DesktopOS::MacOSX
-```
-
-and CNA contains Apple-specific paths and graphics work intended to make macOS support possible.
-
-However, there is an important current limitation:
-
-> CNA has not yet been practically tested on macOS.
-
-This means macOS should currently be regarded as:
-
-```text
-architecturally supported
-+
-implementation work present
-+
-planned target
--
-not yet verified on macOS
-```
-
-rather than being described as a fully qualified CNA platform.
-
-The reason is primarily practical: development so far has concentrated on other environments, especially Linux, and there has not yet been enough time to perform the required macOS testing.
-
----
-
-## Metal and macOS
-
-CNA contains a Metal renderer and Apple-specific graphics infrastructure.
-
-This is an important part of the future macOS path because Metal is Apple's modern native graphics API.
-
-Conceptually, CNA is designed to allow:
-
-```text
-CNA application
-      │
-      ▼
-   CNA Graphics
-      │
-      ▼
-     Metal
-      │
-      ▼
-    macOS
-```
-
-But the existence of the source code alone should not be confused with completed runtime qualification.
-
-Before macOS support should be considered mature, it still needs practical work such as:
-
-```text
-building CNA on macOS
-running its tests on macOS
-launching real CNA applications
-testing window creation and input
-testing renderers
-testing content loading
-testing audio
-testing lifecycle behavior
-testing on actual Apple hardware
-```
-
-This work is planned.
-
-The architecture and existing source code are intended to make it incremental work rather than requiring a new port of CNA from scratch.
-
----
-
-## Why macOS is already part of CNA's architecture
-
-Even though macOS has not yet been practically tested, it is useful to include it in CNA's supported target architecture now.
-
-Otherwise code could accidentally evolve around assumptions such as:
-
-```text
-desktop == Windows or Linux
-```
-
-which would make the eventual Apple port much harder.
-
-Instead CNA already distinguishes:
-
-```text
-Windows
-Linux
-macOS
-```
-
-at the platform level.
-
-Graphics, input and operating-system abstractions are likewise designed not to assume that only the currently most frequently tested systems exist.
-
-This is part of preparing CNA for broader portability before every individual target has received equal testing.
-
----
-
-## Android
-
-Android is one of CNA's mobile targets:
-
-```text
-TargetPlatform::Android
-```
-
-Android applications can be built using the Android NDK, allowing large parts of a CNA application to remain native C++.
-
-A representative toolchain configuration uses:
-
-```text
-Android NDK
-CMake
-C++
-```
-
-rather than requiring the application itself to be rewritten around a Java game framework.
-
----
-
-## Android lifecycle
-
-Android differs significantly from a traditional desktop environment.
-
-Mobile applications must deal with events such as:
-
-```text
-pause
-resume
-window recreation
-orientation changes
-touch input
-mobile storage behavior
-system-controlled application lifecycle
-```
-
-CNA's goal is to adapt these differences underneath its `Game` model so that game code remains as close as practical to the familiar XNA architecture.
-
-Mobile-specific functionality can also involve areas such as:
-
-```text
-touch
-motion sensors
-orientation
-compass
-haptics
-```
-
-where implemented and available.
-
----
-
-## Android testing
-
-Android has received more practical execution work than the current Apple mobile targets.
-
-CNA development has included Android-oriented builds and emulator-based work.
-
-Nevertheless, Android itself contains an enormous variety of devices.
-
-An emulator cannot establish complete compatibility with:
-
-```text
-every Android GPU driver
-every vendor
-every screen configuration
-every physical sensor
-every touchscreen
-every Android release
-```
-
-So Android support should also be understood as an evolving compatibility target rather than an assertion that every Android device has already been individually qualified.
-
----
-
-## iOS and iPadOS
-
-CNA also includes iOS as a mobile target:
-
-```text
-TargetPlatform::iOS
-```
-
-covering the Apple mobile ecosystem including iPhone and iPad.
-
-Like macOS, however, **iOS and iPadOS have not yet been practically tested by the CNA project**.
-
-The current situation is therefore approximately:
-
-```text
-iOS / iPadOS target architecture
-        │
-        ├── platform recognition exists
-        ├── Apple-related implementation exists
-        ├── mobile architecture is being kept compatible
-        ├── future testing is planned
-        │
-        └── actual iOS/iPadOS validation still pending
-```
-
-CNA should therefore not currently claim that iPhone and iPad execution has already been verified.
-
----
-
-## Why iOS is still listed
-
-It would also be misleading to classify iOS simply as an unrelated hypothetical future port.
-
-The framework already knows about:
-
-```text
-TargetPlatform::iOS
-```
-
-and its architecture deliberately takes Apple and mobile environments into account.
-
-The intended future architecture is:
-
-```text
-CNA application
-      │
-      ▼
-     CNA
-      │
-      ▼
-Apple/mobile integration
-      │
-      ▼
- iOS / iPadOS
-```
-
-The missing part is practical verification and the work discovered by that verification.
-
-In real platform development, compiling source code is rarely the final challenge.
-
-Testing on iOS will eventually need to validate areas such as:
-
-```text
-application startup
-window/surface creation
-touch input
-graphics
-audio
-content loading
-storage
-orientation
-suspend/resume
-background behavior
-resource recreation
-real device performance
-```
-
-Some problems will almost certainly only become visible once CNA is actually run in those environments.
-
-That testing is planned.
-
----
-
-## macOS and iOS status should be described carefully
-
-For the time being, a useful distinction is:
-
-```text
-Windows
-Linux
-Android
-Web
-    practical CNA development/test experience exists
-
-macOS
-iOS / iPadOS
-    intended and implemented targets,
-    but platform verification has not yet been performed
-```
-
-This wording is more accurate than either extreme.
-
-It would be wrong to say:
-
-> CNA does not support Apple operating systems at all.
-
-because the framework already contains platform knowledge and implementation work directed toward them.
-
-But it would also be wrong to say:
-
-> CNA is fully tested on macOS, iPhone and iPad.
-
-because that testing has not happened yet.
-
----
-
-## Web
-
-CNA also targets web browsers.
-
-Internally this environment is represented as:
-
-```text
-TargetPlatform::Web
-```
-
-Web is not an operating system in exactly the same sense as Linux or Windows.
-
-But from the perspective of a portable C++ application framework, it is an important execution target and naturally belongs alongside the operating-system targets.
-
----
-
-## WebAssembly
-
-CNA web applications can be built through:
-
-```text
-Emscripten
-```
-
-which allows C++ to be compiled into:
-
-```text
-WebAssembly
-```
-
-and integrated with browser APIs.
-
-Conceptually:
-
-```text
-CNA C++ application
-        │
-        ▼
-    Emscripten
-        │
-        ▼
- WebAssembly + JS
-        │
-        ▼
-     Browser
-```
-
-A substantial amount of game code can therefore remain C++ even when the final CNA application executes inside a browser.
-
----
-
-## The browser is a different environment
-
-Web support requires more than compiling the same source code with another compiler.
-
-Browsers have fundamentally different rules:
-
-```text
-browser-controlled main loop
-sandboxed filesystem
-canvas-based graphics
-restricted access to system APIs
-different audio startup behavior
-different threading model
-asynchronous APIs
-no traditional native application window
-```
-
-CNA contains web-specific behavior to adapt these concepts to its normal programming model.
-
----
-
-## Web graphics
-
-CNA's browser-oriented graphics work includes technologies such as:
-
-```text
-WebGL 1
-WebGL 2
-WebGPU
-```
-
-as well as experimental browser presentation technologies such as:
-
-```text
-Canvas
-SVG
-DOM
-PixiJS
-```
-
-This gives CNA multiple possible ways to present graphics in a browser rather than making the Web target synonymous with one renderer forever.
-
----
-
-## WebGL context loss
-
-A browser can invalidate a WebGL graphics context while the application continues running.
-
-The browser may later restore it.
-
-CNA therefore has to account for events conceptually equivalent to:
-
-```text
-webglcontextlost
-webglcontextrestored
-```
-
-and rebuild graphics resources where necessary.
-
-This demonstrates an important point about operating-system support:
-
-```text
-successful compilation
-```
-
-is only the beginning.
-
-Real portability means adapting framework behavior to the environment's lifecycle.
-
----
-
-## Same application architecture
-
-The goal of CNA's operating-system support is to allow code such as:
+A typical game keeps the same high-level structure:
 
 ```cpp
 class MyGame final : public Game
@@ -750,8 +587,7 @@ class MyGame final : public Game
 protected:
     void LoadContent() override
     {
-        player =
-            Content.Load<Texture2D>("Textures/player");
+        player = Content.Load<Texture2D>("Textures/player");
     }
 
     void Update(const GameTime& gameTime) override
@@ -766,277 +602,19 @@ protected:
 };
 ```
 
-to remain fundamentally the same regardless of whether the eventual target is:
+The framework absorbs window-system, lifecycle, input and renderer differences where its contracts allow it to do so.
 
-```text
-Windows
-Linux
-macOS
-Android
-iOS / iPadOS
-WebAssembly
-```
-
-The framework handles as many platform differences as practical underneath this API.
+Platform-specific capabilities still need to be queried rather than assumed. A desktop mouse, mobile touch screen, browser sandbox and headless server cannot honestly expose identical host services.
 
 ---
 
-## Current target status
+## Source code and current documentation
 
-A more accurate overview of the current CNA situation is:
-
-| Target | Current status |
-| --- | --- |
-| Linux | Primary CNA development environment and heavily exercised |
-| Windows | Major CNA target with substantial implementation and testing infrastructure |
-| Android | Real mobile target with development and emulator-oriented work |
-| Web / WebAssembly | Real Emscripten target with dedicated browser handling |
-| macOS | Intended and partially implemented target, but not yet practically tested on macOS |
-| iOS / iPadOS | Intended and partially implemented mobile target, but not yet practically tested on iOS/iPadOS |
-
-This table will naturally change as CNA development continues.
-
-In particular, practical Apple-platform testing is planned.
-
----
-
-## What should happen next for Apple platforms?
-
-The next step is not primarily to add macOS and iOS names to the source code.
-
-Those concepts already exist.
-
-The next step is to take the existing implementation to real Apple environments and discover what still needs work.
-
-For macOS that means eventually running a matrix such as:
-
-```text
-configure
-    ↓
-compile CNA
-    ↓
-compile tests
-    ↓
-run tests
-    ↓
-launch sample application
-    ↓
-test graphics
-    ↓
-test input
-    ↓
-test audio
-    ↓
-test content
-```
-
-For iOS/iPadOS it additionally means:
-
-```text
-simulator
-    ↓
-real application bundle
-    ↓
-real device
-    ↓
-touch / sensors / lifecycle
-```
-
-Only after that work should the Apple targets be described as extensively verified.
-
----
-
-## Why this staged approach is reasonable
-
-A cross-platform project does not need to complete every operating system simultaneously.
-
-CNA is still evolving rapidly.
-
-It is reasonable to first stabilize major architectural systems on the environments currently available for day-to-day development and then expand testing to additional operating systems.
-
-What matters is avoiding architectural decisions that make those later ports unnecessarily difficult.
-
-CNA already attempts to do that by separating:
-
-```text
-game code
-graphics abstraction
-platform abstraction
-input
-audio
-content
-operating-system-specific integration
-```
-
-rather than spreading direct Linux or Windows assumptions through the whole framework.
-
-As a result, future macOS and iOS work should primarily be a process of:
-
-```text
-testing
-fixing
-completing integrations
-adding CI
-documenting limitations
-```
-
-rather than rewriting CNA into a cross-platform framework after the fact.
-
----
-
-## Graphics renderers are a separate topic
-
-Operating-system support should not be confused with CNA's large renderer ecosystem.
-
-For example:
-
-```text
-Windows
-```
-
-does not mean:
-
-```text
-DirectX
-```
-
-and:
-
-```text
-Linux
-```
-
-does not mean:
-
-```text
-OpenGL
-```
-
-A target operating system can potentially support many graphics implementations.
-
-Conceptually:
-
-```text
-Windows
-├── Direct3D
-├── Vulkan
-├── OpenGL
-└── Software
-
-Linux
-├── Vulkan
-├── OpenGL
-├── WebGPU
-└── Software
-
-macOS
-├── Metal
-└── other compatible paths
-
-Web
-├── WebGL
-├── WebGPU
-└── browser-oriented renderers
-```
-
-Whether an individual combination is currently implemented and tested depends on the renderer itself.
-
-That subject is covered separately by CNA's renderer documentation.
-
----
-
-## The CNA Platform API is also a separate topic
-
-Likewise, this article does not describe the internal CNA Platform API in detail.
-
-That system deals with abstractions such as:
-
-```text
-window creation
-events
-keyboard
-mouse
-gamepads
-native window handles
-clipboard
-display enumeration
-system services
-```
-
-and how implementations such as SDL or future native platform backends connect CNA to an operating system.
-
-That answers:
-
-> How does CNA communicate with the operating system?
-
-This article answers a different question:
-
-> Which operating systems and execution environments is CNA designed to target?
-
----
-
-## Portability as a long-term goal
-
-Supporting multiple operating systems is important for more than immediate convenience.
-
-It reduces the dependence of applications on one particular vendor or operating-system API.
-
-A game written directly against:
-
-```text
-Win32
-```
-
-has a different long-term dependency profile from a game written against:
-
-```text
-CNA
-```
-
-where Win32 is merely one implementation beneath the framework.
-
-Likewise, application code ideally does not need to know whether the host environment eventually uses:
-
-```text
-X11
-Wayland
-Cocoa
-UIKit
-browser APIs
-```
-
-The architectural relationship becomes:
-
-```text
-Application
-    │
-    ▼
-   CNA
-    │
-    ▼
-operating-system integration
-```
-
-rather than:
-
-```text
-Application
-    │
-    ▼
-one specific operating-system API forever
-```
-
-This is especially important for games and applications intended to remain buildable for decades.
-
----
-
-## Source code
-
-The CNA repository is available at:
+The CNA repository is:
 
 [https://github.com/libcna/cna](https://github.com/libcna/cna)
 
-Target-platform identification is primarily defined in areas such as:
+Target identification is defined in:
 
 ```text
 modules/core/include/CNA/TargetPlatform.hpp
@@ -1044,34 +622,41 @@ modules/core/include/CNA/DesktopOS.hpp
 modules/core/src/DesktopOS.cpp
 ```
 
-Operating-system and environment-specific code is distributed across modules including:
+The platform implementation lives under:
 
 ```text
 modules/platform/
-modules/graphics/
-modules/input/
-modules/audio/
-modules/sensors/
-modules/haptics/
 ```
 
-while build infrastructure also contains target-specific handling for environments including:
+The most useful current documents are:
 
 ```text
-Windows
-Linux
-Android
-Apple platforms
-Emscripten / WebAssembly
+handoff.md
+docs/platform-abstraction.md
+docs/renderer-registry.md
+docs/graphics-renderer-feature-matrix.md
+docs/apple-platforms.md
+docs/android-graphics-limitations.md
+docs/web-emscripten-graphics-limitations.md
 ```
 
-The exact maturity and test coverage of those paths continues to evolve.
+Relevant CI definitions include:
+
+```text
+.github/workflows/general-tests-ci.yml
+.github/workflows/platform-ci.yml
+.github/workflows/apple-ci.yml
+.github/workflows/d3d-windows-ci.yml
+.github/workflows/emscripten-multi-renderer-ci.yml
+```
+
+These sources should be preferred over an undated statement that a platform is simply “supported”.
 
 ---
 
 ## Conclusion
 
-CNA is designed to target:
+CNA currently targets:
 
 ```text
 Windows
@@ -1082,46 +667,33 @@ iOS / iPadOS
 Web / WebAssembly
 ```
 
-but these targets do not currently have equal levels of verification.
-
-Linux is the main CNA development environment.
-
-Windows, Android and Web have also received practical platform work.
-
-macOS and iOS/iPadOS are already represented in CNA's architecture and source code, and the framework is deliberately being designed with them in mind, but they have **not yet been practically tested on those operating systems**.
-
-That work remains planned.
-
-The distinction is important because CNA should make claims based on evidence rather than treating:
+The most accurate short summary is:
 
 ```text
-code exists
+Linux
+    primary and broadly qualified
+
+Windows
+    implemented and executed through Wine translation stacks
+    native hardware qualification still open
+
+macOS
+    native Apple-silicon build, tests and bundle smoke
+    current SDL_GPU qualification narrower than Linux
+
+Android
+    NDK + x86_64 emulator with OPENGLES3
+    no physical-device matrix
+
+iOS / iPadOS
+    final-linked device build + SOFTWARE simulator smoke
+    experimental, no physical-device run
+
+Web
+    WEBGL2 and WEBGPU execute in Chrome
+    browser/GPU matrix remains bounded
 ```
 
-as automatically equivalent to:
+CNA is cross-platform, but it does not pretend that every line in that list has equal evidence.
 
-```text
-platform verified
-```
-
-The long-term goal remains straightforward:
-
-```text
-                      CNA application
-                            │
-                            ▼
-                         CNA API
-                            │
-       ┌────────────┬───────┼────────┬──────────────┐
-       ▼            ▼       ▼        ▼              ▼
-    Windows       Linux   macOS   Android     iOS / iPadOS
-                            │
-                            ▼
-                     Web / WebAssembly
-```
-
-Most application code should be written for **CNA**, while the framework absorbs the differences between the environments underneath it.
-
-For macOS and iOS, the architecture is already moving in that direction.
-
-The remaining task is to take those paths onto real Apple systems, test them thoroughly and fix whatever practical platform work that testing reveals.
+That distinction is the real meaning of operating-system support in CNA.
