@@ -1,9 +1,9 @@
 ---
 title: CNA vs FNA vs MonoGame vs XNA 4.0 (original)
 date: 2026-12-17T18:31:07Z
-updated: 2026-09-13T18:38:45Z
+updated: 2026-10-17T13:34:14Z
 description: |
-  CNA, FNA and MonoGame all have the same ancestor: Microsoft XNA Framework 4.0.
+  XNA 4.0, FNA, MonoGame and CNA share one programming model, but CNA now serves both native C++ and original C# games through CNA.NET.
 author: Robert Vokac
 categories:
   - Development
@@ -16,6 +16,8 @@ tags:
   - CNB
   - FNA
   - MonoGame
+  - CNA.NET
+  - .NET
   - XNA
   - Game Framework
   - Game Development
@@ -46,7 +48,8 @@ MonoGame
     continue and evolve XNA
 
 CNA
-    rebuild XNA in native C++ and expand beyond it
+    rebuild XNA around a native C++ core
+    and expose it to C# through CNA.NET
 ```
 
 That difference in philosophy explains most of the technical differences between the four frameworks.
@@ -57,19 +60,19 @@ That difference in philosophy explains most of the technical differences between
 
 |  | XNA 4.0 | FNA | MonoGame | CNA |
 | --- | --- | --- | --- | --- |
-| Main language | C# | C# | C# / .NET | C++23 |
-| Status | Discontinued | Active | Active | Active, pre-1.0 |
+| Main language | C# | C# | C# / .NET | C++23 core; C# through CNA.NET |
+| Status | Discontinued | Active | Active | Active, 0.x; CNA.NET is beta and source-first |
 | Open source | No | Yes | Yes | Yes |
-| Primary goal | Original framework | XNA accuracy and preservation | Cross-platform XNA successor | XNA-compatible native C++ framework + larger CNA ecosystem |
-| XNA compatibility | Reference itself | Accuracy-first | High, but allowed to evolve | Accuracy-oriented, still incomplete |
-| Managed runtime | .NET/CLR | .NET + native libraries | .NET + native backend | No CLR required |
-| Original XNB | Native | Strong compatibility | Strong compatibility | Supported compatibility path |
+| Primary goal | Original framework | XNA accuracy and preservation | Cross-platform XNA successor | XNA-compatible C++ core, C# binding and curated CNA systems |
+| XNA compatibility | Reference itself | Accuracy-first | High, but allowed to evolve | Accuracy-first; exact selected C# metadata, behavior still incomplete |
+| Managed runtime | .NET/CLR | .NET + native libraries | .NET + native backend | None for C++; .NET 8+ for CNA.NET |
+| Original XNB | Native | Strong compatibility | Strong compatibility | Broad compatibility, with explicit remaining limits |
 | Own content pipeline | XNA Content Pipeline | No | MGCB | CNA Content Pipeline |
 | Native compiled content | XNB | XNB | MonoGame XNB | CNB + XNB |
 | Human-readable CNA format | — | — | — | CNJ |
 | glTF integration | No | External/custom | Pipeline/ecosystem dependent | Built into CNA |
-| Modern engine graphics layer | No | Intentionally limited in scope | Framework continues evolving | CNAEXT |
-| Many selectable renderers | No | Backend abstraction | Several platform backends | Large renderer ecosystem |
+| Graphics extensions | No | Intentionally limited in scope | Framework continues evolving | Bounded CNAEXT module |
+| Selectable renderers | No | Backend abstraction | Several platform backends | 10 identities over 8 curated families |
 | WebAssembly | No | Not a primary official target | Not in current official platform list | Yes |
 | Current console support | Historical Xbox 360 | Several modern consoles | Several modern consoles | None |
 
@@ -165,7 +168,7 @@ But ultimately the original Microsoft implementation is the strongest behavioral
 
 FNA has the clearest preservation-oriented philosophy of the three successors.
 
-The project describes itself as a reimplementation of **Microsoft XNA Game Studio 4.0 Refresh** and explicitly states that its goal is to reproduce XNA accurately rather than redesign it.
+[The project describes itself](https://fna-xna.github.io/) as a reimplementation of **Microsoft XNA Game Studio 4.0 Refresh** and explicitly states that its goal is to reproduce XNA accurately rather than redesign it.
 
 This leads to an important principle:
 
@@ -238,7 +241,7 @@ Underneath that managed API, FNA uses native libraries to provide portable graph
 
 The result is still fundamentally a **C#/.NET XNA implementation**.
 
-That is one of the largest differences between FNA and CNA.
+CNA.NET preserves the same source language, but its managed types are a facade over CNA's C API and C++ implementation. The game code can look almost identical while the architecture underneath it is fundamentally different.
 
 ---
 
@@ -355,6 +358,8 @@ FNA       C# -> .NET -> FNA + native libraries
 MonoGame  C# -> .NET -> MonoGame + native backend
 
 CNA       C++23 -> native executable
+
+CNA.NET   C# -> .NET -> CNA.NET -> CNA C API -> CNA C++
 ```
 
 CNA uses **Sharp Runtime** for many `System::*`-style facilities that make an XNA-like C++ API practical, but it does not require a CLR simply to execute the game.
@@ -371,7 +376,52 @@ toolchain selection
 integration with C/C++ libraries
 ```
 
-A developer choosing CNA is therefore making a much larger language decision than someone choosing between FNA and MonoGame.
+A developer writing directly against CNA is therefore making a much larger language decision than someone choosing between FNA and MonoGame.
+
+That is no longer the only way to use CNA.
+
+---
+
+## CNA.NET brings C# XNA games to CNA
+
+[CNA.NET](https://github.com/libcna/cna-dotnet) adds a strict C# XNA facade above CNA's native C API:
+
+```text
+original XNA 4.0 C# game
+        │
+        ▼
+CNA.XnaCompat
+        │
+        ▼
+CNA.Framework / CNA.Interop
+        │
+        ▼
+CNA C API
+        │
+        ▼
+CNA C++ core
+```
+
+This changes the comparison substantially. CNA is still implemented in C++23, but using it no longer requires rewriting an XNA game in C++.
+
+The measured CNA.NET result for the selected XNA 4.0 Windows runtime profile is:
+
+```text
+256 of 256 public types
+0 metadata differences
+0 CNA types leaking into XNA signatures
+empty compatibility allow-list
+```
+
+The separately measured `GamerServices`, `Avatar` and `Net` profile adds another 75 of 75 types with no metadata differences.
+
+The more important application-level evidence is that **81 of the 83 official Microsoft XNA Game Studio 4.0 samples run on CNA.NET**. A broader campaign covered 198 runnable programs from 85 open-source XNA 4.0 projects; **193 ran correctly** from their original C# sources.
+
+It is therefore reasonable to say that CNA.NET already runs nearly all of the ordinary XNA 4.0 C# games exercised by that campaign. That is a measured corpus claim, not a promise that every historical project is automatically portable. Native or mixed-mode dependencies, Windows Forms, Silverlight hosts, missing proprietary assets, dead online services and FNA- or MonoGame-specific extensions remain separate migration problems.
+
+CNA.NET is also source-first rather than binary-drop-in compatibility. Games are normally rebuilt against `CNA.XnaCompat`; matching Microsoft's strong-named assembly identity is not its primary goal. The binding is still beta, has no public NuGet/native-binary distribution and is not behaviorally complete.
+
+The detailed evidence and project list are in [XNA 4.0 C# games run on CNA.NET too](/2026/10/12/xna-4-0-c-sharp-games-run-on-cna-net-too/).
 
 ---
 
@@ -381,9 +431,9 @@ This is important to state clearly.
 
 FNA and MonoGame have years of production use behind them.
 
-CNA is still a young pre-1.0 framework.
+CNA is still a young 0.x framework, and CNA.NET is not yet release-ready.
 
-Its scope is already very large, but scope and maturity are not the same thing.
+Its compatibility evidence is already substantial, but evidence over a large corpus and years of production use are not the same thing.
 
 Today the relationship is roughly:
 
@@ -395,10 +445,11 @@ MonoGame
     mature general-purpose XNA successor
 
 CNA
-    rapidly developing experimental C++ XNA ecosystem
+    young native C++ runtime
+    + broadly exercised C# compatibility layer
 ```
 
-CNA should therefore not be presented as a drop-in production replacement that is automatically more proven than FNA or MonoGame.
+CNA should therefore not be presented as automatically more proven than FNA or MonoGame.
 
 It is not.
 
@@ -416,7 +467,7 @@ The four frameworks can be placed on a spectrum.
                              │
                      MonoGame
                              │
-                             │       CNA
+                             │       CNA / CNA.NET
                              │
                              │
 XNA original ────────────────┼──────────────► new systems
@@ -429,7 +480,7 @@ XNA original ────────────────┼─────�
 
 This diagram is necessarily simplified.
 
-CNA is unusual because it tries to do both:
+CNA is unusual because its native and managed entry points try to do both:
 
 ```text
 preserve XNA behavior
@@ -443,11 +494,11 @@ Instead of silently redefining XNA classes wherever possible, CNA uses its own e
 
 ```text
 CNAEXT
-CNA::Graphics
 CNJ
 CNB
 Renderer API
 Platform API
+C API and language bindings
 ```
 
 The intention is that:
@@ -650,6 +701,8 @@ It can also produce XNB for XNA-compatible workflows.
 
 CNA additionally supports source formats such as glTF through its own importer architecture.
 
+For an existing C# game, CNA.NET normally keeps the game's authentic XNA-built `.xnb` files. Its managed content layer implements XNA reader activation, shared resources, custom `ContentTypeReader<T>` types and LZX handling above CNA's native loader. The 81 official samples that run on CNA.NET use content produced by the real XNA 4.0 pipeline rather than silently replacing it with CNB.
+
 Conceptually:
 
 ```text
@@ -666,7 +719,7 @@ XNB ───────┤
       CNB     XNB
 ```
 
-This is a much larger scope than FNA intentionally attempts.
+This is a much larger content-tooling scope than FNA intentionally attempts.
 
 It is also considerably newer and less battle-tested than either FNA's runtime content compatibility or MonoGame's MGCB ecosystem.
 
@@ -769,7 +822,7 @@ MonoGame provides its own shader compilation technology as part of its broader t
 
 Its shader infrastructure has evolved independently from the original Microsoft XNA implementation.
 
-MonoGame's current documentation also reflects ongoing graphics modernization, and the 3.8.5 generation introduced a new native backend plus Vulkan work, with DirectX 12 also part of the modern graphics direction.
+[MonoGame 3.8.5](https://monogame.net/blog/2026-07-15-3.8.5-release-2026/) introduced its new native backend, a Vulkan target and a Windows DirectX 12 target. These are shipping successor features rather than details inherited from XNA's original implementation.
 
 Again, this represents the project's successor philosophy.
 
@@ -795,14 +848,13 @@ ShaderEffect
 CNAEXT modern shader packages
 ```
 
-For new CNA graphics code, shader packages can eventually carry different representations for APIs such as:
+For new CNA graphics code, shader packages carry renderer-selected representations such as:
 
 ```text
-GLSL
+GLSL ES
+desktop GLSL
 SPIR-V
-HLSL / DXIL
 WGSL
-MSL
 ```
 
 while old XNA-style games can remain on the Effect abstraction.
@@ -880,9 +932,9 @@ That restraint is one of its strengths for preservation.
 
 ## Graphics: MonoGame
 
-MonoGame has historically provided several graphics paths and is now undergoing another significant modernization.
+MonoGame has historically provided several graphics paths and has now shipped another significant modernization.
 
-Its current supported desktop stack includes OpenGL and DirectX paths, while the 3.8.5 development introduced the new native backend and a `DesktopVK` target based on SDL2, Vulkan and FAudio. Vulkan and DirectX 12 work are part of the current modernization effort.
+Its supported desktop stack includes OpenGL and DirectX paths, while 3.8.5 added the native-backend Vulkan target and Windows DirectX 12 target.
 
 This makes MonoGame increasingly interesting for developers who want:
 
@@ -898,45 +950,36 @@ without leaving the .NET ecosystem.
 
 ## Graphics: CNA
 
-Graphics is where CNA diverges most aggressively.
+Graphics remains one of CNA's clearest architectural differences.
 
 CNA has a renderer abstraction designed to allow the same high-level framework to sit above many graphics implementations.
 
-The renderer ecosystem includes modern APIs, older APIs, CPU rasterizers and experimental technologies.
-
-More importantly, CNA has an optional modern engine layer:
+The current set is deliberately curated: ten public identities over eight implementation families.
 
 ```text
-CNA::Graphics
-CNAEXT
+OPENGLES3   OPENGL33   WEBGL2
+WEBGPU      SDL_GPU    FNA3D
+DIRECTX9    SOFTWARE   HEADLESS   STUB
 ```
 
-which adds systems including:
+The three GL identities share the internal EasyGL family. `SDL_GPU` lets SDL own the Vulkan, Direct3D 12 and Metal backends instead of presenting each as a separate CNA renderer.
+
+Above the XNA contract, CNA retains features such as:
 
 ```text
-PBR
-HDR
-
-RenderPipeline
-tone mapping
-bloom
-SSAO
-
-cascaded shadows
+PbrEffect and SkinnedPbrEffect
 IBL
-atmospheric sky
-
+shadow reception
+float render targets
 instancing
-LOD
-culling
-
-compute shaders
-storage resources
-GPU timers
-GPU-driven rendering
+compiled XNA effects
+Texture3D and TextureCube
+portable ShaderEffect packages
 ```
 
-These systems are explicitly outside the original XNA 4.0 contract.
+The optional `CNAEXT` module is now intentionally bounded. It contains portable CRT, ASCII and colour-depth/dithering effects, debug drawing and shader-package helpers. The former HDR render pipeline, pass framework, shadow engine, clustered renderer, probe system, compute/storage abstractions, indirect drawing and GPU timers were removed during the alpha-stage scope reduction.
+
+The retained CNA-owned systems are explicitly outside the original XNA 4.0 contract.
 
 That allows CNA to say:
 
@@ -944,7 +987,7 @@ That allows CNA to say:
 Microsoft::Xna::Framework
     compatibility layer
 
-CNA::Graphics
+CNAEXT and CNA-owned formats
     CNA evolution layer
 ```
 
@@ -968,17 +1011,13 @@ MonoGame
 
 CNA
     preserve the XNA-facing API
-    + expose many renderer implementations
-    + build an optional modern engine layer above it
+    + expose a curated renderer set
+    + keep bounded extensions separate
 ```
 
-CNA has the broadest renderer experimentation.
+CNA formerly explored dozens of renderer identities. Forty-one have now been retired, and the project explicitly does not plan to add or restore renderers without a new owner decision.
 
-It does **not** have the broadest renderer maturity.
-
-That distinction matters.
-
-A renderer existing in the source tree does not mean every CNA graphics feature is equally complete on it.
+The surviving renderers still have different capability and qualification levels. Being selectable does not mean every CNA graphics feature is equally complete on every family.
 
 ---
 
@@ -1002,7 +1041,7 @@ Modern XNA successors exist largely because developers wanted to take the same p
 
 ## FNA platforms
 
-FNA's public documentation describes desktop portability as its primary focus and supports Windows and GNU/Linux from the same managed assembly model.
+[FNA's public documentation](https://fna-xna.github.io/) describes desktop portability as its primary focus and supports Windows and GNU/Linux from the same managed assembly model.
 
 It also documents support for Apple platforms and lists Xbox One/Series, Nintendo Switch and PlayStation 5 among its additional targets. Closed-console deployment naturally still depends on having appropriate platform access.
 
@@ -1012,7 +1051,7 @@ This is particularly impressive given FNA's strict compatibility focus.
 
 ## MonoGame platforms
 
-MonoGame currently advertises a very broad platform matrix.
+[MonoGame currently advertises](https://docs.monogame.net/articles/getting_started/platforms.html) a very broad platform matrix.
 
 Its public project documentation includes:
 
@@ -1033,7 +1072,7 @@ Nintendo Switch 1
 Nintendo Switch 2
 ```
 
-with console targets available to appropriately registered developers.
+with [console targets available to appropriately registered developers](https://docs.monogame.net/articles/console_access.html).
 
 This is one of MonoGame's strongest advantages today.
 
@@ -1043,7 +1082,7 @@ For a commercial C# game that needs broad established platform coverage, MonoGam
 
 ## CNA platforms
 
-CNA is much earlier in this process.
+CNA is much earlier in this process, and its targets have deliberately different evidence levels.
 
 Its intended target family includes:
 
@@ -1058,11 +1097,9 @@ Web / WebAssembly
 
 but these targets do not yet have equal verification.
 
-Linux is CNA's main development environment.
+Linux x86_64 is CNA's main development and full-suite environment. Windows builds run under Wine through DXVK for `DIRECTX9` and vkd3d-proton for SDL_GPU's Direct3D 12 path, but current real-Windows hardware qualification is still missing. `WEBGL2` and `WEBGPU` run in Chrome, while Android's default `OPENGLES3` path is exercised on an x86_64 emulator.
 
-Windows, Android and Web have received practical implementation work.
-
-macOS and iOS/iPadOS are architectural targets, but have not yet received the practical real-platform testing required to describe them as mature CNA targets.
+Apple support has moved beyond source-only status. macOS CI builds the `SOFTWARE` path, runs portable suites and a bundle smoke application, with an SDL_GPU Metal smoke job as a separate gate. iOS final-links device and simulator applications and runs a `SOFTWARE` simulator smoke; physical-device qualification and the SDL_GPU iOS path remain incomplete.
 
 And unlike FNA and MonoGame:
 
@@ -1076,7 +1113,7 @@ PlayStation
 Xbox
 ```
 
-Console support is a future goal, not a current feature.
+CNA's current maintenance scope contains no console implementation.
 
 ---
 
@@ -1084,7 +1121,7 @@ Console support is a future goal, not a current feature.
 
 One area where CNA takes a different route is WebAssembly.
 
-CNA contains an Emscripten/WebAssembly target and browser-specific graphics work.
+CNA contains an Emscripten/WebAssembly target with `WEBGL2` and `WEBGPU` renderer paths.
 
 That allows an architecture such as:
 
@@ -1101,9 +1138,11 @@ WebAssembly
 browser
 ```
 
-with renderers including WebGL-related paths and work around WebGPU and browser-specific presentation technologies.
+with real rendering exercised in Chrome.
 
 Web is therefore treated as a genuine CNA target rather than as an unrelated third-party port.
+
+CNA.NET also has a browser route for C# games; its compatibility campaign has executed representative games in headless Chromium. That is useful runtime evidence, but not a claim about every browser, physical GPU, audio path or interactive host.
 
 ---
 
@@ -1187,9 +1226,7 @@ For a developer who wants a contemporary C# workflow, this is a major advantage.
 
 ## CNA tooling
 
-CNA lives in the C++ ecosystem.
-
-Its normal toolchain involves:
+Native CNA lives in the C++ ecosystem. Its normal toolchain involves:
 
 ```text
 CMake
@@ -1212,9 +1249,9 @@ cna_tool_gltf_to_cnb
 cna_tool_cnj_to_cnb
 ```
 
-This is attractive to C++ developers.
+For C# developers, CNA.NET adds a separate .NET 8+ workflow. An existing game keeps its original `.cs` files and gains a small SDK-style wrapper project that references `CNA.XnaCompat`; a new project can start from the installable `dotnet new cna-game` template.
 
-It is obviously less attractive to someone specifically looking for the traditional C# XNA development experience.
+That makes CNA usable from Visual Studio, VS Code, Rider and the `dotnet` CLI without changing the language of an XNA game. The trade-off is distribution maturity: CNA.NET is still built from source, its matching native CNA library must be supplied explicitly, and no public NuGet/native-binary release currently hides that setup.
 
 ---
 
@@ -1247,9 +1284,9 @@ the answer is:
 
 **FNA.**
 
-That is its explicit project mission.
+That is its explicit project mission and it has years of shipped-game evidence behind it.
 
-CNA also invests heavily in XNA parity, including behavioral comparison and compatibility testing, but it is much younger and is simultaneously pursuing a far larger experimental architecture.
+CNA also invests heavily in XNA parity. CNA.NET exactly matches the selected XNA 4.0 public metadata profile and already runs nearly all games in its broad application campaign, while native CNA settles disputed behavior against genuine XNA measurements. Its remaining disadvantage here is maturity and incomplete behavioral/platform qualification, not a lack of compatibility ambition.
 
 MonoGame maintains high XNA familiarity but deliberately allows itself to evolve.
 
@@ -1283,15 +1320,25 @@ For many new C# projects, that combination is compelling.
 
 ## Which is best for preserving an existing XNA game?
 
-Usually:
+For the most mature preservation-focused runtime, the default answer remains:
 
 **FNA.**
 
-Its architecture and development philosophy are explicitly shaped around that problem.
+Its architecture, development philosophy and production history are explicitly shaped around that problem.
 
-A large old XNA game often wants the framework to reproduce its expectations rather than reinterpret them.
+But CNA.NET is now a credible fourth route for original C# source, not merely a future possibility. Its campaign ran 193 of 198 runnable programs from 85 open-source XNA projects and 81 of 83 official samples. A project that wants to preserve its C# game while moving the implementation underneath it to CNA's C++ core can therefore choose:
 
-That is exactly the kind of task FNA was built for.
+```text
+existing XNA C# source
+        │
+        ▼
+     CNA.NET
+        │
+        ▼
+native CNA runtime
+```
+
+The choice is not only about compatibility percentages. FNA offers the more established preservation runtime and shipping history. CNA.NET offers the CNA renderer, content, platform and C API architecture underneath the familiar C# surface, but currently demands source builds and more careful qualification.
 
 ---
 
@@ -1303,7 +1350,7 @@ Of these four:
 
 That is the fundamental reason CNA exists as a separate project.
 
-FNA and MonoGame solve the problem while preserving the managed C# ecosystem.
+FNA and MonoGame solve the problem while preserving the managed C# implementation model. CNA also offers the same XNA-facing C# source model through CNA.NET, but routes it into a native C++ core.
 
 CNA asks a different question:
 
@@ -1318,33 +1365,27 @@ Microsoft::Xna::Framework::Graphics::SpriteBatch
 Microsoft::Xna::Framework::Content::ContentManager
 ```
 
-instead of their C# equivalents.
+for a native game. CNA.NET is available when keeping the original C# is the better choice.
 
 ---
 
-## Which has the broadest graphics experimentation?
+## Which exposes the widest CNA-owned graphics surface?
 
-CNA.
+CNA still goes beyond strict XNA with PBR effects, portable shader packages, glTF integration, CPU rendering and a small CNAEXT effect/debug module.
 
-But this requires an important qualification.
+But it is no longer accurate to describe the project as an ever-expanding renderer experiment. The set is frozen at ten public identities over eight families, 41 older identities are retired, and the former general-purpose HDR/compute engine layer has been removed.
 
-CNA contains an unusually large renderer ecosystem and modern CNAEXT graphics work.
-
-That makes it useful as an engine architecture and renderer research project.
-
-It does **not** mean every renderer is as mature as the core renderers used by FNA or MonoGame.
-
-A good summary is:
+The useful distinction is now:
 
 ```text
-CNA graphics breadth
-    very large
-
-CNA graphics maturity
-    highly renderer-dependent
+XNA-compatible graphics contract
+        +
+curated renderer choices
+        +
+bounded CNA-owned extensions
 ```
 
-This is expected for a young project.
+Qualification remains renderer-dependent.
 
 ---
 
@@ -1368,7 +1409,7 @@ FNA
 
 is an extremely strong choice.
 
-For a new native C++ project that specifically wants the XNA model and accepts a young, rapidly evolving framework:
+For a new native C++ project that specifically wants the XNA model and accepts a young 0.x framework:
 
 ```text
 CNA
@@ -1376,11 +1417,13 @@ CNA
 
 may be interesting.
 
+For an existing C# XNA game, CNA.NET already has unusually broad corpus evidence, but its source-first setup and incomplete release/platform qualification still make it a more hands-on choice than FNA or MonoGame.
+
 For a new production game, original XNA itself generally makes little sense as the primary framework because Microsoft discontinued it and its toolchain belongs to an older Windows development environment.
 
 ---
 
-## CNA is not trying to replace FNA's role
+## CNA.NET overlaps with FNA's use case, not its architecture
 
 This distinction is important.
 
@@ -1390,7 +1433,7 @@ FNA has an extremely focused reason to exist:
 preserve XNA games
 ```
 
-CNA does not need to defeat FNA at that task to justify its existence.
+CNA.NET now addresses the same starting problem — running existing XNA C# source — but does so through CNA's C API and native C++ runtime. It does not need to defeat FNA at preservation to justify that architecture.
 
 CNA's direction is broader:
 
@@ -1398,8 +1441,9 @@ CNA's direction is broader:
 XNA API compatibility
         │
         ├── native C++23
-        ├── renderer abstraction
-        ├── many graphics implementations
+        ├── CNA.NET for C# source
+        ├── C API and other bindings
+        ├── curated renderer abstraction
         ├── Platform API
         ├── CNA Content Pipeline
         ├── CNJ
@@ -1412,7 +1456,7 @@ That is a different project.
 
 FNA deliberately avoids some of this scope.
 
-CNA deliberately embraces it.
+CNA now keeps this broader scope curated rather than continually adding new subsystems.
 
 ---
 
@@ -1422,23 +1466,23 @@ MonoGame already provides a strong answer to:
 
 > What should a modern cross-platform C# successor to XNA look like?
 
-Recreating MonoGame in C++ feature-for-feature would not be especially interesting.
+Recreating MonoGame feature-for-feature would not be especially interesting, even though CNA.NET now gives CNA a C# entry point.
 
 CNA instead has a different opportunity:
 
 ```text
-XNA-inspired application API
+strict XNA application API
 
         +
 
-native C++ engine infrastructure
+native C++ runtime and C ABI
 
         +
 
-renderer experimentation
+curated CNA-owned content and graphics extensions
 ```
 
-This allows CNA to explore areas that would be awkward if strict managed API compatibility were its only priority.
+The strict managed facade and the CNA-owned extensions remain separate. CNA.NET does not add FNA- or MonoGame-specific APIs merely to increase the number of projects that compile.
 
 ---
 
@@ -1492,9 +1536,9 @@ Keep the familiar programming model while evolving the framework, tooling and pl
 
 ## CNA
 
-> Rebuild XNA in native C++ and use it as a foundation.
+> Rebuild XNA around a native C++ core and make it available to both C++ and C# games.
 
-Preserve the XNA programming model where compatibility matters, but place additional CNA-owned systems around it for modern rendering, content, platforms and long-term portability.
+Preserve the XNA programming model where compatibility matters, expose it to original C# source through CNA.NET and keep additional CNA-owned systems explicitly separate.
 
 ---
 
@@ -1508,9 +1552,15 @@ Do you specifically need the historical Microsoft implementation?
     └── yes ─► XNA 4.0
                mainly for legacy/reference purposes
 
-Do you have an existing C# XNA game and want maximum behavioral fidelity?
+Do you have an existing C# XNA game and want the most established
+accuracy-first preservation runtime?
     │
     └── yes ─► FNA
+
+Do you want to keep that C# source but run it on CNA's native core,
+and accept a beta, source-first toolchain?
+    │
+    └── yes ─► CNA.NET
 
 Do you want a mature modern C# XNA-style framework
 with broad desktop/mobile/console support?
@@ -1518,8 +1568,8 @@ with broad desktop/mobile/console support?
     └── yes ─► MonoGame
 
 Do you specifically want native C++23,
-XNA-style APIs, many renderer experiments,
-and CNA's expanding engine/content architecture?
+XNA-style APIs, CNA's curated renderer set,
+and its native content/platform architecture?
     │
     └── yes ─► CNA
 ```
@@ -1534,19 +1584,11 @@ They exist because the end goal is different.
 
 The projects discussed here are:
 
-```text
-Microsoft XNA Framework 4.0
-    original Microsoft framework
-
-FNA
-    GitHub: FNA-XNA/FNA
-
-MonoGame
-    GitHub: MonoGame/MonoGame
-
-CNA
-    GitHub: libcna/cna
-```
+- Microsoft XNA Framework 4.0 — the original Microsoft framework;
+- [FNA](https://github.com/FNA-XNA/FNA);
+- [MonoGame](https://github.com/MonoGame/MonoGame);
+- [CNA](https://github.com/libcna/cna);
+- [CNA.NET](https://github.com/libcna/cna-dotnet) — CNA's C#/.NET binding.
 
 Their own documentation is the best source for current platform and tooling details because all three active projects continue to evolve.
 
@@ -1566,8 +1608,8 @@ XNA 4.0, FNA, MonoGame and CNA share a recognizable programming model, but they 
        ▼            ▼            ▼
       FNA       MonoGame        CNA
 
-  preserve       evolve       rebuild in C++
-    XNA            XNA        and expand it
+  preserve       evolve      native C++ core
+    XNA            XNA       + CNA.NET for C#
 ```
 
 **XNA 4.0** is the historical original.
@@ -1576,30 +1618,28 @@ XNA 4.0, FNA, MonoGame and CNA share a recognizable programming model, but they 
 
 **MonoGame** is the mature modern C# successor with the broadest established general-purpose ecosystem.
 
-**CNA** is the newest and most experimental member of the family: a native C++23 reimplementation that treats XNA compatibility as its foundation rather than the eventual limit of the framework.
+**CNA** is the newest member of the family: a native C++23 reimplementation with a curated renderer/content/platform architecture. **CNA.NET** places an exact selected XNA 4.0 C# metadata facade above that core and already runs nearly all games in its measured open-source corpus.
 
 Today, FNA and MonoGame are considerably more mature choices for shipping games.
 
 CNA's advantage is not maturity.
 
-Its opportunity is architectural freedom:
+Its opportunity is a different architecture:
 
 ```text
 XNA-style API
      +
 native C++
      +
-many renderers
+CNA.NET for existing C# source
      +
-modern graphics extensions
+curated renderers and bounded graphics extensions
      +
 native content formats
      +
 new platform abstractions
 ```
 
-If CNA continues to mature while retaining a clearly separated XNA-compatible core, it can occupy a position that neither FNA nor MonoGame is trying to occupy.
+If CNA and CNA.NET continue to mature while retaining a clearly separated XNA-compatible core, they can occupy a position that neither FNA nor MonoGame is trying to occupy:
 
-Not as another replacement for XNA in C#.
-
-But as a **native C++ descendant of the XNA programming model**
+**one native C++ implementation that serves both new C++ programs and original XNA 4.0 C# games.**
