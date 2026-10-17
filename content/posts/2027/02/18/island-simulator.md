@@ -1,7 +1,7 @@
 ---
 title: Island Simulator
 date: 2027-02-18T12:00:00Z
-updated: 2026-10-17T14:35:22Z
+updated: 2026-10-17T15:04:58Z
 description: |
   Island Simulator is a peaceful first-person tropical island exploration and near-shore swimming experience built with CNA.
 author: Robert Vokac
@@ -96,11 +96,27 @@ The helicopter cannot fly. It is a grounded environmental object with open doors
 
 Birds move above the island, while boars and other animals occupy bounded habitats. A resident follows a deterministic inland route and yields to the player. Wildlife is designed as part of the environment rather than as an enemy system.
 
-The project combines procedural geometry, animated creatures, positional sound, first-person collision, swimming, touch controls and persistent preferences in one CNA application.
+The project combines procedural geometry, animated creatures, positional sound, first-person collision, swimming, touch controls and persistent preferences in one CNA application. Its land animals include monkeys, a bear, wild boars, goats and small rodents.
+
+![Island Simulator wildlife: monkeys, a bear, a boar, a rat and goats](/wp-content/uploads/2027/02/island-simulator-wildlife-collage.png)
 
 The wildlife is varied but deliberately non-hostile.
 
-Birds follow several coastal, canopy and high-altitude route families, switching between wingbeats and glides. Boars forage, rest, wander and withdraw from a nearby player. Other inhabitants include monkeys, goats, a bear, butterflies, crabs, turtles, octopuses and smaller environmental life documented by the project.
+Water habitats range from the mangrove estuary to the outer reef. Crocodiles occupy the shallows, while dolphins, a shark, octopuses and stingrays follow their own bounded marine routes.
+
+![Aquatic wildlife: a crocodile, dolphin, shark, octopus and stingray](/wp-content/uploads/2027/02/island-simulator-aquatic-wildlife-collage.png)
+
+Smaller wildlife brings movement to the jungle floor, clearings and sky. Spiders and flies remain close to the ground, butterflies and dragonflies use bounded habitats, and birds follow coastal, canopy and high-altitude route families.
+
+![Small wildlife: a spider, fly, tropical bird, butterfly and dragonfly](/wp-content/uploads/2027/02/island-simulator-small-wildlife-collage.png)
+
+The shoreline has several distinct scales of life. Sea turtles and reef fish move through the shallow water, while beach crabs, coconut crabs and hermit crabs occupy different parts of the sand and coastal vegetation.
+
+![Shore wildlife: a sea turtle, reef fish and three kinds of crab](/wp-content/uploads/2027/02/island-simulator-shore-wildlife-collage.png)
+
+Other inland habitats add deer, bats, snakes, frogs and geckos. These animals are not interchangeable decorations: their silhouettes, movement and preferred terrain make each group readable during exploration.
+
+![Forest wildlife: a deer, bat, snake, frog and gecko](/wp-content/uploads/2027/02/island-simulator-forest-wildlife-collage.png)
 
 Animals use bounded habitats and distance-aware animation rather than a global ecosystem simulation. Their feet or bodies sample the rendered terrain where appropriate, and contact shadows help ground nearby forms.
 
