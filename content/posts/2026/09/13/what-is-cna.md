@@ -16,7 +16,7 @@ draft: false
 
 CNA is an open-source C++23 reimplementation of the Microsoft XNA 4.0 programming model.
 
-It combines an XNA-style framework with a modular runtime, 14 graphics renderers, a content system, audio, input, networking, platform abstractions and language bindings.
+It combines an XNA-style framework with a modular runtime, 10 graphics renderers, a content system, audio, input, networking, platform abstractions and language bindings.
 
 ## XNA, rebuilt in C++
 
@@ -39,17 +39,17 @@ The CNA dependencies should be replaceable.
 - Games and applications built on CNA should be able to live for decades.
 - If SDL 3 becomes obsolete, CNA can move to SDL 4, SDL 5, native platform backends, or something else.
 
-## 14 graphics renderers
+## 10 graphics renderers
 
-CNA now contains **14 renders** implemented through 12 renderer families.
+CNA now contains **10 renders** implemented through 8 renderer families.
 
 The shared EasyGL family provides `OpenGLES3`, `OpenGL33` and `WebGL2`.
 
-Other renderer identities cover Vulkan, WebGPU, Direct3D 9, Direct3D 11, Metal, SDL Renderer, SDL GPU and FNA3D.
+Other renderer identities cover WebGPU, Direct3D 9, SDL GPU and FNA3D.
 
 There are also specialized approaches such as the CPU-based Software renderer; and Headless and Stub implementations for cases where normal visual output is unnecessary.
 
-Not all 14 renderers are equally complete. Some are broad 2D and 3D implementations, some intentionally support a narrower subset of functionality, some are specialized for a particular operating system or environment, and others remain experimental.
+Not all 10 renderers are equally complete. Some are broad 2D and 3D implementations, some intentionally support a narrower subset of functionality, some are specialized for a particular operating system or environment, and others remain experimental.
 
 ## Compatibility through real XNA 4.0 C# samples
 
@@ -94,7 +94,7 @@ The C binding provides a native boundary between CNA and other runtimes.
 
 The C# binding is important because it makes it possible to run XNA 4.0 C# applications on CNA.
 
-These eight bindings are now archived and no longer actively maintained: Java, TypeScript, Python, Rust, Swift, Go, Ruby and Common Lisp. Their source code and Git history are preserved in CNA Lab ( [https://github.com/libcna/cna-lab](https://github.com/libcna/cna-lab) ).
+These eight bindings are now archived and no longer actively maintained: Java, TypeScript, Python, Rust, Swift, Go, Ruby and Common Lisp. Their source code and Git history are preserved in CNA Cemetery ( [https://github.com/libcna/cna-cemetery](https://github.com/libcna/cna-cemetery) ).
 
 Each language binding exposes different assumptions about ownership, callbacks, type systems, APIs and runtime behavior, helping to uncover weaknesses and compatibility issues in CNA itself.
 
@@ -112,6 +112,6 @@ There is a great deal of work remaining on compatibility, renderer parity, testi
 
 ## Summary
 
-CNA is a native, cross-platform C++ framework, that has has 18 graphics renderers, a modular runtime, native Win32, X11 and Wayland platform backends, XNA Design support, a growing CNB/XNB content pipeline, modern graphics experiments, language bindings and around one hundred sample ports.
+CNA is a native, cross-platform C++ framework, that has has 10 graphics renderers, a modular runtime, XNA Design support, a growing CNB/XNB content pipeline, modern graphics experiments, language bindings and 91 sample ports.
 
 Feature expansion in CNA is slowing down. The current priority is stability.
