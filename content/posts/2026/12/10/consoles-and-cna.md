@@ -1,7 +1,7 @@
 ---
 title: Consoles and CNA
 date: 2026-12-10T18:06:12Z
-updated: 2026-09-13T18:18:47Z
+updated: 2026-10-17T13:23:17Z
 description: |
   CNA is designed as a portable game framework, but there is one major category of gaming hardware it does not currently support: game consoles.
 author: Robert Vokac
@@ -92,19 +92,19 @@ The currently implemented CNA platform backends are:
 
 ```text
 SDL3
-SDL2
 HEADLESS
 TERMINAL
 ```
 
 None of these by itself turns CNA into a console framework.
 
-Likewise, CNA currently has many graphics renderers, but having a renderer that resembles the hardware generation of a console does not constitute a console port.
+Likewise, CNA currently exposes ten graphics renderer identities across eight implementation families, but having a renderer that resembles the hardware generation of a console does not constitute a console port.
 
 For example:
 
 ```text
-CNA has DIRECTX12
+CNA has SDL_GPU,
+which can use Direct3D 12 underneath
 ```
 
 does not imply:
@@ -116,7 +116,7 @@ CNA supports Xbox Series X|S
 and:
 
 ```text
-CNA has OPENGL1
+CNA has a SOFTWARE renderer
 ```
 
 does not imply:
@@ -182,7 +182,7 @@ Xbox has more publicly available GDK material, but full console development stil
 
 ## SDL does not remove this requirement
 
-CNA currently uses SDL extensively through its platform architecture.
+SDL3 is CNA's only windowed platform implementation and remains central to desktop, mobile and Web builds. The Platform API now keeps that dependency behind `Sdl3Platform`, while headless and terminal configurations can omit SDL entirely.
 
 SDL itself has console ports.
 
@@ -283,9 +283,8 @@ with implementations including:
 
 ```text
 Sdl3Platform
-Sdl2Platform
-Headless
-Terminal
+HeadlessPlatform
+TerminalPlatform
 ```
 
 The architecture is now much closer to:
@@ -297,16 +296,14 @@ The architecture is now much closer to:
                   CNA runtime
                         │
                         ▼
-                    IPlatform
-             ┌──────────┼───────────┐
-             ▼          ▼           ▼
-           SDL3        SDL2       Headless
-
-                         ...
-
-                 future console
-                    platform
+IPlatform
+├── Sdl3Platform
+├── HeadlessPlatform
+├── TerminalPlatform
+└── future console platform
 ```
+
+`SDL3` is CNA's only windowed platform implementation. The `HEADLESS` backend and the POSIX-only `TERMINAL` backend cover display-free use cases. CNA's former SDL2 and direct Win32, X11 and Wayland platform implementations have been retired; SDL3 now reaches those desktop window systems through its own video drivers.
 
 This is highly relevant to consoles.
 
@@ -353,26 +350,27 @@ On others, a dedicated renderer would be required.
 
 ---
 
-## Having many renderers helps — but does not solve the port
+## Having several renderers helps — but does not solve the port
 
-CNA already contains rendering approaches ranging from modern GPU APIs to old fixed-function and CPU implementations.
+CNA currently exposes ten public renderer identities through eight implementation families. They range from modern portable GPU layers to compatibility-oriented Direct3D 9, OpenGL ES, headless and CPU implementations.
 
 Relevant examples include:
 
 ```text
-DIRECTX8
-DIRECTX11
-DIRECTX12
-
-OPENGL1
-OPENGLES1
+OPENGLES3
+OPENGL33
 
 SDL_GPU
+WEBGPU
+FNA3D
 
 SOFTWARE
-PORTABLEGL
-TINYGL
+HEADLESS
+STUB
+DIRECTX9
 ```
+
+The three GL identities `OPENGLES3`, `OPENGL33` and `WEBGL2` share the EasyGL implementation. `SDL_GPU` is CNA's modern native path and lets SDL choose Vulkan, Direct3D 12 or Metal underneath it. `FNA3D` is another abstraction layer and selects SDL_GPU, Direct3D 11 or OpenGL internally.
 
 This makes CNA unusually interesting for older-console experiments.
 
@@ -385,7 +383,7 @@ The current CNA renderer implementations have their own platform restrictions an
 An existing:
 
 ```text
-OPENGL1
+OPENGLES3
 ```
 
 renderer cannot simply be copied to a PlayStation Vita executable and expected to work.
@@ -620,9 +618,9 @@ exception support
 standard-library completeness
 ```
 
-CNA's console feasibility analysis specifically identifies Sharp Runtime as one of the areas likely to fail before much of CNA itself does.
+CNA's original console feasibility analysis identifies Sharp Runtime as one of the areas most likely to expose restricted-toolchain problems before much of CNA itself does.
 
-The Android work has already demonstrated the general class of problem: an unusual toolchain can expose standard-library assumptions that never appear on a desktop Linux build.
+Earlier Android work demonstrated this general class of problem: an unusual toolchain exposed standard-library assumptions that never appeared on a desktop Linux build. CNA and Sharp Runtime now build and run through the Android NDK, but that result does not guarantee that older homebrew toolchains provide the same library surface.
 
 A console port would therefore require not only:
 
@@ -892,11 +890,12 @@ A console build cannot simply assume all of them are available.
 Depending on configuration, a normal development tree can involve technologies such as:
 
 ```text
+SDL3
 FFmpeg
 ENet
-Skia
-Blend2D
-various third-party graphics libraries
+easy-gl / meta-gl
+wgpu-native or emdawnwebgpu
+FNA3D / MojoShader
 testing frameworks
 ```
 
@@ -907,14 +906,15 @@ Conceptually:
 ```text
 CNA console profile
 
-tests                 off
-desktop examples      off
-unsupported devices   off
-FFmpeg/media          optional or off
-network stack         platform-specific
-dynamic plugins       off
-graphics libraries    restricted
-static linking        preferred
+CNA_BUILD_TESTS=OFF
+CNA_BUILD_EXAMPLES=OFF
+CNA_DEVICES=OFF
+CNA_ENABLE_VIDEO=OFF
+CNA_ENABLE_NET=OFF
+CNA_ENABLE_GAMER_SERVICES=OFF unless offline services are needed
+
+graphics dependencies restricted to the selected renderer
+static linking preferred
 ```
 
 The exact profile would depend heavily on the target console.
@@ -923,19 +923,22 @@ A PlayStation Vita profile and a PlayStation 5 profile would be very different d
 
 ---
 
-## Static linking is actually a CNA advantage
+## Build-time renderer inclusion is actually a CNA advantage
 
 One positive result from CNA's console analysis is that the framework does not fundamentally depend on a runtime plugin model based on arbitrary dynamic libraries.
 
 Consoles commonly prefer tightly controlled, statically linked executables.
 
-CNA's compile-time renderer architecture fits this environment well:
+CNA's renderer architecture fits this environment well. The normal configuration links one renderer chosen at build time. An opt-in multi-renderer build can link several and choose among that fixed set before the game starts; it does not discover arbitrary graphics plugins at runtime.
 
 ```text
 configure project
       │
       ▼
-select renderer
+select one renderer or a fixed renderer set
+      │
+      ▼
+optionally choose a linked renderer at startup
       │
       ▼
 compile one application
@@ -1013,7 +1016,7 @@ The older console feasibility analysis identified platform abstraction as one of
 
 That work has now substantially happened.
 
-CNA currently separates:
+CNA now separates:
 
 ```text
 platform
@@ -1265,11 +1268,13 @@ CNA Platform API
 
 separate graphics renderer API
 
-compile-time renderer selection
+build-time renderer inclusion
+
+optional startup selection among linked renderers
 
 multiple host-platform implementations
 
-many graphics backends
+10 public renderer identities across 8 implementation families
 
 mobile and Web ports proving non-desktop lifecycle support
 
@@ -1292,7 +1297,7 @@ The CNA repository is available at:
 
 [https://github.com/libcna/cna](https://github.com/libcna/cna)
 
-The main existing console feasibility analysis is:
+The original console feasibility analysis is:
 
 ```text
 misc/cnaconsoles.md
@@ -1311,7 +1316,14 @@ It describes:
 - possible first console targets;
 - lessons from FNA and MonoGame.
 
-Some architectural statements in that document describe an older CNA state from before the current Platform API was completed.
+That document is a historical feasibility analysis rather than the authoritative inventory of the current tree. It predates the completed Platform API, runtime selection among build-linked renderers and the renderer retirements of September and October 2026. Current platform and renderer facts are recorded in:
+
+```text
+docs/platform-abstraction.md
+docs/renderer-registry.md
+docs/runtime-renderer-selection.md
+docs/removed-renderers.md
+```
 
 The current platform architecture can be found primarily under:
 
@@ -1335,7 +1347,6 @@ The currently selectable platform implementations are:
 
 ```text
 SDL3
-SDL2
 HEADLESS
 TERMINAL
 ```
@@ -1372,7 +1383,7 @@ different lifecycle
 specialized toolchains
 ```
 
-CNA's architecture, however, is becoming increasingly suitable for this work.
+CNA's architecture, however, is now substantially better suited to this work than when the original feasibility analysis was written.
 
 The Platform API now separates host integration from the framework.
 
@@ -1380,7 +1391,7 @@ The graphics system separates renderers from the platform.
 
 CNA is native C++.
 
-Its renderer selection is compile-time.
+Its renderer set is fixed at build time, with a small single-renderer build as the default and optional startup selection among renderers deliberately linked into a multi-renderer build.
 
 And several existing renderers provide useful starting points for both modern and retro hardware.
 
