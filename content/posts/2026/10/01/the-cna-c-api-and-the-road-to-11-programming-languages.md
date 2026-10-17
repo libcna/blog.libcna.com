@@ -1,7 +1,7 @@
 ---
 title: CNA Language Ecosystem: C++, 2 Active Bindings and 8 Archived Bindings
 date: 2026-10-01T12:07:15Z
-updated: 2026-10-02T14:42:54Z
+updated: 2026-10-17T14:39:54Z
 description: |
   CNA is written in C++23.
 author: Robert Vokac
@@ -37,7 +37,7 @@ Today, the CNA language ecosystem has an active support surface:
 - **C** - active binding
 - **C#** - active binding
 
-Eight additional language bindings were developed during CNA's evolution and reached substantial levels of functionality and are archived now under CNA Lab:
+Eight additional language bindings were developed during CNA's evolution and reached substantial levels of functionality and are archived now at https://github.com/libcna/cna-cemetery:
 
 - Java
 - TypeScript
@@ -59,14 +59,14 @@ That means CNA has reached eleven programming languages during its development, 
 | C++ | Core | Native CNA implementation |
 | C | Active | Official C binding and native ABI consumer |
 | C# | Active | Official .NET/XNA-oriented binding |
-| Java | Archived | Preserved in CNA Lab |
-| TypeScript | Archived | Preserved in CNA Lab |
-| Python | Archived | Preserved in CNA Lab |
-| Rust | Archived | Preserved in CNA Lab |
-| Go | Archived | Preserved in CNA Lab |
-| Swift | Archived | Preserved in CNA Lab |
-| Ruby | Archived | Preserved in CNA Lab |
-| Common Lisp | Archived | Preserved in CNA Lab |
+| Java | Archived | Preserved in CNA Cemetery |
+| TypeScript | Archived | Preserved in CNA Cemetery |
+| Python | Archived | Preserved in CNA Cemetery |
+| Rust | Archived | Preserved in CNA Cemetery |
+| Go | Archived | Preserved in CNA Cemetery |
+| Swift | Archived | Preserved in CNA Cemetery |
+| Ruby | Archived | Preserved in CNA Cemetery |
+| Common Lisp | Archived | Preserved in CNA Cemetery |
 
 Archived does not mean that these projects never worked or that their development was wasted.
 
@@ -222,11 +222,11 @@ Substantial implementations were created for all eight languages.
 
 The decision to archive them is primarily a decision about **future maintenance scope**.
 
-Their code remains available in CNA Lab together with their Git history.
+Their code remains available in CNA Cemetery together with their Git history.
 
 ## Java - archived
 
-The Python binding is preserved in CNA Lab.
+The Python binding is preserved in CNA Cemetery.
 
 CNA-Java uses a private JNI adapter over the C ABI:
 
@@ -248,7 +248,7 @@ Java also gives CNA a path into the JVM ecosystem and provides a very different 
 
 ## TypeScript - archived
 
-The Python binding is preserved in CNA Lab.
+The Python binding is preserved in CNA Cemetery.
 
 CNA-TypeScript is particularly interesting because it can bridge the desktop/native and browser worlds.
 
@@ -284,7 +284,7 @@ This makes TypeScript an important part of CNA's maintained binding set because 
 
 ## Python - archived
 
-The Python binding is preserved in CNA Lab.
+The Python binding is preserved in CNA Cemetery.
 
 Its architecture used a private `ctypes` layer:
 
@@ -308,7 +308,7 @@ Python is no longer part of CNA's actively maintained binding matrix, but that w
 
 ## Rust - archived
 
-The Rust binding is preserved in CNA Lab.
+The Rust binding is preserved in CNA Cemetery.
 
 CNA-Rust placed a safer Rust layer over a lower-level native interface:
 
@@ -332,7 +332,7 @@ Even though the binding is archived, those lessons remain useful to the active C
 
 ## Go - archived
 
-The Go binding and its template are preserved in CNA Lab.
+The Go binding and its template are preserved in CNA Cemetery.
 
 Its architecture used a private cgo boundary:
 
@@ -354,7 +354,7 @@ It is no longer an active CNA binding and receives no forward compatibility guar
 
 ## Swift - archived
 
-The Swift binding is preserved in CNA Lab.
+The Swift binding is preserved in CNA Cemetery.
 
 It projected XNA-style concepts over the CNA C ABI using Swift's native interoperability mechanisms.
 
@@ -364,7 +364,7 @@ Its archived state separates preservation of that work from the obligation to co
 
 ## Ruby - archived
 
-The Ruby binding and template are preserved in CNA Lab.
+The Ruby binding and template are preserved in CNA Cemetery.
 
 CNA-Ruby used Ruby's `Fiddle` FFI over the CNA C ABI.
 
@@ -374,7 +374,7 @@ Like the other archived bindings, it remains useful as a reference implementatio
 
 ## Common Lisp - archived
 
-The Common Lisp binding and template are preserved in CNA Lab.
+The Common Lisp binding and template are preserved in CNA Cemetery.
 
 ## One programming model across eleven languages
 
