@@ -1,7 +1,7 @@
 ---
 title: What is Mesh Craft?
 date: 2026-11-05T15:09:09Z
-updated: 2026-09-13T15:21:11Z
+updated: 2026-10-17T15:08:11Z
 description: |
   MeshCraft is a C++23 3D scene editor and content-authoring toolkit built around its own editable MC3 scene format.
 author: Robert Vokac
@@ -38,9 +38,7 @@ The project combines:
 - the binary MCB format
 - integration with CNA
 
-**GitHub:** [github.com/libcna/mesh-craft](https://github.com/libcna/mesh-craft)
-
-**Website:** [github.com/libcna/meshcraft.libcna.com](https://github.com/libcna/meshcraft.libcna.com)
+**GitHub:** [github.com/libcnalab/mesh-craft](https://github.com/libcna/mesh-craft)
 
 **Try online:** [https://demos.libcna.com/mesh-craft/MeshCraft.html](https://demos.libcna.com/mesh-craft/MeshCraft.html)
 
@@ -110,7 +108,7 @@ The format also records information such as units, coordinate system, rotation u
 
 The full specification lives directly in the repository:
 
-**[MC3_FORMAT.md](https://github.com/libcna/mesh-craft/blob/develop/MC3_FORMAT.md)**
+**[MC3_FORMAT.md](https://github.com/libcnalab/mesh-craft/blob/develop/MC3_FORMAT.md)**
 
 ## MC3 Example (castle.mc3.xml)
 
