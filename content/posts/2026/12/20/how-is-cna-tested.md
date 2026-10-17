@@ -1,7 +1,7 @@
 ---
 title: How is CNA Tested
 date: 2026-12-20T18:39:17Z
-updated: 2026-09-13T18:45:33Z
+updated: 2026-10-17T13:27:58Z
 description: |
   CNA is a large compatibility and graphics project.
 author: Robert Vokac
@@ -97,10 +97,13 @@ For example:
 cmake -S . -B build \
     -DCNA_GRAPHICS_RENDERER=OPENGLES3
 
-cmake --build build --target CnaTests
+cmake --build build
 
-ctest --test-dir build --output-on-failure
+scripts/check_clean_checkout.sh -- \
+    tools/platform/run_gpu_tests_private.sh build --output-on-failure
 ```
+
+The private-display wrapper keeps GPU and window tests away from the developer's live desktop. The outer checkout check also proves that the validation run did not modify tracked source files. A direct `ctest --test-dir build --output-on-failure` remains useful when the caller has already supplied an isolated display and appropriate environment.
 
 `CnaTests` contains the large shared GoogleTest-based test corpus.
 
@@ -127,14 +130,16 @@ So running only the `CnaTests` binary is not necessarily equivalent to running t
 
 ## CNA has thousands of tests
 
-The exact number of tests changes frequently because CNA is still under heavy development.
+The exact number changes as regression tests and architecture gates evolve, and because different build configurations register different suites.
 
-Current large configurations can contain **roughly nine thousand CTest-registered tests and checks**.
+The latest documented full Debug multi-renderer configuration, measured on 17 October 2026, registered **11,433 CTest tests**. Current single-renderer configurations in the same validation pass registered roughly 10,800 to 11,300 tests, depending on the selected renderer and enabled features.
+
+The 11,433-test run recorded one driver-dependent 2x-MSAA conformance failure and 195 capability or environment skips. Dedicated SDL_GPU, WebGPU and Software configurations from the same pass completed with no failures. Publishing the outcome together with its skips and known external limitation is more useful than quoting only the largest number.
 
 But CNA intentionally does not treat:
 
 ```text
-9232 tests
+11,433 tests
 ```
 
 or any other exact number as a permanent project-quality metric.
@@ -207,7 +212,7 @@ Other tests validate state transitions, exception behavior, serialization or obj
 
 These tests are fast and useful, but they are only the first layer.
 
-A passing `Matrix` test tells us nothing about whether Vulkan renders a textured triangle correctly.
+A passing `Matrix` test tells us nothing about whether SDL_GPU or WebGPU renders a textured triangle correctly.
 
 ---
 
@@ -219,7 +224,7 @@ That means testing also has to answer:
 
 > Does CNA expose the API that an XNA-style program expects?
 
-The project therefore performs API-surface audits and compatibility checks against the known XNA/FNA surface.
+The project therefore performs generated API-surface audits against the documented Microsoft XNA 4.0 runtime surface and behavioral checks against FNA and genuine XNA observations. Every documented XNA runtime type and member is represented in the current census, but representation alone is not treated as behavioral compatibility.
 
 The current CNA source tracks the presence of public types across areas such as:
 
@@ -436,31 +441,26 @@ with captured images and independently measured reference output.
 
 ## Renderer-specific tests
 
-CNA has many graphics renderers.
+CNA exposes ten public renderer identities across eight implementation families.
 
 Each renderer therefore has its own dedicated tests.
 
 Examples include suites for:
 
 ```text
-EasyGL
-Vulkan
-
-OpenGL 1
-OpenGL 2
-OpenGL 4
-OpenGL ES 1
-OpenGL ES 2
-
-DirectX 1-12
-
-WebGPU
-Software
-TinyGL
-PortableGL
-SDL Renderer
-and others
+OPENGLES3
+OPENGL33
+WEBGL2
+WEBGPU
+SDL_GPU
+FNA3D
+DIRECTX9
+SOFTWARE
+HEADLESS
+STUB
 ```
+
+`OPENGLES3`, `OPENGL33` and `WEBGL2` share the EasyGL implementation, which is why ten public identities map to eight concrete families. Forty-one older identities have been retired; their historical tests remain useful evidence in Git history, but they are not current selectable renderers.
 
 The scope depends on what the renderer is supposed to support.
 
@@ -501,7 +501,7 @@ custom ShaderEffect
 instancing
 ```
 
-A 2D-only renderer is not expected to pass 3D tests by pretending to support those operations.
+A renderer with a deliberately narrower contract is not expected to pass an unsupported feature by pretending to implement it. `SOFTWARE` is a bounded CPU renderer, while `HEADLESS` and `STUB` make no pixel-fidelity claim.
 
 Unsupported features are expected to be reported explicitly.
 
@@ -645,10 +645,10 @@ Conceptually:
 same test scene
       │
       ├── EasyGL
-      ├── Vulkan
+      ├── SDL_GPU
+      ├── WebGPU
       ├── Software
-      ├── TinyGL
-      └── other renderer
+      └── FNA3D / DirectX 9
               │
               ▼
          compare behavior
@@ -748,7 +748,7 @@ Conceptually:
 
 ```text
 L0
-source validity
+corpus, provenance and oracle self-checks
 
 L1
 parsed structure
@@ -773,6 +773,8 @@ final rendered pixels
 ```
 
 Different bugs become visible at different layers.
+
+The current L7 inventory has 148 explicit EasyGL dispositions: 140 committed PNG expectations and eight deliberate safe rejections. A fixture is therefore never silently omitted merely because it cannot be rendered.
 
 ---
 
@@ -893,7 +895,7 @@ For renderable corpus cases, those images can be required to be byte-identical b
 
 ## Comparison with Khronos
 
-CNA's glTF work also compares selected output with an independent Khronos reference renderer.
+CNA's glTF work also compares selected output with the pinned Khronos glTF Sample Renderer.
 
 Conceptually:
 
@@ -927,6 +929,8 @@ wrong camera
 ```
 
 that lower-level tests may miss.
+
+This external renderer is diagnostic evidence used during local qualification. It is pinned by commit and version, but it is deliberately neither a runtime dependency nor a CI dependency; the committed CNA-authored corpus and the L0-L7 gates must remain independently reproducible.
 
 ---
 
@@ -1002,6 +1006,10 @@ One runs at build time.
 The other runs inside the application.
 
 Both need independent coverage.
+
+The XNA-compatible pipeline adds another oracle layer. Generated inventories and parity reports are checked for freshness; importer and processor routes, defaults and supported outputs are measured against genuine XNA assemblies and recorded XNA behavior. Where the evidence permits it, CNA also compares the resulting XNB structure or bytes.
+
+Some genuine-runtime and differential-build cases require an external XNA and Wine environment. They remain explicit opt-in or external tests instead of being reported as passing in the ordinary private-display suite.
 
 ---
 
@@ -1125,10 +1133,11 @@ Current platform implementations include:
 
 ```text
 SDL3
-SDL2
-Headless
-Terminal
+HEADLESS
+TERMINAL
 ```
+
+SDL3 is the only windowed implementation. Headless is available everywhere, while Terminal is POSIX-only. CNA's former SDL2 and direct Win32, X11 and Wayland implementations have been retired; SDL3 reaches those desktop window systems through its own video drivers.
 
 Tests cover platform-neutral contracts such as:
 
@@ -1226,7 +1235,7 @@ This protects backward compatibility of the traditional build mode.
 
 ## Windows renderer testing from Linux
 
-Many CNA DirectX renderers are developed from a Linux workstation.
+CNA's Windows renderer paths are also developed and validated from a Linux workstation.
 
 That does not mean they are only compile-tested.
 
@@ -1244,7 +1253,7 @@ to execute actual Windows graphics code.
 For example:
 
 ```text
-CNA Direct3D 11
+CNA DirectX 9
        │
        ▼
      Wine
@@ -1263,9 +1272,9 @@ This allows real Direct3D calls and real rendered pixels to be exercised without
 
 ---
 
-## DirectX 12 testing
+## SDL_GPU's Direct3D 12 path
 
-The same principle extends to Direct3D 12 through:
+The same principle extends to SDL_GPU's Direct3D 12 driver through:
 
 ```text
 Wine
@@ -1273,7 +1282,7 @@ Wine
 vkd3d-proton
 ```
 
-CNA's current DirectX 12 testing includes real device, command-list, barrier, pipeline and off-screen rendering work.
+`DIRECTX12` is no longer a CNA renderer identity. SDL_GPU is CNA's modern native renderer, and SDL selects Direct3D 12 underneath it on Windows. MinGW-w64 builds exercise that path under Wine and vkd3d-proton, including device creation, drawing and pixel readback. A manual MSVC workflow also defines focused native-Windows smoke legs for `DIRECTX9` and `SDL_GPU`.
 
 Where presentation cannot be validated reliably in that environment, the limitation is documented instead of being converted into a fake success.
 
@@ -1295,7 +1304,7 @@ are deliberately kept separate.
 
 ## WebAssembly testing
 
-CNA also has dedicated Emscripten CI.
+CNA also has dedicated Emscripten validation.
 
 A WebAssembly configuration can prove:
 
@@ -1311,9 +1320,9 @@ JavaScript-facing renderer selection exports exist
 WASM artifact is produced
 ```
 
-Some browser-oriented CNA tests are also executed in a real browser, for example through Chromium for specific DOM renderers.
+Dedicated scripts and recorded qualification runs execute the surviving browser renderers, `WEBGL2` and `WEBGPU`, in Chrome and inspect real rendered output.
 
-But not every Web renderer is currently pixel-tested in a browser.
+The Emscripten multi-renderer CI job has a narrower responsibility: it proves that `WEBGL2` and `WEBGPU` link into one Wasm bundle, that both registry entries are present and that the JavaScript selection surface is exported. That particular job does not launch the bundle in a browser.
 
 The CI comments explicitly distinguish:
 
@@ -1333,11 +1342,13 @@ That is an important recurring principle in CNA.
 
 ## macOS and iOS
 
-CNA's source tree contains Apple-specific infrastructure and tests intended for future Apple-platform qualification.
+CNA now has a native Apple workflow rather than only future-facing source infrastructure.
 
-However, macOS and iOS/iPadOS have not yet received the same practical real-platform verification as CNA's main development targets.
+On macOS, CI builds CNA with `SOFTWARE`, runs the portable platform and storage suites, creates a self-contained `.app` bundle and launches a smoke application. The workflow also contains a gating SDL_GPU smoke job that uses SDL's Metal driver.
 
-They should therefore not be considered fully tested merely because:
+For iOS/iPadOS, the workflow final-links real device and simulator application bundles. The `SOFTWARE` simulator application is installed and launched for a one-frame `Game` smoke test; SDL_GPU device and simulator legs remain experimental and non-gating.
+
+Those results still do not make every Apple path fully qualified merely because:
 
 ```text
 Apple-specific source exists
@@ -1349,7 +1360,7 @@ or:
 a cross-platform test can compile that code path
 ```
 
-Practical testing on actual Apple environments remains planned.
+Physical iPhone/iPad execution, touch, audio, storage and performance qualification remain unverified. Build evidence, simulator execution and physical-device qualification are therefore kept as separate claims.
 
 ---
 
@@ -1634,11 +1645,13 @@ Instead the underlying contention or environmental dependency can be tracked sep
 
 ---
 
-## Known failures are named
+## Failures and skips are named
 
-A large project inevitably accumulates temporarily known failures.
+CNA avoids treating a familiar failure count as success.
 
-CNA's CI tries to avoid a dangerous pattern:
+The general unfiltered CI suite has no known-failure allow-list. If a test fails, the job fails.
+
+The dangerous pattern is:
 
 ```text
 ignore the usual 16 failures
@@ -1646,11 +1659,7 @@ ignore the usual 16 failures
 
 without knowing what those failures actually are.
 
-Where allow-lists are required, tests are named.
-
-The full suite still runs.
-
-Classification happens afterwards.
+Where a prerequisite is genuinely unavailable, a test uses an explicit named skip, normally through CTest's exit code 77 convention. Driver limitations and locally reproduced failures are recorded individually in `handoff.md`, together with the exact configuration that produced them.
 
 Conceptually:
 
@@ -1660,20 +1669,16 @@ run everything
       ▼
 collect failures
       │
-      ├── exact known failure
-      │       tracked separately
+      └── any failure
+              FAIL CI
+
+collect skips
       │
-      └── anything else
-              │
-              ▼
-             FAIL CI
+      └── named unavailable capability or environment
+              report explicitly
 ```
 
-This is important because a new failure should not disappear inside a familiar failure count.
-
-In fact, CNA development has already found renderer defects that had been incorrectly assumed to belong to the standing unrelated failure set.
-
-Naming failures exposed them.
+This is important because a new failure must not disappear inside a familiar count, and a skip must not be misreported as a pass.
 
 ---
 
@@ -1719,7 +1724,7 @@ A platform-architecture gate can reject it because it bypasses `IPlatform`.
 
 ## Renderer capability tests
 
-CNA supports many renderers with intentionally different capabilities.
+CNA's ten renderer identities have intentionally different capabilities.
 
 The project therefore tests not only:
 
@@ -1990,19 +1995,19 @@ multi-renderer builds
 
 platform abstraction
 
-Windows Direct3D
-
-GDI
+Windows DirectX 9 and SDL_GPU
 
 content pipeline on Windows
 
-Emscripten renderers
+Emscripten WEBGL2 + WEBGPU bundles
 
-HTML DOM
+macOS and iOS builds and smoke tests
 
 input
 
 devices
+
+32-bit arithmetic
 
 glTF renderer conformance
 
@@ -2013,6 +2018,8 @@ C API ABI
 C API compatibility
 
 C API coverage
+
+C API generated routes and limitations
 
 C API release gates
 ```
@@ -2052,17 +2059,19 @@ Instead CNA uses representative matrices.
 For example:
 
 ```text
-one renderer may prove XNA behavior
+DirectX 9 may prove exact XNA pixel behavior
 
-another proves Vulkan-specific execution
+SDL_GPU or WebGPU may prove a modern GPU path
 
 STUB may exercise importer sanitizers
 
 HEADLESS may exercise platform logic
 
-real browser CI may prove DOM integration
+Chrome runs may prove WebGL 2 or WebGPU behavior
 
-Wine + DXVK may prove Direct3D execution
+Wine + DXVK may prove DirectX 9 execution
+
+Wine + vkd3d-proton may prove SDL_GPU's Direct3D 12 path
 ```
 
 Different jobs answer different questions.
@@ -2146,9 +2155,11 @@ some real mobile sensors
 
 some browser paths
 
-native Windows driver-specific behavior
+native Windows hardware behavior
 
-macOS / iOS real-platform behavior
+iOS physical-device behavior
+
+SDL_GPU on Android
 
 future console targets
 ```
@@ -2193,15 +2204,15 @@ unsupported features are rejected correctly
 
 That is a successful renderer.
 
-For example, a deliberately 2D renderer should not fail its qualification merely because:
+For example, `HEADLESS` and `STUB` should not fail qualification merely because they do not produce visible pixels for:
 
 ```text
 SkinnedEffect
 ```
 
-does not exist there.
+that effect.
 
-It should fail only if it falsely claims to support it or handles the unsupported call incorrectly.
+They should fail only if they make a capability claim they do not honor, violate their validation/no-op contract or handle an unsupported call incorrectly.
 
 ---
 
@@ -2394,11 +2405,9 @@ or:
 every XNA game will run unchanged
 ```
 
-CNA is still pre-1.0.
+CNA is still pre-1.0, but its renderer, platform and content surfaces are now curated rather than expanded without limit.
 
-Testing is used partly because the framework is changing rapidly.
-
-It is how the project tries to keep that change controlled.
+Testing is how maintenance work and compatibility fixes remain controlled across that broad surface.
 
 ---
 
@@ -2441,7 +2450,7 @@ Pixel tests
 
 LEVEL 6
 Cross-implementation tests
-    EasyGL vs Vulkan
+    EasyGL vs SDL_GPU / WebGPU / Software
     renderer vs renderer
 
 LEVEL 7
@@ -2490,9 +2499,9 @@ tests/
 Renderer-specific test applications and fixtures appear throughout areas such as:
 
 ```text
-examples/
-tests/
-modules/graphics/
+modules/renderers/*/tests/
+modules/graphics/tests/
+modules/*/examples/
 ```
 
 CI workflows are under:
@@ -2507,19 +2516,32 @@ and include specialized jobs such as:
 general-tests-ci.yml
 multi-renderer-ci.yml
 platform-ci.yml
+apple-ci.yml
 gltf-sanitizers-ci.yml
 gltf-renderer-stride-ci.yml
 emscripten-multi-renderer-ci.yml
 d3d-windows-ci.yml
 input-ci.yml
+devices-tests.yml
+32bit-arithmetic-ci.yml
+c-api-release-gate.yml
 ```
 
 Important testing and compatibility documentation includes:
 
 ```text
+handoff.md
+
 docs/graphics-compatibility-report.md
-docs/xna-4-api-coverage.md
+docs/xna-4-runtime-member-coverage.md
+docs/content-pipeline.md
+docs/xna-content-pipeline-parity-report.md
 docs/cross-renderer-parity-fixtures.md
+
+docs/renderer-registry.md
+docs/graphics-renderer-feature-matrix.md
+docs/runtime-renderer-selection.md
+docs/removed-renderers.md
 
 docs/gltf-conformance.md
 docs/gltf-reference-comparison.json
@@ -2539,15 +2561,14 @@ Many individual renderer documents also contain their own qualification evidence
 Examples include:
 
 ```text
-docs/vulkan-renderer.md
 docs/directx9-renderer.md
-docs/directx11-renderer.md
-docs/directx12-renderer.md
-docs/opengl1-renderer.md
-docs/opengl2-renderer.md
-docs/opengl4-renderer.md
+docs/opengl33-renderer.md
+docs/webgl2-renderer.md
 docs/webgpu-renderer.md
 docs/software-renderer.md
+docs/headless-renderer.md
+docs/stub-renderer.md
+docs/fna3d-renderer.md
 ```
 
 ---
@@ -2635,7 +2656,7 @@ XNA compatibility
 
 cross-platform systems programming
 
-many independent graphics renderers
+a curated renderer set with 10 identities across 8 implementation families
 ```
 
 A framework with that scope cannot be tested convincingly by asking only whether it compiled.
