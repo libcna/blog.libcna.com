@@ -5,216 +5,216 @@
     <link>https://blog.libcna.com/</link>
     <description>Building a portable XNA-style framework for the long term.</description>
     <language>en</language>
-    <lastBuildDate>Thu, 21 Oct 2027 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 15 Jun 2028 12:00:00 GMT</lastBuildDate>
     <item>
-      <title>CNA Project Roadmap and the Path to 1.0</title>
-      <link>https://blog.libcna.com/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/</guid>
-      <pubDate>Thu, 21 Oct 2027 12:00:00 GMT</pubDate>
-      <description>CNA&#39;s path to 1.0 is an evidence-driven stabilization program covering API contracts, renderer parity, platforms, packages and real game adoption.</description>
+      <title>Deterministic Replays and Automated Gameplay Testing</title>
+      <link>https://blog.libcna.com/2028/06/15/deterministic-replays-and-automated-gameplay-testing/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/06/15/deterministic-replays-and-automated-gameplay-testing/</guid>
+      <pubDate>Thu, 15 Jun 2028 12:00:00 GMT</pubDate>
+      <description>Record CNA game commands and canonical state so bugs, networking divergence and performance scenes replay automatically.</description>
     </item>
     <item>
-      <title>Performance Checklist for CNA Games</title>
-      <link>https://blog.libcna.com/2027/10/14/performance-checklist-for-cna-games/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/10/14/performance-checklist-for-cna-games/</guid>
-      <pubDate>Thu, 14 Oct 2027 12:00:00 GMT</pubDate>
-      <description>Measure and improve CNA frame time, rendering, assets, allocation, audio and loading without optimizing from intuition alone.</description>
+      <title>Scripting CNA Games Safely</title>
+      <link>https://blog.libcna.com/2028/06/08/scripting-cna-games-safely/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/06/08/scripting-cna-games-safely/</guid>
+      <pubDate>Thu, 08 Jun 2028 12:00:00 GMT</pubDate>
+      <description>Embed a bounded scripting layer above CNA with capability-based APIs, deterministic scheduling and versioned save integration.</description>
     </item>
     <item>
-      <title>Porting an XNA Game to CNA Step by Step</title>
-      <link>https://blog.libcna.com/2027/10/07/porting-an-xna-game-to-cna-step-by-step/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/10/07/porting-an-xna-game-to-cna-step-by-step/</guid>
-      <pubDate>Thu, 07 Oct 2027 12:00:00 GMT</pubDate>
-      <description>A staged checklist for translating an original XNA 4.0 game to CNA while preserving behavior and producing evidence after every milestone.</description>
+      <title>Modding and User-generated Content in CNA Games</title>
+      <link>https://blog.libcna.com/2028/06/01/modding-and-user-generated-content-in-cna-games/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/06/01/modding-and-user-generated-content-in-cna-games/</guid>
+      <pubDate>Thu, 01 Jun 2028 12:00:00 GMT</pubDate>
+      <description>Design versioned bounded CNA mod packages with explicit precedence, capability permissions and safe failure isolation.</description>
     </item>
     <item>
-      <title>Migrating a MonoGame or FNA Project to CNA</title>
-      <link>https://blog.libcna.com/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/</guid>
-      <pubDate>Thu, 30 Sep 2027 12:00:00 GMT</pubDate>
-      <description>Plan a C# MonoGame or FNA migration to CNA by separating language translation, API compatibility, content conversion and renderer evidence.</description>
+      <title>Writing a Minimal CNA Game Engine Layer</title>
+      <link>https://blog.libcna.com/2028/05/25/writing-a-minimal-cna-game-engine-layer/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/05/25/writing-a-minimal-cna-game-engine-layer/</guid>
+      <pubDate>Thu, 25 May 2028 12:00:00 GMT</pubDate>
+      <description>Add screens, worlds, assets and diagnostics above CNA without hiding its lifecycle, content and renderer contracts.</description>
     </item>
     <item>
-      <title>Creating a New CNA Graphics Renderer</title>
-      <link>https://blog.libcna.com/2027/09/23/creating-a-new-cna-graphics-renderer/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/09/23/creating-a-new-cna-graphics-renderer/</guid>
-      <pubDate>Thu, 23 Sep 2027 12:00:00 GMT</pubDate>
-      <description>Add a CNA renderer through the registry, capability profiles, resource contracts and shared parity fixtures instead of scattering backend branches.</description>
+      <title>How CNA Measures XNA Compatibility</title>
+      <link>https://blog.libcna.com/2028/05/18/how-cna-measures-xna-compatibility/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/05/18/how-cna-measures-xna-compatibility/</guid>
+      <pubDate>Thu, 18 May 2028 12:00:00 GMT</pubDate>
+      <description>See how CNA turns public API contracts, FNA behavior, samples, fixtures and cross-renderer evidence into compatibility claims.</description>
     </item>
     <item>
-      <title>Creating a New CNA Platform Backend</title>
-      <link>https://blog.libcna.com/2027/09/16/creating-a-new-cna-platform-backend/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/09/16/creating-a-new-cna-platform-backend/</guid>
-      <pubDate>Thu, 16 Sep 2027 12:00:00 GMT</pubDate>
-      <description>Implement CNA&#39;s platform contracts for lifecycle, windows, events and optional host services without leaking native APIs into framework modules.</description>
+      <title>Release Engineering for CNA Games</title>
+      <link>https://blog.libcna.com/2028/05/11/release-engineering-for-cna-games/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/05/11/release-engineering-for-cna-games/</guid>
+      <pubDate>Thu, 11 May 2028 12:00:00 GMT</pubDate>
+      <description>Turn a CNA revision, content build and native dependencies into reproducible signed packages with upgrade and rollback evidence.</description>
     </item>
     <item>
-      <title>Packaging and Installing CNA Applications</title>
-      <link>https://blog.libcna.com/2027/09/09/packaging-and-installing-cna-applications/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/09/09/packaging-and-installing-cna-applications/</guid>
-      <pubDate>Thu, 09 Sep 2027 12:00:00 GMT</pubDate>
-      <description>Turn a working CNA build into a relocatable application with content, runtime dependencies, platform metadata and reproducible release checks.</description>
+      <title>Linux Native Platforms: X11, Wayland and ALSA</title>
+      <link>https://blog.libcna.com/2028/05/04/linux-native-platforms-x11-wayland-and-alsa/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/05/04/linux-native-platforms-x11-wayland-and-alsa/</guid>
+      <pubDate>Thu, 04 May 2028 12:00:00 GMT</pubDate>
+      <description>Understand CNA native Linux window, event, presentation and audio choices and qualify them beyond an SDL desktop path.</description>
     </item>
     <item>
-      <title>Accessibility in CNA Games</title>
-      <link>https://blog.libcna.com/2027/09/02/accessibility-in-cna-games/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/09/02/accessibility-in-cna-games/</guid>
-      <pubDate>Thu, 02 Sep 2027 12:00:00 GMT</pubDate>
-      <description>Build accessibility into a CNA game&#39;s input, presentation, audio and timing policies without requiring a separate engine API.</description>
+      <title>Building CNA Without SDL</title>
+      <link>https://blog.libcna.com/2028/04/27/building-cna-without-sdl/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/04/27/building-cna-without-sdl/</guid>
+      <pubDate>Thu, 27 Apr 2028 12:00:00 GMT</pubDate>
+      <description>Assemble an SDL-free CNA configuration from explicit platform, renderer, audio and service backends and verify no hidden SDL dependency remains.</description>
     </item>
     <item>
-      <title>Touch and Gesture Input in CNA</title>
-      <link>https://blog.libcna.com/2027/08/26/touch-and-gesture-input-in-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/08/26/touch-and-gesture-input-in-cna/</guid>
-      <pubDate>Thu, 26 Aug 2027 12:00:00 GMT</pubDate>
-      <description>Use CNA TouchPanel snapshots and gesture recognition for mobile and browser controls while preserving identity, coordinates and frame semantics.</description>
+      <title>Runtime Renderer Selection and Graceful Fallbacks</title>
+      <link>https://blog.libcna.com/2028/04/20/runtime-renderer-selection-and-graceful-fallbacks/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/04/20/runtime-renderer-selection-and-graceful-fallbacks/</guid>
+      <pubDate>Thu, 20 Apr 2028 12:00:00 GMT</pubDate>
+      <description>Select a CNA renderer from policy and capabilities, report initialization failures and apply feature fallbacks without renderer-name branches.</description>
     </item>
     <item>
-      <title>Windowing, Fullscreen and Display Scaling</title>
-      <link>https://blog.libcna.com/2027/08/19/windowing-fullscreen-and-display-scaling/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/08/19/windowing-fullscreen-and-display-scaling/</guid>
-      <pubDate>Thu, 19 Aug 2027 12:00:00 GMT</pubDate>
-      <description>Manage CNA windows, backbuffers, fullscreen transitions, virtual resolution and high-density displays without mixing logical and drawable units.</description>
+      <title>Friends, Presence, Matchmaking and Avatars in CNA</title>
+      <link>https://blog.libcna.com/2028/04/13/friends-presence-matchmaking-and-avatars-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/04/13/friends-presence-matchmaking-and-avatars-in-cna/</guid>
+      <pubDate>Thu, 13 Apr 2028 12:00:00 GMT</pubDate>
+      <description>Integrate CNA social services through asynchronous capability-aware flows with privacy, cache and failure policies.</description>
     </item>
     <item>
-      <title>CNA Application Lifecycle</title>
-      <link>https://blog.libcna.com/2027/08/12/cna-application-lifecycle/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/08/12/cna-application-lifecycle/</guid>
-      <pubDate>Thu, 12 Aug 2027 12:00:00 GMT</pubDate>
-      <description>Follow a CNA Game from construction and initialization through content loading, update, drawing, suspension and ordered teardown.</description>
+      <title>Operating a CNA Gamer Services Server</title>
+      <link>https://blog.libcna.com/2028/04/06/operating-a-cna-gamer-services-server/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/04/06/operating-a-cna-gamer-services-server/</guid>
+      <pubDate>Thu, 06 Apr 2028 12:00:00 GMT</pubDate>
+      <description>Deploy CNA gamer services with bounded sessions, persistence, health checks, observability and safe rolling upgrades.</description>
     </item>
     <item>
-      <title>Texture Formats and Compression in CNA</title>
-      <link>https://blog.libcna.com/2027/08/05/texture-formats-and-compression-in-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/08/05/texture-formats-and-compression-in-cna/</guid>
-      <pubDate>Thu, 05 Aug 2027 12:00:00 GMT</pubDate>
-      <description>Select CNA texture formats by data meaning, renderer support and memory cost instead of assuming every backend accepts every SurfaceFormat.</description>
+      <title>Building and Distributing a CNA.NET Game</title>
+      <link>https://blog.libcna.com/2028/03/30/building-and-distributing-a-cna-net-game/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/03/30/building-and-distributing-a-cna-net-game/</guid>
+      <pubDate>Thu, 30 Mar 2028 12:00:00 GMT</pubDate>
+      <description>Structure a CNA.NET project, package native CNA libraries and qualify managed/native lifetime across desktop targets.</description>
     </item>
     <item>
-      <title>Lighting, Shadows and PBR in CNA</title>
-      <link>https://blog.libcna.com/2027/07/29/lighting-shadows-and-pbr-in-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/07/29/lighting-shadows-and-pbr-in-cna/</guid>
-      <pubDate>Thu, 29 Jul 2027 12:00:00 GMT</pubDate>
-      <description>Progress from BasicEffect lighting to shadow maps and CNA&#39;s optional physically based material workflow.</description>
+      <title>Embedding CNA Through Its Native C API</title>
+      <link>https://blog.libcna.com/2028/03/23/embedding-cna-through-its-native-c-api/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/03/23/embedding-cna-through-its-native-c-api/</guid>
+      <pubDate>Thu, 23 Mar 2028 12:00:00 GMT</pubDate>
+      <description>Consume CNA through its stable native C boundary with opaque handles, explicit ownership, result codes and callback-safe threading.</description>
     </item>
     <item>
-      <title>Render Targets and Post-processing in CNA</title>
-      <link>https://blog.libcna.com/2027/07/22/render-targets-and-post-processing-in-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/07/22/render-targets-and-post-processing-in-cna/</guid>
-      <pubDate>Thu, 22 Jul 2027 12:00:00 GMT</pubDate>
-      <description>Use CNA render targets safely for offscreen scenes, scaling, multiple passes, MSAA, mipmaps and full-screen effects.</description>
+      <title>Designing CNAEXT APIs Without Breaking XNA Compatibility</title>
+      <link>https://blog.libcna.com/2028/03/16/designing-cnaext-apis-without-breaking-xna-compatibility/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/03/16/designing-cnaext-apis-without-breaking-xna-compatibility/</guid>
+      <pubDate>Thu, 16 Mar 2028 12:00:00 GMT</pubDate>
+      <description>Add useful CNA extensions while keeping the Microsoft.Xna surface, behavior and migration story clear.</description>
     </item>
     <item>
-      <title>Debugging Graphics Across CNA Renderers</title>
-      <link>https://blog.libcna.com/2027/07/15/debugging-graphics-across-cna-renderers/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/07/15/debugging-graphics-across-cna-renderers/</guid>
-      <pubDate>Thu, 15 Jul 2027 12:00:00 GMT</pubDate>
-      <description>Reduce a cross-renderer CNA graphics difference to a shared fixture, capability decision or documented backend limitation.</description>
+      <title>Diagnostics, Logging and Crash Reports in CNA Games</title>
+      <link>https://blog.libcna.com/2028/03/09/diagnostics-logging-and-crash-reports-in-cna-games/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/03/09/diagnostics-logging-and-crash-reports-in-cna-games/</guid>
+      <pubDate>Thu, 09 Mar 2028 12:00:00 GMT</pubDate>
+      <description>Make CNA field failures reproducible with structured logs, build identity, renderer metadata, bounded counters and matching symbols.</description>
     </item>
     <item>
-      <title>Models, Animation and Skinning in CNA</title>
-      <link>https://blog.libcna.com/2027/07/08/models-animation-and-skinning-in-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/07/08/models-animation-and-skinning-in-cna/</guid>
-      <pubDate>Thu, 08 Jul 2027 12:00:00 GMT</pubDate>
-      <description>Load CNA models, traverse meshes and bones, play animation clips and render weighted vertices with SkinnedEffect.</description>
+      <title>XACT Audio Projects in CNA</title>
+      <link>https://blog.libcna.com/2028/03/02/xact-audio-projects-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/03/02/xact-audio-projects-in-cna/</guid>
+      <pubDate>Thu, 02 Mar 2028 12:00:00 GMT</pubDate>
+      <description>Use CNA AudioEngine, WaveBank, SoundBank and Cue as an authored runtime with categories, variables and reproducible content validation.</description>
     </item>
     <item>
-      <title>3D Rendering in CNA</title>
-      <link>https://blog.libcna.com/2027/07/01/3d-rendering-in-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/07/01/3d-rendering-in-cna/</guid>
-      <pubDate>Thu, 01 Jul 2027 12:00:00 GMT</pubDate>
-      <description>Assemble a CNA 3D frame from vertex buffers, camera matrices, depth state, effects and explicit draw calls.</description>
+      <title>Video Playback and Media in CNA</title>
+      <link>https://blog.libcna.com/2028/02/24/video-playback-and-media-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/02/24/video-playback-and-media-in-cna/</guid>
+      <pubDate>Thu, 24 Feb 2028 12:00:00 GMT</pubDate>
+      <description>Integrate CNA video and media playback with asynchronous decoding, A/V timing, lifecycle handling and capability-aware fallbacks.</description>
     </item>
     <item>
-      <title>2D Rendering in CNA</title>
-      <link>https://blog.libcna.com/2027/06/24/2d-rendering-in-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/06/24/2d-rendering-in-cna/</guid>
-      <pubDate>Thu, 24 Jun 2027 12:00:00 GMT</pubDate>
-      <description>Build efficient CNA 2D scenes with SpriteBatch, textures, fonts, transforms, blending and explicit render state.</description>
+      <title>Gamepads, Haptics and Device Hot-plugging in CNA</title>
+      <link>https://blog.libcna.com/2028/02/17/gamepads-haptics-and-device-hot-plugging-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/02/17/gamepads-haptics-and-device-hot-plugging-in-cna/</guid>
+      <pubDate>Thu, 17 Feb 2028 12:00:00 GMT</pubDate>
+      <description>Build action-based CNA controller input with dead zones, reconnect policy, player assignment and bounded haptic feedback.</description>
     </item>
     <item>
-      <title>Building a Multiplayer Game with CNA</title>
-      <link>https://blog.libcna.com/2027/06/17/building-a-multiplayer-game-with-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/06/17/building-a-multiplayer-game-with-cna/</guid>
-      <pubDate>Thu, 17 Jun 2027 12:00:00 GMT</pubDate>
-      <description>Turn CNA&#39;s XNA-style networking and gamer services into a bounded, testable multiplayer game protocol.</description>
+      <title>XNB, CNB and Loose Assets: Choosing a Content Strategy</title>
+      <link>https://blog.libcna.com/2028/02/10/xnb-cnb-and-loose-assets/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/02/10/xnb-cnb-and-loose-assets/</guid>
+      <pubDate>Thu, 10 Feb 2028 12:00:00 GMT</pubDate>
+      <description>Compare CNA content containers and loose files by compatibility, build reproducibility, startup, validation and modding needs.</description>
     </item>
     <item>
-      <title>Saving Games in CNA</title>
-      <link>https://blog.libcna.com/2027/06/10/saving-games-in-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/06/10/saving-games-in-cna/</guid>
-      <pubDate>Thu, 10 Jun 2027 12:00:00 GMT</pubDate>
-      <description>Use CNA storage APIs to build versioned, atomic and portable save files without depending on desktop paths.</description>
+      <title>Building a Custom CNA Content Type</title>
+      <link>https://blog.libcna.com/2028/02/03/building-a-custom-cna-content-type/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/02/03/building-a-custom-cna-content-type/</guid>
+      <pubDate>Thu, 03 Feb 2028 12:00:00 GMT</pubDate>
+      <description>Design a versioned custom asset, process it at build time and load it through CNA with bounded validation and clear ownership.</description>
     </item>
     <item>
-      <title>CNA on Android and iOS</title>
-      <link>https://blog.libcna.com/2027/06/03/cna-on-android-and-ios/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/06/03/cna-on-android-and-ios/</guid>
-      <pubDate>Thu, 03 Jun 2027 12:00:00 GMT</pubDate>
-      <description>Mobile CNA games must integrate lifecycle, touch, orientation, safe areas, storage and permissions in addition to cross-compiling C++.</description>
+      <title>Golden Images and Cross-renderer Pixel Testing</title>
+      <link>https://blog.libcna.com/2028/01/27/golden-images-and-cross-renderer-pixel-testing/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/01/27/golden-images-and-cross-renderer-pixel-testing/</guid>
+      <pubDate>Thu, 27 Jan 2028 12:00:00 GMT</pubDate>
+      <description>Turn CNA renderer parity into deterministic fixtures, pixel oracles, difference images and actionable CI artifacts.</description>
     </item>
     <item>
-      <title>Bringing a CNA Game to the Web</title>
-      <link>https://blog.libcna.com/2027/05/27/bringing-a-cna-game-to-the-web/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/05/27/bringing-a-cna-game-to-the-web/</guid>
-      <pubDate>Thu, 27 May 2027 12:00:00 GMT</pubDate>
-      <description>Move a CNA game to Emscripten with WebGL 2 or WebGPU while adapting its loop, assets, storage, audio and input to browser rules.</description>
+      <title>Asynchronous Content Loading Without Frame Stalls</title>
+      <link>https://blog.libcna.com/2028/01/20/asynchronous-content-loading-without-frame-stalls/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/01/20/asynchronous-content-loading-without-frame-stalls/</guid>
+      <pubDate>Thu, 20 Jan 2028 12:00:00 GMT</pubDate>
+      <description>Split CNA loading into bounded I/O, decoding and device-finalization stages with cancellation and measurable frame budgets.</description>
     </item>
     <item>
-      <title>Headless Games and Servers with CNA</title>
-      <link>https://blog.libcna.com/2027/05/20/headless-games-and-servers-with-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/05/20/headless-games-and-servers-with-cna/</guid>
-      <pubDate>Thu, 20 May 2027 12:00:00 GMT</pubDate>
-      <description>Run CNA simulation, tests and dedicated server logic without a window, GPU, sound device or SDL dependency.</description>
+      <title>Graphics Resource Lifetime, Device Loss and Recovery</title>
+      <link>https://blog.libcna.com/2028/01/13/graphics-resource-lifetime-device-loss-and-recovery/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/01/13/graphics-resource-lifetime-device-loss-and-recovery/</guid>
+      <pubDate>Thu, 13 Jan 2028 12:00:00 GMT</pubDate>
+      <description>Own CNA textures, buffers, effects and targets safely across asynchronous GPU work, resize, teardown and recoverable device events.</description>
     </item>
     <item>
-      <title>The CNA Software Renderer</title>
-      <link>https://blog.libcna.com/2027/05/13/the-cna-software-renderer/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/05/13/the-cna-software-renderer/</guid>
-      <pubDate>Thu, 13 May 2027 12:00:00 GMT</pubDate>
-      <description>CNA&#39;s CPU rasterizer renders real pixels without a GPU and serves as a deterministic graphics oracle, CI backend and terminal presentation source.</description>
+      <title>Frustum Culling, LOD and Spatial Partitioning in CNA</title>
+      <link>https://blog.libcna.com/2028/01/06/frustum-culling-lod-and-spatial-partitioning-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2028/01/06/frustum-culling-lod-and-spatial-partitioning-in-cna/</guid>
+      <pubDate>Thu, 06 Jan 2028 12:00:00 GMT</pubDate>
+      <description>Reduce CNA scene work with conservative bounds, spatial structures and stable LOD decisions backed by diagnostics.</description>
     </item>
     <item>
-      <title>Writing Portable Shaders in CNA</title>
-      <link>https://blog.libcna.com/2027/05/06/writing-portable-shaders-in-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/05/06/writing-portable-shaders-in-cna/</guid>
-      <pubDate>Thu, 06 May 2027 12:00:00 GMT</pubDate>
-      <description>Build a CNA ShaderEffect package for OpenGL, SDL_GPU and WebGPU without confusing portable source shaders with compiled XNA effects.</description>
+      <title>Cameras and Coordinate Systems in CNA</title>
+      <link>https://blog.libcna.com/2027/12/30/cameras-and-coordinate-systems-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2027/12/30/cameras-and-coordinate-systems-in-cna/</guid>
+      <pubDate>Thu, 30 Dec 2027 12:00:00 GMT</pubDate>
+      <description>Make CNA 2D and 3D camera transforms, picking, projection and large-world coordinate conventions explicit and testable.</description>
     </item>
     <item>
-      <title>Audio in CNA</title>
-      <link>https://blog.libcna.com/2027/04/29/audio-in-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/04/29/audio-in-cna/</guid>
-      <pubDate>Thu, 29 Apr 2027 12:00:00 GMT</pubDate>
-      <description>CNA provides XNA-style sound effects, instances, music, microphones and 3D audio across SDL3, ALSA and silent test backends.</description>
+      <title>Particles in CNA: From SpriteBatch to GPU-friendly Systems</title>
+      <link>https://blog.libcna.com/2027/12/23/particles-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2027/12/23/particles-in-cna/</guid>
+      <pubDate>Thu, 23 Dec 2027 12:00:00 GMT</pubDate>
+      <description>Build bounded deterministic CNA particle emitters, batch their rendering and scale from simple 2D effects to renderer-assisted paths.</description>
     </item>
     <item>
-      <title>Input Extensions in CNA</title>
-      <link>https://blog.libcna.com/2027/04/22/input-extensions-in-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/04/22/input-extensions-in-cna/</guid>
-      <pubDate>Thu, 22 Apr 2027 12:00:00 GMT</pubDate>
-      <description>CNA extends XNA input with text and IME events, relative mouse controls, modern gamepad metadata, raw joysticks, force feedback, device enumeration, sensors, power and clipboard access.</description>
+      <title>Cubemaps, Reflections and Environment Mapping in CNA</title>
+      <link>https://blog.libcna.com/2027/12/16/cubemaps-reflections-and-environment-mapping-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2027/12/16/cubemaps-reflections-and-environment-mapping-in-cna/</guid>
+      <pubDate>Thu, 16 Dec 2027 12:00:00 GMT</pubDate>
+      <description>Load, render and validate CNA cube textures for skyboxes, reflections and environment lighting across renderer conventions.</description>
     </item>
     <item>
-      <title>Device Extensions in CNA</title>
-      <link>https://blog.libcna.com/2027/04/15/device-extensions-in-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/04/15/device-extensions-in-cna/</guid>
-      <pubDate>Thu, 15 Apr 2027 12:00:00 GMT</pubDate>
-      <description>CNA::Devices adds portable access to power, locale, clipboard, URLs, display information, native dialogs, tray icons, message boxes and cameras without extending the XNA namespace.</description>
+      <title>Multiple Render Targets and Deferred Rendering in CNA</title>
+      <link>https://blog.libcna.com/2027/12/09/multiple-render-targets-and-deferred-rendering-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2027/12/09/multiple-render-targets-and-deferred-rendering-in-cna/</guid>
+      <pubDate>Thu, 09 Dec 2027 12:00:00 GMT</pubDate>
+      <description>Design a CNA G-buffer, light pass and transparent fallback around explicit MRT and format capabilities.</description>
     </item>
     <item>
-      <title>ASCII and CRT Effects</title>
-      <link>https://blog.libcna.com/2027/04/08/ascii-and-crt-effects/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/04/08/ascii-and-crt-effects/</guid>
-      <pubDate>Thu, 08 Apr 2027 12:00:00 GMT</pubDate>
-      <description>CNA&#39;s optional graphics extensions can turn a completed scene into a colored glyph grid or emulate scanlines, RGB masks, curvature and vignette on a CRT display.</description>
+      <title>Instancing, Occlusion Queries and GPU-driven Scenes</title>
+      <link>https://blog.libcna.com/2027/12/02/instancing-occlusion-queries-and-gpu-driven-scenes/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2027/12/02/instancing-occlusion-queries-and-gpu-driven-scenes/</guid>
+      <pubDate>Thu, 02 Dec 2027 12:00:00 GMT</pubDate>
+      <description>Reduce CNA submission cost with instancing and measured visibility while preserving portable fallbacks and correctness.</description>
     </item>
     <item>
-      <title>Platform Terminal</title>
-      <link>https://blog.libcna.com/2027/04/01/platform-terminal/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2027/04/01/platform-terminal/</guid>
-      <pubDate>Thu, 01 Apr 2027 12:00:00 GMT</pubDate>
-      <description>CNA&#39;s POSIX Terminal platform presents the software renderer&#39;s RGBA framebuffer as an ANSI character grid, with keyboard, mouse, resize and honest capability reporting.</description>
+      <title>Custom Vertex Formats and Procedural Geometry in CNA</title>
+      <link>https://blog.libcna.com/2027/11/25/custom-vertex-formats-and-procedural-geometry-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2027/11/25/custom-vertex-formats-and-procedural-geometry-in-cna/</guid>
+      <pubDate>Thu, 25 Nov 2027 12:00:00 GMT</pubDate>
+      <description>Define vertex declarations, generate indexed CNA geometry safely and validate stride, semantics, winding and dynamic updates across renderers.</description>
     </item>
   </channel>
 </rss>
