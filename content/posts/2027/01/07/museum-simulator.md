@@ -24,7 +24,7 @@ Its ten floors contain **295 exhibit rooms**. Each room demonstrates a focused g
 
 **Source:** [https://github.com/libcnalab/museum-simulator](https://github.com/libcnalab/museum-simulator)
 
-**Web status:** The project has a working WebGL 2 build, but it is not yet published on `demos.libcna.com`. A playable web version is being prepared.
+**Web status:** The project has a working WebGL 2 build, but it is not yet published on `play.libcna.com`. A playable web version is being prepared.
 
 ![The entrance hall of Museum Simulator](https://raw.githubusercontent.com/libcnalab/museum-simulator/develop/docs/images/lobby.jpg)
 
@@ -129,7 +129,7 @@ The Emscripten build uses CNA's WebGL 2 renderer and produces an HTML shell, Jav
 
 The browser profile retains the museum's own content-pipeline exhibits and local persistence. Native FFmpeg video, the Inspector and networking or Gamer Services are left out, and the relevant rooms identify those omissions.
 
-The repository's browser smoke test starts the real build in headless Chrome, renders the lobby, checks that exhibits report no errors and verifies deferred IndexedDB autosave. That proves the repository has a working browser target, although the public deployment on `demos.libcna.com` is still being prepared.
+The repository's browser smoke test starts the real build in headless Chrome, renders the lobby, checks that exhibits report no errors and verifies deferred IndexedDB autosave. That proves the repository has a working browser target, although the public deployment on `play.libcna.com` is still being prepared.
 
 ## A substantial verification workload
 

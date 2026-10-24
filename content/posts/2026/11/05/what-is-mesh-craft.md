@@ -40,7 +40,7 @@ The project combines:
 
 **GitHub:** [github.com/libcnalab/mesh-craft](https://github.com/libcna/mesh-craft)
 
-**Try online:** [https://demos.libcna.com/mesh-craft/MeshCraft.html](https://demos.libcna.com/mesh-craft/MeshCraft.html)
+**Try online:** [https://play.libcna.com/mesh-craft/MeshCraft.html](https://play.libcna.com/mesh-craft/MeshCraft.html)
 
 ![Mesh craft screenshot](/wp-content/uploads/2026/09/mesh-craft_screenshot.png)
 

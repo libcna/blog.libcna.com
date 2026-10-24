@@ -33,7 +33,7 @@ draft: false
 
 It represents a continental-European inner-city crossroads with buildings, shops, moving traffic, pedestrians, street furniture, vegetation, physically based materials, an analytic sky, local reflection probes and spatial audio.
 
-**Play Street Simulator online: **[https://demos.libcna.com/street-simulator/street-simulator.html](https://demos.libcna.com/street-simulator/street-simulator.html)
+**Play Street Simulator online: **[https://play.libcna.com/street-simulator/street-simulator.html](https://play.libcna.com/street-simulator/street-simulator.html)
 
 **GitHub: **[https://github.com/libcnalab/street-simulator](https://github.com/libcnalab/street-simulator)
 
@@ -453,7 +453,7 @@ Street Simulator can also be built for the web with Emscripten and WebAssembly.
 
 The browser build uses CNA's `WEBGL2` renderer and can be played directly at:
 
-[https://demos.libcna.com/street-simulator/street-simulator.html](https://demos.libcna.com/street-simulator/street-simulator.html)
+[https://play.libcna.com/street-simulator/street-simulator.html](https://play.libcna.com/street-simulator/street-simulator.html)
 
 The complete compiled content collection is intentionally not embedded in the web package because it is very large.
 
@@ -505,7 +505,7 @@ The easiest way to experience Street Simulator is directly in a browser:
 
 **Play online:**
 
-[https://demos.libcna.com/street-simulator/street-simulator.html](https://demos.libcna.com/street-simulator/street-simulator.html)
+[https://play.libcna.com/street-simulator/street-simulator.html](https://play.libcna.com/street-simulator/street-simulator.html)
 
 The complete source code is available on GitHub:
 

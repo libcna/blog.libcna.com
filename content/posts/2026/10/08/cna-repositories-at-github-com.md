@@ -186,7 +186,7 @@ The website used to publish CNA sample applications that can run directly in the
 
 The online collection is still growing and represents only part of the much larger set of samples already ported to CNA.
 
-### demos.libcna.com
+### play.libcna.com
 
 The repository behind the CNA demos website.
 

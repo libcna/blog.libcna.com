@@ -24,7 +24,7 @@ It combines a large 3D building with timetables, lessons, breaks, lunch waves, c
 
 **Source:** [https://github.com/libcnalab/school-simulator](https://github.com/libcnalab/school-simulator)
 
-**Web status:** The repository contains a working browser build, but School Simulator is not yet deployed on `demos.libcna.com`. A playable web version is being prepared.
+**Web status:** The repository contains a working browser build, but School Simulator is not yet deployed on `play.libcna.com`. A playable web version is being prepared.
 
 ![The main entrance before lessons](https://raw.githubusercontent.com/libcnalab/school-simulator/main/docs/images/entrance.jpg)
 
@@ -159,7 +159,7 @@ Free flight is available for inspection, but ordinary first-person movement uses
 
 The main development target is Linux, but the same application also builds for WebGL 2 through Emscripten. The repository reports a browser download of roughly 6 MB and a tested busy-cafeteria scene.
 
-The public deployment on `demos.libcna.com` is still being prepared. Until then, the repository contains the build instructions, source and its complete screenshot gallery.
+The public deployment on `play.libcna.com` is still being prepared. Until then, the repository contains the build instructions, source and its complete screenshot gallery.
 
 The browser edition is the same application, simulation and content running through CNA's WebGL 2 renderer and SDL3's browser platform path. Application-specific web code is limited mainly to locating the preloaded content.
 

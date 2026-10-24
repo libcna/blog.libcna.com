@@ -26,7 +26,7 @@ The current playable slice centers on a deterministic island roughly 500 metres 
 
 **Source:** [https://github.com/libcnalab/island-simulator](https://github.com/libcnalab/island-simulator)
 
-**Web status:** Island Simulator has a tested WebGL 2 path, but it is not yet deployed on `demos.libcna.com`. A playable web version is being prepared.
+**Web status:** Island Simulator has a tested WebGL 2 path, but it is not yet deployed on `play.libcna.com`. A playable web version is being prepared.
 
 ![The complete procedural tropical island](https://raw.githubusercontent.com/libcnalab/island-simulator/develop/assets/presentation/island-overview.png)
 

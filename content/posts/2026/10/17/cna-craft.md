@@ -27,7 +27,7 @@ It is a derivative work, not merely a game inspired by Craft.
 
 **Source:** [https://github.com/libcnalab/cna-craft](https://github.com/libcnalab/cna-craft)
 
-**Play the deployed browser build:** [https://demos.libcna.com/cna-craft/CnaCraft.html](https://demos.libcna.com/cna-craft/CnaCraft.html)
+**Play the deployed browser build:** [https://play.libcna.com/cna-craft/CnaCraft.html](https://play.libcna.com/cna-craft/CnaCraft.html)
 
 ![CNA Craft running in the browser](/wp-content/uploads/2026/09/cna-craft_screenshot.jpg)
 

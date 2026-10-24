@@ -25,7 +25,7 @@ It generates an effectively unbounded sequence of rooms, storage areas and maint
 
 **Source:** [https://github.com/libcnalab/backrooms-simulator](https://github.com/libcnalab/backrooms-simulator)
 
-**Web status:** Backrooms Simulator currently targets Linux desktop and is not available on `demos.libcna.com`. A playable web version is being prepared.
+**Web status:** Backrooms Simulator currently targets Linux desktop and is not available on `play.libcna.com`. A playable web version is being prepared.
 
 ![Level 0: the yellow rooms](https://raw.githubusercontent.com/libcnalab/backrooms-simulator/main/docs/screenshots/level0-01.jpg)
 

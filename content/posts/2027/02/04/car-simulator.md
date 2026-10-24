@@ -26,7 +26,7 @@ It has no missions, deliveries or economy. The purpose is driving itself: start 
 
 **Source:** [https://github.com/libcnalab/car-simulator](https://github.com/libcnalab/car-simulator)
 
-**Play online:** [https://demos.libcna.com/car-simulator/car-simulator.html](https://demos.libcna.com/car-simulator/car-simulator.html)
+**Play online:** [https://play.libcna.com/car-simulator/car-simulator.html](https://play.libcna.com/car-simulator/car-simulator.html)
 
 ![The Lipan 1.2 in the Czech-inspired landscape](https://raw.githubusercontent.com/libcnalab/car-simulator/main/docs/screenshots/hero.jpg)
 
@@ -172,7 +172,7 @@ Sanitizer presets and install checks cover memory and packaging separately. This
 
 ## Browser build and videos
 
-Car Simulator has a playable WebGL 2 edition on `demos.libcna.com`. It is one of the projects in this series that is already publicly deployed rather than merely planned.
+Car Simulator has a playable WebGL 2 edition on `play.libcna.com`. It is one of the projects in this series that is already publicly deployed rather than merely planned.
 
 Two videos are available on the official CNA YouTube channel:
 

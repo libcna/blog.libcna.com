@@ -24,7 +24,7 @@ draft: false
 
 **Source:** [https://github.com/libcnalab/wolf-cna](https://github.com/libcnalab/wolf-cna)
 
-**Play the browser build:** [https://demos.libcna.com/wolf-cna/wolf-cna.html](https://demos.libcna.com/wolf-cna/wolf-cna.html)
+**Play the browser build:** [https://play.libcna.com/wolf-cna/wolf-cna.html](https://play.libcna.com/wolf-cna/wolf-cna.html)
 
 ![Wolf CNA gameplay](https://github.com/libcnalab/wolf-cna/raw/main/screenshot.png)
 

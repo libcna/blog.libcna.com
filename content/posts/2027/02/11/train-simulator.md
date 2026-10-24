@@ -26,7 +26,7 @@ It follows the fictional **Northern Valley Express** over a deterministic 286.4-
 
 **Source:** [https://github.com/libcna/train-simulator](https://github.com/libcna/train-simulator)
 
-**Web status:** Train Simulator has a WebGL 2 build, but it is not yet published on `demos.libcna.com`. A playable web version is being prepared.
+**Web status:** Train Simulator has a WebGL 2 build, but it is not yet published on `play.libcna.com`. A playable web version is being prepared.
 
 ![Passengers aboard the Northern Valley Express](https://raw.githubusercontent.com/libcna/train-simulator/develop/docs/screenshots/passenger-saloon.png)
 
@@ -138,7 +138,7 @@ Command-line options also support unobstructed screenshots, a passenger-view pre
 
 The native target uses CNA's OpenGL 3.3 renderer. The Emscripten edition uses WebGL 2 and packages the same runtime assets into HTML, JavaScript, WebAssembly and data files.
 
-That browser build exists today, but its public home on `demos.libcna.com` is still being prepared.
+That browser build exists today, but its public home on `play.libcna.com` is still being prepared.
 
 The web package is single-threaded and does not require cross-origin isolation. Its canvas scales with the page while preserving the game's 16:9 backing view. Pointer-lock movement applies a browser correction, and the in-game sensitivity control remains available.
 

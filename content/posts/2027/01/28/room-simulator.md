@@ -26,7 +26,7 @@ It concentrates on one furnished living room and the street outside its windows,
 
 **Source:** [https://github.com/libcnalab/room-simulator](https://github.com/libcnalab/room-simulator)
 
-**Play online:** [https://demos.libcna.com/room-simulator/room-simulator.html](https://demos.libcna.com/room-simulator/room-simulator.html)
+**Play online:** [https://play.libcna.com/room-simulator/room-simulator.html](https://play.libcna.com/room-simulator/room-simulator.html)
 
 ![Room Simulator during the day](https://raw.githubusercontent.com/libcnalab/room-simulator/develop/docs/screenshots/m9-entrance-day.png)
 
@@ -151,7 +151,7 @@ Unit tests separately cover solar and weather simulation, texture baking, reflec
 
 ## Desktop and web
 
-The maintained native baseline uses CNA's OPENGLES3 renderer. A WebGL 2 build brings the same scene to modern browsers, and a packaged version is already available on `demos.libcna.com`.
+The maintained native baseline uses CNA's OPENGLES3 renderer. A WebGL 2 build brings the same scene to modern browsers, and a packaged version is already available on `play.libcna.com`.
 
 The repository also records an important qualification: the browser path should be rebuilt and checked whenever its pinned dependency baseline changes. A deployed build proves a usable web edition exists, not that every newer native revision has automatically received the same validation.
 

@@ -24,7 +24,7 @@ draft: false
 
 **Preserved source:** [https://github.com/libcna/cna-cemetery/tree/main/tamagotchi-cna](https://github.com/libcna/cna-cemetery/tree/main/tamagotchi-cna)
 
-**Try the browser prototype:** [https://demos.libcna.com/tamagotchi-cna/TamagotchiCna.html](https://demos.libcna.com/tamagotchi-cna/TamagotchiCna.html)
+**Try the browser prototype:** [https://play.libcna.com/tamagotchi-cna/TamagotchiCna.html](https://play.libcna.com/tamagotchi-cna/TamagotchiCna.html)
 
 ![Tamagotchi CNA device](https://github.com/libcna/cna-cemetery/raw/main/tamagotchi-cna/screenshot.png)
 

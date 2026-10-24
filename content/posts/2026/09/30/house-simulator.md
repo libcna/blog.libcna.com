@@ -23,7 +23,7 @@ The project is designed as an architectural and graphics showcase rather than a 
 
 There is no score, no win condition and no life-simulation system. The goal is simply to create a convincing place that can be walked through and experienced while exercising a large part of CNA's XNA-compatible API.
 
-**Play online:** [https://demos.libcna.com/house-simulator/index.html](https://demos.libcna.com/house-simulator/index.html)
+**Play online:** [https://play.libcna.com/house-simulator/index.html](https://play.libcna.com/house-simulator/index.html)
 
 ![Representative day exterior front](https://raw.githubusercontent.com/libcnalab/house-simulator/develop/tests/render/reference/representative-day-exterior-front.png)
 
@@ -121,7 +121,7 @@ Source code and additional screenshots are available on GitHub:
 
 **GitHub:** [https://github.com/libcnalab/house-simulator](https://github.com/libcna/house-simulator)
 
-**Play online:** [https://demos.libcna.com/house-simulator/index.html](https://demos.libcna.com/house-simulator/index.html)
+**Play online:** [https://play.libcna.com/house-simulator/index.html](https://play.libcna.com/house-simulator/index.html)
 
 **YouTube video:** [https://www.youtube.com/watch?v=errSKcxLpeY](https://www.youtube.com/watch?v=errSKcxLpeY)
 

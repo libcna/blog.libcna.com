@@ -24,7 +24,7 @@ Each demo is intended to answer one practical question: how do I clear a frame, 
 
 **Source:** [https://github.com/libcna/cna-demos](https://github.com/libcna/cna-demos)
 
-**Web status:** CNA Demos is not currently published on `demos.libcna.com`. A playable web version is being prepared.
+**Web status:** CNA Demos is not currently published on `play.libcna.com`. A playable web version is being prepared.
 
 ![A SpriteFont loaded from CNA's CNJ content format](https://raw.githubusercontent.com/libcna/cna-demos/next/references/OPENGLES3/content.cnj.sprite_font.png)
 

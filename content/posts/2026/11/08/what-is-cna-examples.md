@@ -28,7 +28,7 @@ draft: false
 Instead of distributing hundreds of tiny programs, CNA Examples puts them into **one browsable CNA application**. You launch it, choose an area of the framework, select a category, and run the demonstration directly inside the application.
 
 **GitHub:** [github.com/libcna/cna-examples](https://github.com/libcna/cna-examples)
-**Try online: **[https://demos.libcna.com/cna-examples/cna_examples.html](https://demos.libcna.com/cna-examples/cna_examples.html)
+**Try online: **[https://play.libcna.com/cna-examples/cna_examples.html](https://play.libcna.com/cna-examples/cna_examples.html)
 
 ![Screenshot](https://github.com/libcna/cna-examples/raw/develop/screenshot.png)
 
