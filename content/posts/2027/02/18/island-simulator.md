@@ -1,9 +1,9 @@
 ---
 title: Island Simulator
 date: 2027-02-18T12:00:00Z
-updated: 2026-10-17T15:04:58Z
+updated: 2026-10-24T12:00:00Z
 description: |
-  Island Simulator is a peaceful first-person tropical island exploration and near-shore swimming experience built with CNA.
+  Island Simulator is a first-person tropical island exploration, swimming and driving experience built with CNA.
 author: Robert Vokac
 categories:
   - Projects
@@ -20,7 +20,7 @@ tags:
 draft: false
 ---
 
-**Island Simulator** is a peaceful first-person tropical island walking and near-shore swimming experience built with C++23 and CNA.
+**Island Simulator** is a first-person tropical island walking, swimming and driving experience built with C++23 and CNA.
 
 The current playable slice centers on a deterministic island roughly 500 metres across. It is an exploration environment rather than a survival game: there are no combat systems, quests or resource meters.
 
@@ -36,7 +36,7 @@ The island combines beaches, jungle, clearings, hills, a stream, shallow water a
 
 Thousands of placed plants and environmental details build the landscape from shared meshes and bounded rendering systems. Coconut palms, broadleaf trees, ferns, bushes, grass, rocks, fallen logs, driftwood, shells and reef outcrops all use distance reduction and culling.
 
-The shoreline includes shallow-water color, underwater sand, waves, foam and player ripples. A fixed sky and distant islets extend the view beyond the walkable land.
+The shoreline includes shallow-water color, underwater sand, waves, foam and player ripples. A changing sky, distant islets, occasional offshore traffic and wildlife extend the view beyond the walkable land.
 
 ## Terrain and biomes
 
@@ -66,7 +66,7 @@ Underwater and shoreline props include rocks, reef outcrops, wreck pieces, shell
 
 ## Places to discover
 
-The environment includes several authored landmarks inside the procedural setting:
+The environment now includes a large set of authored landmarks inside the procedural setting:
 
 - a raised timber hut;
 - a campfire clearing;
@@ -74,7 +74,16 @@ The environment includes several authored landmarks inside the procedural settin
 - an enterable headland cave;
 - a rock-concealed research bunker;
 - a grounded sailing-ship wreck;
-- a stationary, enterable utility helicopter.
+- a stationary, enterable utility helicopter;
+- a climbable lighthouse and its ruined keeper's cottage;
+- a Second World War fighter wreck being reclaimed by the jungle;
+- a jetty with a canoe and a stranded whale skeleton;
+- a weathered stone god with offerings and a castaway's `HELP ME` sign and signal fire;
+- a grounded 30-metre coastal coaster with an explorable deck, hold and mess;
+- an old lantern-lit mine ending in a glowing crystal chamber;
+- a small active volcano with fumaroles, lava spatter and a live flow;
+- a ruined medieval castle;
+- and a crashed flying saucer with its surviving alien visitor.
 
 These locations do not introduce objectives. They give the island recognizable destinations and provide varied material, lighting, collision and interior-rendering workloads.
 
@@ -92,7 +101,21 @@ The helicopter cannot fly. It is a grounded environmental object with open doors
 
 ![The stationary utility helicopter in its clearing](/wp-content/uploads/2027/02/island-simulator-helicopter.png)
 
-## Peaceful inhabitants
+The newer sites broaden the island's history without turning it into a quest game. The lighthouse can be entered and climbed by its spiral stair to the lantern and outside gallery; after dark its twin beams sweep the sea. The mine runs beneath the main mountain past rails, abandoned tools, crates, puddles and bats to a chamber of cyan and violet crystals. Elsewhere, an ash cone steams above a churning lava lake, while a roofless medieval keep, four damaged corner towers, a breached curtain wall, a well and scattered rubble form the castle ruin.
+
+![New places: the climbable lighthouse, mine crystal chamber, stranded whale skeleton and stone god](/wp-content/uploads/2027/02/island-simulator-new-places-collage.png)
+
+The strangest discovery is a flying saucer driven into a clearing. A scorched furrow, torn pieces of hull skin and cables mark its arrival. A grey alien walks around the wreck, examines loose plates, feels the hull, points toward the dome, watches the player and runs away if approached too closely. Like the castle, bunker, lighthouse, mine and wrecks, it contributes to subtle environmental storytelling rather than starting an objective.
+
+![New mysteries and landmarks: the crashed saucer, its alien, a ruined castle and the volcano's lava crater](/wp-content/uploads/2027/02/island-simulator-new-mysteries-collage.png)
+
+The two wrecked ships tell very different stories. The earlier wooden sailing ship is broken apart in shallow water. The newer steel coaster **MARIA K** has been driven onto the beach with its accommodation ladder lowered. The player can walk across its weathered deck, enter the dim hold and mess, and find five sailor skeletons still aboard. A capsized lifeboat, oars and a life ring lie nearby, gulls perch on the rails and surf breaks around the stern.
+
+Not every moving machine belongs to the player. A coastal freighter occasionally passes far offshore and shows navigation lights at night. A brightly striped hot-air balloon follows a slow figure-eight route over the island and sea, firing its burner in bursts and casting a moving soft shadow. The grounded helicopter and fighter remain scenery, but the red utility quad beside the hut is fully drivable.
+
+![Island transport and wrecks: hot-air balloon, drivable quad, fighter wreck, grounded coaster and one of its skeleton crew](/wp-content/uploads/2027/02/island-simulator-transport-collage.png)
+
+## A much larger living island
 
 Birds move above the island, while boars and other animals occupy bounded habitats. A resident follows a deterministic inland route and yields to the player. Wildlife is designed as part of the environment rather than as an enemy system.
 
@@ -100,7 +123,7 @@ The project combines procedural geometry, animated creatures, positional sound, 
 
 ![Island Simulator wildlife: monkeys, a bear, a boar, a rat and goats](/wp-content/uploads/2027/02/island-simulator-wildlife-collage.png)
 
-The wildlife is varied but deliberately non-hostile.
+Most wildlife avoids or observes the player rather than attacking. The island nevertheless has more dramatic inhabitants now, so “peaceful” describes the lack of combat systems rather than every encounter.
 
 Water habitats range from the mangrove estuary to the outer reef. Crocodiles occupy the shallows, while dolphins, a shark, octopuses and stingrays follow their own bounded marine routes.
 
@@ -118,19 +141,37 @@ Other inland habitats add deer, bats, snakes, frogs and geckos. These animals ar
 
 ![Forest wildlife: a deer, bat, snake, frog and gecko](/wp-content/uploads/2027/02/island-simulator-forest-wildlife-collage.png)
 
+The largest new animals are an Asian bull elephant and a full-size Tyrannosaurus rex. The elephant roams the coastal flats on terrain-fitted legs, leaving round prints while it grazes, dusts itself, drinks, watches the player, trumpets, moves away and dozes at night. During the day it also walks into the sea to bathe, showers its back with its trunk, lies in the water and emerges visibly wet.
+
+The tyrannosaur patrols the beaches and leaves three-toed tracks. It can watch and follow the player, drink, roar, produce heavy footfalls and settle down at night; nearby animals scatter from it. Its current model is a continuously posed, smoothly lit body with scaled and folded hide, a detailed skull and mouth, massive thighs and padded toes. There is still no combat, damage or survival loop—the animal is a spectacular moving presence to observe and avoid.
+
+Several smaller species fill previously quiet habitats. Mudskippers hop across wet mangrove mud, raise their dorsal fins and retreat toward the water. Village weavers build hanging nests in shore palms; yellow males display upside down and fetch grass while the nests sway with the fronds. Brown boobies nest on a guano-whitened rocky islet and plunge into the surrounding sea. After rain on dark evenings, thousands of red land crabs migrate from the forest to the water, while winged termites emerge at dusk and attract hunting bats and geckos. Offshore, flying fish break the surface and an occasional humpback breaches.
+
+![New wildlife: an elephant bathing, a roaring tyrannosaur, a mudskipper and village weavers with their nests](/wp-content/uploads/2027/02/island-simulator-new-wildlife-collage.png)
+
 Animals use bounded habitats and distance-aware animation rather than a global ecosystem simulation. Their feet or bodies sample the rendered terrain where appropriate, and contact shadows help ground nearby forms.
 
 The single resident follows a deterministic 688-metre inland tour with pauses and yields to the player. Like the animals, the resident exists to make exploration less empty, not to provide quests, dialogue trees or combat.
 
 ![The island resident pausing beside the campfire](/wp-content/uploads/2027/02/island-simulator-resident.png)
 
-## Walking, swimming and collision
+## Walking, swimming, driving and collision
 
 Desktop controls use `W A S D` or arrow keys, with the mouse controlling the view. `Shift` toggles the retained walk or run mode. Movement follows terrain height, prevents passage through solid landmarks and transitions into swimming near shore.
 
 Jumping is intentionally absent. The game is not a platformer, and flight is confined to a debug inspection camera rather than ordinary play.
 
-The `F1` panel exposes controls and live information. `F2` shows the developer world view, `F4` copies deterministic seed data where the platform clipboard permits it, and `B` can disable camera motion for comfort. User settings retain walk/run choice, camera motion, mute state and look sensitivity.
+Pressing `F` mounts or dismounts the utility quad. `W` and `S` control throttle, brake and reverse, `A` and `D` steer, `Space` applies the handbrake and `Backspace` rights a rolled vehicle. The quad has a chase camera, a governed top speed of 80 km/h, engine and tyre audio, exhaust smoke, working headlights, suspension and surface-dependent grip. Its wheels leave temporary ruts on sand and soil and throw dust or water spray. Landmark collision keeps it out of structures while still allowing routes such as the old mine.
+
+The `F1` panel exposes controls and live information. `F2` shows the developer world view, `F4` copies deterministic seed data where the platform clipboard permits it, `B` can disable camera motion for comfort and `N` opens the persistent discovery journal. The journal records places and creatures the player has approached and observed, but does not prescribe an order or turn them into objectives. User settings retain walk/run choice, camera motion, mute state and look sensitivity.
+
+## Time, weather and a changing shore
+
+The island now runs a complete day in 24 real minutes. Sunsets give way to a star field that turns around the celestial pole, the moon follows its monthly phase and practical lights become useful: the lighthouse sweeps the horizon, the quad's lamps illuminate the ground and the player can switch on a hand torch with `H`.
+
+Weather moves between clear, partly cloudy, overcast, showers and thunderstorms. Rain darkens the ground, adds wet reflections and can leave puddles; when sunlight returns, exposed wet ground steams. Thunder, wind, rain on vegetation and changes in the soundscape accompany the visual transition. These systems are environmental rather than hazards.
+
+A slow deterministic tide is shared by the rendered ocean, wet shoreline and habitat logic. It gradually exposes and covers mudflats and shallow edges around the mangroves, jetty and wrecks, and changes the behavior space used by crocodiles, mudskippers, crabs and turtles without trapping the walker or quad. Erosion rills, rock shelves, dune ridges and clearer transitions between beach, wetland and hillside also make the underlying terrain less uniform.
 
 Audio uses a bounded number of active sources. Shore, stream, wildlife, footsteps, swimming and landmark sounds are selected by relevance instead of keeping every island sound playing at once.
 
