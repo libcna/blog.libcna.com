@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Device Extensions in CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA::Devices adds portable access to power, locale, clipboard, URLs, display information, native dialogs, tray icons, message boxes and cameras without extending the XNA namespace.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/04/15/device-extensions-in-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Device Extensions in CNA">
+  <meta property="og:description" content="CNA::Devices adds portable access to power, locale, clipboard, URLs, display information, native dialogs, tray icons, message boxes and cameras without extending the XNA namespace.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/04/15/device-extensions-in-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-04-15T12:00:00Z">April 15, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Device Extensions in CNA</h1>
+      <p class="article-description">CNA::Devices adds portable access to power, locale, clipboard, URLs, display information, native dialogs, tray icons, message boxes and cameras without extending the XNA namespace.</p>
+    </header>
+    <div class="article-body"><p>XNA 4.0 provides a focused game API, but modern applications often need a few services outside that historical surface: opening a URL, respecting a safe area, selecting a file, reading the battery or acquiring a camera frame. CNA keeps those facilities in the optional <code>CNA::Devices</code> namespace instead of presenting them as original XNA APIs.</p>
+<p>The complete module is disabled by default:</p>
+<pre><code class="language-bash">cmake -S . -B build -DCNA_DEVICES=ON
+cmake --build build</code></pre>
+<p>Consumers link <code>CNA::DevicesExt</code>. Every public header under <code>CNA/Devices/</code> is guarded by the <code>CNA_DEVICES</code> definition, so a build that does not opt in does not accidentally depend on the extension.</p>
+<p><strong>Capability reference:</strong> <a href="https://github.com/libcna/cna/blob/next/docs/devices-ext.md">docs/devices-ext.md</a></p>
+<h2 id="one-portable-layer-honest-support">One portable layer, honest support</h2>
+<p>Device extensions call CNA&#39;s platform contracts. The module itself includes no SDL headers and links no native toolkit. SDL3 is the normal implementation behind the contract, while headless, terminal and test platforms can provide different services.</p>
+<p>Every optional facility exposes a support query. Unsupported platforms report <code>false</code>, an empty result or a documented state; they do not show a fake dialog or manufacture camera data. This makes fallback code straightforward:</p>
+<pre><code class="language-cpp">if (CNA::Devices::MessageBox::getIsSupportedProperty())
+{
+    CNA::Devices::MessageBox::ShowSimple(
+        &quot;Saved&quot;, &quot;Your progress has been saved.&quot;);
+}</code></pre>
+<p>Tests install canned platform implementations, so an automated run never launches a real file picker, touches the user&#39;s clipboard or waits for a tray host.</p>
+<h2 id="organizing-optional-features">Organizing optional features</h2>
+<p>Treat device capabilities as additions to the game rather than prerequisites for starting it. Ask support when constructing the relevant screen or service, hide commands that cannot work, and still handle a later operation failure. A support query describes the selected platform implementation; permissions, disconnected hardware and the current desktop session can change the result of an actual request.</p>
+<p>A small application-owned adapter is often useful. It can translate an empty dialog result into the game&#39;s <code>Cancelled</code> state, turn platform exceptions into a notification, and keep platform calls on the main thread where required. Game logic then depends on meaningful outcomes instead of scattering operating-system conditions throughout menus and scenes.</p>
+<p>Headless tests should exercise both supported and unsupported paths. For example, a canned camera can transition through <code>Opening</code>, <code>Ready</code> and <code>Lost</code>, while another reports <code>Denied</code>. This verifies the application&#39;s state machine without asking CI for a webcam or permission prompt.</p>
+<h2 id="small-system-queries">Small system queries</h2>
+<p><code>PowerInfo</code> reports whether the host is on battery, charging, charged or has no battery, plus remaining percentage and seconds when the platform knows them. Unknown numeric values are <code>-1</code> rather than plausible-looking estimates.</p>
+<p><code>Locale</code> returns the user&#39;s preferred locales in order. <code>SystemInfo</code> reports logical CPU cores and installed RAM in megabytes. It deliberately avoids a growing list of architecture-specific feature flags.</p>
+<p><code>DisplayInfo</code> is tied to the game&#39;s existing <code>GameWindow</code>. It provides content scale and safe area without enumerating or creating windows. This is enough for UI layout around phone cutouts and platform insets while keeping orientation and client bounds in their established XNA locations.</p>
+<h2 id="clipboard-and-external-urls">Clipboard and external URLs</h2>
+<p><code>CNA::Devices::Clipboard</code> offers UTF-8 text get, set and presence operations. Calls belong on the main thread. Browser clipboard access is permission- and user-gesture-sensitive, so web code must be ready for a failed write or empty read.</p>
+<p><code>UrlLauncher::Open</code> asks the platform to hand an external URL to the desktop shell, mobile intent system or browser. It returns <code>false</code> when no handler is available. That return value is preferable to assuming that launching always succeeds.</p>
+<h2 id="native-dialogs-and-tray-integration">Native dialogs and tray integration</h2>
+<p><code>FileDialog</code> asynchronously opens a file picker, save picker or folder picker. Windows, Linux, macOS and Android are supported; iOS and Web are not. Cancellation and provider failure both produce an empty result, so the callback should treat “no selection” as the normal non-success path.</p>
+<p>The asynchronous interface also means that the screen which requested a dialog may no longer exist when its result arrives. Capture durable state, not a raw pointer to a temporary menu. Pause conflicting input while the native picker is open and validate the returned path as untrusted external input before loading it.</p>
+<p><code>SystemTray</code> owns one desktop tray icon and a flat menu. Its support query indicates that the selected platform has a tray service, not that a particular Linux desktop currently runs a notification-area host. Construction can still fail, and an optional tray integration should catch that platform exception and continue.</p>
+<p><code>MessageBox</code> provides a simple form and a custom-button form. It is synchronous and blocks the caller, which makes it appropriate for rare decisions rather than moment-to-moment UI. Desktop, mobile and browser providers can support it; headless and terminal platforms correctly report that they cannot.</p>
+<h2 id="camera-capture">Camera capture</h2>
+<p>The <code>Camera</code> extension enumerates available cameras, opens one asynchronously and exposes an explicit lifecycle:</p>
+<pre><code class="language-text">NotSupported / Closed → Opening → Ready
+                         ↓       ↓
+                       Denied   Lost</code></pre>
+<p>While ready, <code>TryAcquireFrame</code> polls an RGBA8 frame into a <code>Texture2D</code>. Polling once per game frame fits CNA&#39;s update loop and avoids invoking rendering objects from an arbitrary camera callback thread.</p>
+<p>On the web, camera capture requires HTTPS and normally a user gesture. Permission denial is a first-class state rather than an exception disguised as “no frame.” Applications should also handle a <code>Lost</code> camera—for example when a USB device is disconnected—and allow the user to reopen another device.</p>
+<p>Camera frames are ordinary graphics resources after acquisition, so they can be drawn by <code>SpriteBatch</code>, copied into another target or processed by a custom effect. Avoid retaining every returned frame: reuse or release textures according to the provider contract, and perform expensive recognition or encoding outside the render-critical path. A preview that only needs the newest image should drop stale work rather than build a queue behind a live camera.</p>
+<p>Privacy belongs in the application flow. Enumerating a camera is not permission to start it. Explain why capture is needed, begin from a user action, show when it is active and close it when the feature ends. Those rules improve desktop behavior and are required by stricter mobile and browser environments.</p>
+<h2 id="deliberate-boundaries">Deliberate boundaries</h2>
+<p>This module does not try to become a universal operating-system wrapper. Storage remains in XNA&#39;s <code>StorageDevice</code> and <code>TitleContainer</code>; microphone and touch remain in their existing APIs. GPS, Bluetooth, NFC, biometrics, contacts, push notifications, raw HID, process management and dynamic-library loading were rejected because they require large platform-specific subsystems or do not belong in this layer.</p>
+<p>That restraint is the main design advantage. <code>CNA::Devices</code> covers a compact set of capabilities that games and tools repeatedly need, routes them through one testable platform boundary, and lets every target say exactly what it can provide.</p>
+<p>When shipping on several targets, keep a short capability checklist beside the release configuration. Test the real clipboard, dialog and camera provider at least once on each claimed platform; canned tests prove application behavior, not the host integration. The fallback path deserves the same review, especially on headless, terminal and browser builds where an unavailable native feature is expected rather than exceptional.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/cna/">#CNA</a><a href="/tag/c-23/">#C++23</a><a href="/tag/devices/">#Devices</a><a href="/tag/platform/">#Platform</a><a href="/tag/camera/">#Camera</a><a href="/tag/clipboard/">#Clipboard</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/04/22/input-extensions-in-cna/">Input Extensions in CNA</a></li><li><a href="/2027/04/15/device-extensions-in-cna/">Device Extensions in CNA</a></li><li><a href="/2027/04/08/ascii-and-crt-effects/">ASCII and CRT Effects</a></li><li><a href="/2027/04/01/platform-terminal/">Platform Terminal</a></li><li><a href="/2027/03/25/inspector/">Inspector</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/04/"><span>April 2027</span><span class="count">4</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">24</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">23</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

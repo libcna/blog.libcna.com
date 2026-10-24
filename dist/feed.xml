@@ -5,7 +5,49 @@
     <link>https://blog.libcna.com/</link>
     <description>Building a portable XNA-style framework for the long term.</description>
     <language>en</language>
-    <lastBuildDate>Thu, 11 Mar 2027 12:00:00 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 22 Apr 2027 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Input Extensions in CNA</title>
+      <link>https://blog.libcna.com/2027/04/22/input-extensions-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2027/04/22/input-extensions-in-cna/</guid>
+      <pubDate>Thu, 22 Apr 2027 12:00:00 GMT</pubDate>
+      <description>CNA extends XNA input with text and IME events, relative mouse controls, modern gamepad metadata, raw joysticks, force feedback, device enumeration, sensors, power and clipboard access.</description>
+    </item>
+    <item>
+      <title>Device Extensions in CNA</title>
+      <link>https://blog.libcna.com/2027/04/15/device-extensions-in-cna/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2027/04/15/device-extensions-in-cna/</guid>
+      <pubDate>Thu, 15 Apr 2027 12:00:00 GMT</pubDate>
+      <description>CNA::Devices adds portable access to power, locale, clipboard, URLs, display information, native dialogs, tray icons, message boxes and cameras without extending the XNA namespace.</description>
+    </item>
+    <item>
+      <title>ASCII and CRT Effects</title>
+      <link>https://blog.libcna.com/2027/04/08/ascii-and-crt-effects/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2027/04/08/ascii-and-crt-effects/</guid>
+      <pubDate>Thu, 08 Apr 2027 12:00:00 GMT</pubDate>
+      <description>CNA&#39;s optional graphics extensions can turn a completed scene into a colored glyph grid or emulate scanlines, RGB masks, curvature and vignette on a CRT display.</description>
+    </item>
+    <item>
+      <title>Platform Terminal</title>
+      <link>https://blog.libcna.com/2027/04/01/platform-terminal/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2027/04/01/platform-terminal/</guid>
+      <pubDate>Thu, 01 Apr 2027 12:00:00 GMT</pubDate>
+      <description>CNA&#39;s POSIX Terminal platform presents the software renderer&#39;s RGBA framebuffer as an ANSI character grid, with keyboard, mouse, resize and honest capability reporting.</description>
+    </item>
+    <item>
+      <title>Inspector</title>
+      <link>https://blog.libcna.com/2027/03/25/inspector/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2027/03/25/inspector/</guid>
+      <pubDate>Thu, 25 Mar 2027 12:00:00 GMT</pubDate>
+      <description>CNA Inspector connects an authenticated browser-based diagnostics UI to a running CNA game while keeping the game, transport bridge and interface in separate processes.</description>
+    </item>
+    <item>
+      <title>Profiler</title>
+      <link>https://blog.libcna.com/2027/03/18/profiler/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2027/03/18/profiler/</guid>
+      <pubDate>Thu, 18 Mar 2027 12:00:00 GMT</pubDate>
+      <description>CNA&#39;s diagnostics profiler provides counters, frame histories, hierarchical CPU zones, events, resource tracking and trace export without tying a game to one renderer or user interface.</description>
+    </item>
     <item>
       <title>CNA Engine</title>
       <link>https://blog.libcna.com/2027/03/11/cna-engine/</link>
@@ -173,48 +215,6 @@
       <guid isPermaLink="true">https://blog.libcna.com/2026/11/08/cna-examples/</guid>
       <pubDate>Sun, 08 Nov 2026 15:33:13 GMT</pubDate>
       <description>CNA Examples is an interactive catalog of demonstrations covering the CNA framework.</description>
-    </item>
-    <item>
-      <title>Mesh Craft</title>
-      <link>https://blog.libcna.com/2026/11/05/mesh-craft/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2026/11/05/mesh-craft/</guid>
-      <pubDate>Thu, 05 Nov 2026 15:09:09 GMT</pubDate>
-      <description>MeshCraft is a C++23 3D scene editor and content-authoring toolkit built around its own editable MC3 scene format.</description>
-    </item>
-    <item>
-      <title>CNA Cemetery</title>
-      <link>https://blog.libcna.com/2026/10/29/cna-cemetery/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2026/10/29/cna-cemetery/</guid>
-      <pubDate>Thu, 29 Oct 2026 13:51:55 GMT</pubDate>
-      <description>CNA Cemetery preserves projects moved out of CNA Lab, including their complete unsquashed Git subtree history.</description>
-    </item>
-    <item>
-      <title>Sharp Runtime</title>
-      <link>https://blog.libcna.com/2026/10/25/sharp-runtime/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2026/10/25/sharp-runtime/</guid>
-      <pubDate>Sun, 25 Oct 2026 13:25:19 GMT</pubDate>
-      <description>Sharp Runtime is a C++23 implementation of a practical subset of the .NET System.* libraries.</description>
-    </item>
-    <item>
-      <title>EasyGL</title>
-      <link>https://blog.libcna.com/2026/10/22/easygl/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2026/10/22/easygl/</guid>
-      <pubDate>Thu, 22 Oct 2026 13:20:47 GMT</pubDate>
-      <description>EasyGL is a toolkit-independent C++20 graphics library built on top of OpenGL and OpenGL ES.</description>
-    </item>
-    <item>
-      <title>Tamagotchi CNA</title>
-      <link>https://blog.libcna.com/2026/10/19/tamagotchi-cna/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2026/10/19/tamagotchi-cna/</guid>
-      <pubDate>Mon, 19 Oct 2026 12:00:00 GMT</pubDate>
-      <description>Tamagotchi CNA is an unfinished, independent C++ reimplementation of the international 1997 P1 virtual-pet program, presented through CNA.</description>
-    </item>
-    <item>
-      <title>Meta GL</title>
-      <link>https://blog.libcna.com/2026/10/18/meta-gl/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2026/10/18/meta-gl/</guid>
-      <pubDate>Sun, 18 Oct 2026 13:12:38 GMT</pubDate>
-      <description>MetaGL is a low-level, type-safe C++23 wrapper around the programmable OpenGL family.</description>
     </item>
   </channel>
 </rss>

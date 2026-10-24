@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ASCII and CRT Effects | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA&#39;s optional graphics extensions can turn a completed scene into a colored glyph grid or emulate scanlines, RGB masks, curvature and vignette on a CRT display.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/04/08/ascii-and-crt-effects/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="ASCII and CRT Effects">
+  <meta property="og:description" content="CNA&#39;s optional graphics extensions can turn a completed scene into a colored glyph grid or emulate scanlines, RGB masks, curvature and vignette on a CRT display.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/04/08/ascii-and-crt-effects/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-04-08T12:00:00Z">April 8, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">ASCII and CRT Effects</h1>
+      <p class="article-description">CNA&#39;s optional graphics extensions can turn a completed scene into a colored glyph grid or emulate scanlines, RGB masks, curvature and vignette on a CRT display.</p>
+    </header>
+    <div class="article-body"><p>Retro presentation is most useful when it is independent of the scene that produced it. CNA&#39;s optional graphics extensions include two complementary post-processes: <code>AsciiPostProcessEffect</code> rebuilds an image as a grid of glyphs, while <code>CRTEffect</code> emulates characteristics of a period display.</p>
+<p>Both operate after the game has drawn its scene. That means the same effect can be used with sprites, a 3D world or a mixture of both, without replacing the application&#39;s renderer.</p>
+<p>Enable the extension module with <code>-DCNA_CNAEXT=ON</code> and link the graphics extension target used by the CNA package.</p>
+<h2 id="ascii-is-now-an-effect">ASCII is now an effect</h2>
+<p>An older CNA experiment exposed ASCII as a renderer decorator tied to SDL and a limited 2D path. The current <code>AsciiPostProcessEffect</code> replaces that design. It accepts any completed <code>Texture2D</code>, including a <code>RenderTarget2D</code> containing an entire 3D scene.</p>
+<pre><code class="language-cpp">CNA::Graphics::AsciiPostProcessEffect ascii(device);
+ascii.setQuantizeMode(CNA::Graphics::AsciiQuantizeMode::Color);
+ascii.setCellSize(8, 8);
+
+device.SetRenderTarget(&amp;sceneTarget);
+DrawWorld(gameTime);
+
+device.SetRenderTarget(nullptr);
+ascii.Draw(sceneTarget);</code></pre>
+<p>The cell dimensions determine the glyph grid. <code>BlackWhite</code> mode maps brightness to characters; <code>Color</code> mode also preserves representative cell colors. The effect can fill the current viewport or a supplied destination rectangle.</p>
+<p>Its first portable implementation is deliberately CPU-based. Each draw reads the source pixels, quantizes them into cells, and rebuilds the glyph quads through <code>SpriteBatch</code>. That lets the effect work with software and non-shader renderers, but makes it a stylization pass rather than a free conversion. Larger cells and a lower-resolution intermediate target reduce the readback and grid cost substantially.</p>
+<h2 id="tuning-the-glyph-image">Tuning the glyph image</h2>
+<p>Cell size is both an artistic and performance control. Small cells retain outlines and facial detail but produce many glyph quads; large cells create a stronger text-mode identity and reduce work. Because terminal-style characters are usually taller than they are wide, numerically equal cell dimensions are not always visually square. Tune them against the actual font atlas and output resolution.</p>
+<p>Contrast before quantization matters more than adding detail afterward. A scene with clear value separation produces a readable glyph silhouette, while differently colored objects of nearly equal brightness may merge in black-and-white mode. Color mode can preserve their identity, but it still benefits from simple lighting and uncluttered backgrounds.</p>
+<p>HUD treatment is a design choice. Rendering the interface into <code>sceneTarget</code> makes it part of the ASCII world. Drawing the HUD after <code>ascii.Draw()</code> leaves text and icons crisp. Separate targets can apply the effect selectively while keeping accessibility prompts untouched.</p>
+<p>Since the first version reads pixels back to the CPU, profile the complete pass on the target backend. Readback differs between a software framebuffer and a discrete GPU. Updating at a lower cadence or quantizing a smaller target can be more valuable than micro-optimizing the glyph draw itself.</p>
+<p>The effect is not the same feature as CNA&#39;s Terminal platform. The Terminal backend presents an application through ANSI output and terminal input. <code>AsciiPostProcessEffect</code> draws glyphs into a normal CNA graphics surface and can appear in a desktop window, browser canvas, screenshot or another render target.</p>
+<h2 id="a-complete-crt-pass">A complete CRT pass</h2>
+<p><code>CRTEffect</code> is a portable <code>ShaderEffect</code> with four independently adjustable components:</p>
+<ul><li>alternating scanline darkening;</li><li>an RGB aperture-grille or shadow-mask pattern;</li><li>mild barrel curvature;</li><li>a corner vignette.</li></ul>
+<p>The defaults are intentionally moderate: scanline intensity <code>0.3</code>, curvature <code>0.08</code>, vignette <code>0.25</code> and mask intensity <code>0.35</code>. Every scalar is clamped to the range from zero to one. <code>CRTMaskType</code> selects <code>None</code>, <code>ApertureGrille</code> or <code>ShadowMask</code>.</p>
+<pre><code class="language-cpp">CNA::Graphics::CRTEffect crt(device);
+crt.setScanlineIntensity(0.38f);
+crt.setCurvature(0.06f);
+crt.setVignetteIntensity(0.22f);
+crt.setMaskType(CNA::Graphics::CRTMaskType::ShadowMask);
+crt.setMaskIntensity(0.30f);</code></pre>
+<p>The built-in effect package supplies GLSL for OpenGL-family backends, SPIR-V for SDL_GPU and WGSL for WebGPU. On a backend without the required custom-shader capability, applications should query capabilities and skip the effect rather than assuming it can run.</p>
+<h2 id="render-once-process-once">Render once, process once</h2>
+<p>A CRT pass must receive the whole final image as one full-screen quad:</p>
+<pre><code class="language-text">scene draws → RenderTarget2D → one full-screen CRT draw → backbuffer</code></pre>
+<p>Curvature and vignette use the quad&#39;s texture coordinates as screen position. Applying the effect independently to every sprite would give every sprite its own tiny curved screen and dark corners. Render the scene without the CRT effect, restore the backbuffer, bind the effect, and draw the scene texture once.</p>
+<p>Render-target orientation is normalized by CNA, so application code does not add renderer-specific vertical flips. The same full-screen pass structure also makes effect order explicit.</p>
+<p>Scanlines and masks are tied to final pixels, so dynamic resolution deserves attention. If the CRT pass runs before an additional scale, its one-pixel pattern can blur or beat against the display grid. In most pipelines CRT should be the final graphical pass, with only overlays that intentionally remain unaffected drawn afterward.</p>
+<h2 id="combining-the-looks">Combining the looks</h2>
+<p>ASCII and CRT answer different questions. ASCII changes image representation; CRT changes display character. A game can use either independently or chain intermediate render targets:</p>
+<pre><code class="language-text">3D/2D scene
+    ↓
+ASCII quantization
+    ↓
+CRT scanlines, mask and curvature
+    ↓
+backbuffer</code></pre>
+<p>The same pattern works with CNA&#39;s <code>DepthEffect</code>: scene to depth-reduced target, then CRT, then the backbuffer. Each stage owns one concern, which keeps parameters predictable and avoids a single shader with every retro option tangled together.</p>
+<p>For a crisp character grid, render at a resolution divisible by the ASCII cell dimensions and use a stable scaling policy. For an authentic CRT impression, tune at the final output size because scanline and mask patterns operate in screen pixels. Very high mask intensity can destroy fine text, while excessive curvature wastes the outer image; subtle values usually survive a wider range of displays.</p>
+<p>These effects demonstrate the value of making presentation a final pass. The game remains ordinary CNA code, the scene can be tested before stylization, and a different visual identity becomes a configuration choice rather than a renderer rewrite.</p>
+<h2 id="testing-a-stylized-pipeline">Testing a stylized pipeline</h2>
+<p>Keep at least one screenshot of the scene before post-processing and one after it. The first catches changes in geometry, lighting and content; the second catches shader packages, quantization, render-target orientation and effect parameters. A final screenshot alone can hide a scene regression behind heavy stylization.</p>
+<p>Automated pixel tests should fix the renderer, output size, cell dimensions and all CRT values. For manual review, also try an odd resolution and a resized window: edge cells, destination rectangles and curvature are where coordinate errors tend to appear. Finally, test every intended graphics backend. CNA supplies several shader dialects, but equivalent shader source still needs evidence that sampling and screen coordinates agree.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/cna/">#CNA</a><a href="/tag/c-23/">#C++23</a><a href="/tag/ascii-art/">#ASCII Art</a><a href="/tag/crt/">#CRT</a><a href="/tag/post-processing/">#Post-processing</a><a href="/tag/graphics/">#Graphics</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/04/22/input-extensions-in-cna/">Input Extensions in CNA</a></li><li><a href="/2027/04/15/device-extensions-in-cna/">Device Extensions in CNA</a></li><li><a href="/2027/04/08/ascii-and-crt-effects/">ASCII and CRT Effects</a></li><li><a href="/2027/04/01/platform-terminal/">Platform Terminal</a></li><li><a href="/2027/03/25/inspector/">Inspector</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/04/"><span>April 2027</span><span class="count">4</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">24</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">23</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>
