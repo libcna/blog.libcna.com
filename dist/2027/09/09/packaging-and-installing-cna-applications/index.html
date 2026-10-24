@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Packaging and Installing CNA Applications | CNA&#39;s Blog</title>
+  <meta name="description" content="Turn a working CNA build into a relocatable application with content, runtime dependencies, platform metadata and reproducible release checks.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/09/09/packaging-and-installing-cna-applications/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Packaging and Installing CNA Applications">
+  <meta property="og:description" content="Turn a working CNA build into a relocatable application with content, runtime dependencies, platform metadata and reproducible release checks.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/09/09/packaging-and-installing-cna-applications/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-09-09T12:00:00Z">September 9, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Packaging and Installing CNA Applications</h1>
+      <p class="article-description">Turn a working CNA build into a relocatable application with content, runtime dependencies, platform metadata and reproducible release checks.</p>
+    </header>
+    <div class="article-body"><p>A binary that runs from its build directory is not yet a package. A CNA application also needs content, renderer and platform libraries, licenses, icons, metadata and a predictable way to find its files after installation.</p>
+<p>Use CMake install rules and the installed CNA C++ SDK rather than copying build-tree include paths. CNA&#39;s SDK exports relocatable targets and a version contract for downstream <code>find_package</code> consumers. Pin or record the CNA revision used for a release.</p>
+<p>Keep immutable content beside the application or in the platform bundle and write user data only through storage APIs. Test from a clean install directory with no source tree present; accidental relative paths often survive development unnoticed.</p>
+<h2 id="platform-packages">Platform packages</h2>
+<p>Desktop delivery may be an archive, installer or distribution package. Include only the chosen renderer&#39;s required shared libraries and preserve their legal notices. Linux portability depends on the targeted ABI and graphics stack, not only the executable bit. Windows packaging must account for the runtime and DLL search layout. macOS needs an application bundle, signing and possibly notarization.</p>
+<p>Android and iOS own their manifests, identifiers, icons, orientations, permissions, signing and store metadata. Web deployment ships HTML, JavaScript, Wasm and asset data with correct MIME, compression and security headers. Threaded Wasm additionally requires cross-origin isolation.</p>
+<p>Create packages in CI from a clean tagged source checkout. Smoke-test installation, startup, content loading, save location and uninstall behavior. Generate checksums and preserve symbol files separately for crash analysis.</p>
+<p>Do not package every optional backend “just in case.” A smaller, declared configuration is easier to test and support. A release artifact should say which platform, architecture, renderer and CNA version it contains, making the installed result as reproducible as the source build.</p>
+<h2 id="release-contents-and-upgrades">Release contents and upgrades</h2>
+<p>Generate a manifest with executable and asset hashes, licenses and build identity. Verify it after packaging and sign the final artifact where supported. Test download and installation through the same channel users receive.</p>
+<p>Upgrades must preserve saves while replacing immutable content. Test installation over the previous release and clean uninstall behavior; never remove shared runtime files or user data merely because one package stopped referencing them.</p>
+<h2 id="produce-a-release-manifest">Produce a release manifest</h2>
+<p>Start from a clean staging directory and copy only declared outputs: executable, CNA libraries, renderer and platform dependencies, content packages, licenses and configuration intended for users. Generate a manifest with version, architecture and hashes. A build should fail when a required library is missing or an unexpected developer file appears; packaging the working tree recursively is not a release process.</p>
+<p>Choose whether dependencies are bundled or documented prerequisites and keep the choice consistent per platform. Test on a clean machine without compilers, SDKs or environment variables. Verify that dynamic libraries resolve from intended locations and that optional renderer modules fail with a useful message rather than preventing the whole application from starting.</p>
+<h2 id="signing-updates-and-rollback">Signing, updates and rollback</h2>
+<p>Sign the final artifact after all transformations. Keep symbols separately under the same build identifier so crash reports can be decoded without shipping debug data. Publish checksums over HTTPS and make version metadata visible from the executable and logs.</p>
+<p>An updater downloads to a temporary location, verifies identity and integrity, closes running files safely, and installs atomically or with a recoverable transaction. Retain a rollback route when migration permits it. Test interrupted download, insufficient space, read-only destination, antivirus delay and launch after reboot. Treat save migration separately from program rollback: once a save is upgraded, an older executable may no longer understand it.</p>
+<h2 id="the-clean-machine-gate">The clean-machine gate</h2>
+<p>Before publishing, install the exact artifact into a fresh user account or disposable machine. Launch it without a network connection, create and reload a save, exercise each packaged renderer, then uninstall or update it through the supported route. Inspect leftover program files separately from intentionally retained user data. Archive the manifest, symbols, toolchain identifiers and signed artifact together. If the release cannot be reproduced and diagnosed later, packaging is not finished even when installation succeeds today.</p>
+<h2 id="worked-example-make-installation-part-of-cmake">Worked example: make installation part of CMake</h2>
+<p>Declare files rather than copying the whole build directory:</p>
+<pre><code class="language-cmake">install(TARGETS island_game
+    RUNTIME DESTINATION bin
+    BUNDLE DESTINATION .)
+
+install(DIRECTORY &quot;${CMAKE_CURRENT_SOURCE_DIR}/Content/&quot;
+    DESTINATION share/island-game/Content
+    FILES_MATCHING PATTERN &quot;*.cnb&quot; PATTERN &quot;*.json&quot;)
+
+install(FILES LICENSES/CNA.txt LICENSES/third-party.txt
+    DESTINATION share/island-game/licenses)
+
+set(CPACK_PACKAGE_NAME &quot;IslandGame&quot;)
+set(CPACK_PACKAGE_VERSION &quot;1.4.0&quot;)
+include(CPack)</code></pre>
+<p>Renderer libraries and platform runtime dependencies need equivalent explicit rules. Use install-time runtime dependency discovery only when its results are reviewed and filtered; accidentally bundling a system library can be as harmful as omitting a required one.</p>
+<p>Install into a staging prefix and produce a manifest:</p>
+<pre><code class="language-bash">cmake --install build --prefix stage
+find stage -type f -print0 | sort -z | xargs -0 sha256sum &gt; stage.manifest
+cpack --config build/CPackConfig.cmake</code></pre>
+<p>Generate the manifest before signing only if signing changes files; otherwise hash the final signed bytes. Archive symbols separately under the same immutable build ID. Print that ID in crash logs and the About screen.</p>
+<h2 id="upgrade-and-rollback-test">Upgrade and rollback test</h2>
+<p>Automate this sequence: install version N, create a save and settings, install N+1 over it, load and resave, uninstall application files, verify the documented user-data policy, then reinstall N+1. Also interrupt the updater after download, verification and partial replacement. The executable and content package must move as one compatible set.</p>
+<p>Run the test without compilers, SDKs or developer environment variables. Exercise offline startup and an unavailable optional renderer. A useful error names the missing module and fallback; a loader dialog about an unknown library is a packaging defect.</p>
+<h2 id="platform-specific-deliverables">Platform-specific deliverables</h2>
+<p>On Windows, choose archive versus installer and user versus machine scope, and keep runtime-library search in trusted application locations. On Linux, state whether the product is a distribution package or portable archive and test the oldest supported environment. On Apple/mobile, bundle layout, identity, entitlements and notarization/store validation are part of the executable contract.</p>
+<p>Web packages require MIME, compression and cache headers. Servers require immutable files separated from configuration/writable state, supervision and health endpoints. The manifest principle remains the same.</p>
+<p>Generate third-party notices from actually linked/bundled dependencies, then review them; package-manager metadata can omit fetched or statically linked code. Preserve source-offer obligations when applicable.</p>
+<h2 id="reproducibility-and-provenance">Reproducibility and provenance</h2>
+<p>Record compiler, linker, CNA revision, options, content compiler and dependency locks. Build in a clean environment and compare manifests. If signed timestamps prevent byte identity, explain and compare normalized contents.</p>
+<p>Promote the exact tested artifact between channels. Do not manually reassemble a “release” afterward. Checksums, signatures and uploads all refer to that single artifact; otherwise CI verified something users never received.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/cna/">#CNA</a><a href="/tag/packaging/">#Packaging</a><a href="/tag/cmake/">#CMake</a><a href="/tag/deployment/">#Deployment</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">CNA Project Roadmap and the Path to 1.0</a></li><li><a href="/2027/10/14/performance-checklist-for-cna-games/">Performance Checklist for CNA Games</a></li><li><a href="/2027/10/07/porting-an-xna-game-to-cna-step-by-step/">Porting an XNA Game to CNA Step by Step</a></li><li><a href="/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/">Migrating a MonoGame or FNA Project to CNA</a></li><li><a href="/2027/09/23/creating-a-new-cna-graphics-renderer/">Creating a New CNA Graphics Renderer</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/10/"><span>October 2027</span><span class="count">3</span></a></li><li><a href="/2027/09/"><span>September 2027</span><span class="count">5</span></a></li><li><a href="/2027/08/"><span>August 2027</span><span class="count">4</span></a></li><li><a href="/2027/07/"><span>July 2027</span><span class="count">5</span></a></li><li><a href="/2027/06/"><span>June 2027</span><span class="count">4</span></a></li><li><a href="/2027/05/"><span>May 2027</span><span class="count">4</span></a></li><li><a href="/2027/04/"><span>April 2027</span><span class="count">5</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">50</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">24</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/accessibility/">Accessibility</a><a href="/tag/alsa/">ALSA</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/basiceffect/">BasicEffect</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/compression/">Compression</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/debugging/">Debugging</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/deployment/">Deployment</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/enet/">ENet</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fullscreen/">Fullscreen</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/game-loop/">Game Loop</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/gestures/">Gestures</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/glsl/">GLSL</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/headless/">Headless</a><a href="/tag/hidpi/">HiDPI</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lifecycle/">Lifecycle</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/migration/">Migration</a><a href="/tag/mobile/">Mobile</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/networking/">Networking</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/optimization/">Optimization</a><a href="/tag/packaging/">Packaging</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/render-targets/">Render Targets</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/roadmap/">Roadmap</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/saves/">Saves</a><a href="/tag/scaling/">Scaling</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/serialization/">Serialization</a><a href="/tag/server/">Server</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/shaders/">Shaders</a><a href="/tag/shadows/">Shadows</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/skinning/">Skinning</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/spir-v/">SPIR-V</a><a href="/tag/spritebatch/">SpriteBatch</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/storage/">Storage</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/surfaceformat/">SurfaceFormat</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/textures/">Textures</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/touch/">Touch</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/ui/">UI</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/wgsl/">WGSL</a><a href="/tag/win32/">Win32</a><a href="/tag/windowing/">Windowing</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

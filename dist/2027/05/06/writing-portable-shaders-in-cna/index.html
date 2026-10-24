@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Writing Portable Shaders in CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="Build a CNA ShaderEffect package for OpenGL, SDL_GPU and WebGPU without confusing portable source shaders with compiled XNA effects.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/05/06/writing-portable-shaders-in-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Writing Portable Shaders in CNA">
+  <meta property="og:description" content="Build a CNA ShaderEffect package for OpenGL, SDL_GPU and WebGPU without confusing portable source shaders with compiled XNA effects.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/05/06/writing-portable-shaders-in-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-05-06T12:00:00Z">May 6, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Writing Portable Shaders in CNA</h1>
+      <p class="article-description">Build a CNA ShaderEffect package for OpenGL, SDL_GPU and WebGPU without confusing portable source shaders with compiled XNA effects.</p>
+    </header>
+    <div class="article-body"><p>CNA supports two different effect routes. Compiled XNA <code>.fx</code> bytecode preserves the historical content format on compatible renderers. <code>ShaderEffect</code> is the CNA extension for new source-level shaders. They solve different problems and should not be presented as interchangeable files.</p>
+<p>A portable <code>ShaderEffect</code> packages a variant for each intended backend: GLSL for the OpenGL family, SPIR-V for SDL_GPU and WGSL for WebGPU. The C++ class owns semantic parameters and chooses the correct package through the graphics device.</p>
+<p>Keep the public effect API backend-neutral:</p>
+<pre><code class="language-cpp">class HeatEffect final : public ShaderEffect
+{
+public:
+    explicit HeatEffect(GraphicsDevice&amp; device);
+    void setTime(float value);
+    void setDistortion(float value);
+protected:
+    void OnApply() override;
+};</code></pre>
+<p><code>OnApply()</code> uploads current values; game code should never know the binding number used by one renderer. Agree on uniform layout, sampler order, coordinate convention and color space across every shader variant. SDL_GPU layout rules deserve particular attention because a shader that compiles can still read the wrong offsets.</p>
+<h2 id="design-for-capability-differences">Design for capability differences</h2>
+<p>Query renderer capabilities before enabling the effect. A software or headless renderer may not execute custom GPU shaders. Provide an intentional fallback—skip the cosmetic pass, select a stock effect or use a CPU implementation—instead of treating an unsupported shader as a mysterious black frame.</p>
+<p>Render a small deterministic fixture for each variant. Include a non-square texture, asymmetric colors and coordinates near every edge; symmetrical test pictures hide flips and binding mistakes. Compare results with a documented tolerance, not by eye alone.</p>
+<p>Use a render target for full-screen effects and draw the completed scene once. Applying screen-coordinate effects per sprite changes their meaning and multiplies state work. Restore render targets, viewport and blend state explicitly so the next pass does not inherit accidental configuration.</p>
+<p>Finally, keep shader packages versioned beside their C++ wrapper. A parameter rename must update GLSL, SPIR-V generation, WGSL, tests and documentation together. Portable shaders are not “write once”; they are one effect contract implemented and verified several times.</p>
+<h2 id="parameter-and-resource-discipline">Parameter and resource discipline</h2>
+<p>Define one table for every parameter: C++ name, shader name, type, default and update frequency. Frame constants such as time and camera matrices should not be rebuilt for every sprite, while object constants must change before each draw. Texture and sampler slots are distinct resources on some backends; document both instead of relying on the OpenGL binding model.</p>
+<p>Matrices deserve a dedicated fixture. Upload identity, translation and a deliberately asymmetric projection, then compare known vertices. This catches transpose and multiplication-order errors before they become a distorted scene. Decide whether every color input is linear or sRGB and never repair a mismatch by tuning only one shader variant.</p>
+<p>Preserve compiler diagnostics and generated SPIR-V as build artifacts. At runtime, report the selected dialect and effect name when creation fails. Hot reload improves iteration, but a release must use the validated package. When adding a backend, begin with flat color, then add sampling, uniforms and optional features separately so the first broken contract is obvious.</p>
+<h2 id="a-repeatable-shader-workflow">A repeatable shader workflow</h2>
+<p>Keep every shader beside a tiny scene that proves its contract. The scene should exercise each technique, vertex layout, texture slot and important parameter; a shader tested only through a large game is unnecessarily hard to diagnose. Compile assets during the build, record the compiler version, and fail when a required backend artifact is absent. Never substitute an old binary left in the output directory.</p>
+<p>Resolve techniques and parameters once during loading instead of performing string lookup for every draw. Separate camera, material and object updates: view and projection usually change per camera, material data per batch, and world transforms per object. This makes redundant state visible and maps cleanly onto backends with different constant-buffer strategies.</p>
+<p>When output differs, reduce it methodically. Replace the pixel stage with a constant color, then visualize UVs, normals and depth. Disable fog, lighting and branches one feature at a time. If constant color is wrong, investigate geometry, declarations and transforms. If only sampling is wrong, inspect resource slots, sampler state, color space and texture orientation.</p>
+<p>Portable does not mean permanently restricted to the weakest device. Maintain a dependable baseline technique and explicit enhanced techniques for extra lights or normal mapping. Choose them from advertised capabilities, not renderer names. The game then has a documented fallback rather than backend-specific accidents.</p>
+<h2 id="worked-example-a-portable-tint-effect">Worked example: a portable tint effect</h2>
+<p>Let us build something small enough to understand completely: a SpriteBatch effect that multiplies a texture by a tint. The effect needs a vertex and fragment stage, one sampled 2D texture and one <code>vec4</code> parameter. Start with the GLSL ES variant because its inputs make the contract easy to see:</p>
+<pre><code class="language-glsl">// tint.vert.glsl — GLSL ES 3.0
+#version 300 es
+precision highp float;
+
+layout(location = 0) in vec2 aPosition;
+layout(location = 1) in vec2 aTexCoord;
+layout(location = 2) in vec4 aColor;
+
+uniform mat4 uMatrix;
+out vec2 vTexCoord;
+out vec4 vColor;
+
+void main()
+{
+    gl_Position = uMatrix * vec4(aPosition, 0.0, 1.0);
+    vTexCoord = aTexCoord;
+    vColor = aColor;
+}</code></pre>
+<pre><code class="language-glsl">// tint.frag.glsl — GLSL ES 3.0
+#version 300 es
+precision highp float;
+
+in vec2 vTexCoord;
+in vec4 vColor;
+uniform sampler2D uTexture;
+uniform vec4 uTint;
+out vec4 fragColor;
+
+void main()
+{
+    fragColor = texture(uTexture, vTexCoord) * vColor * uTint;
+}</code></pre>
+<p>The important part is not the multiplication. It is the interface: locations 0–2, matrix name, texture unit and tint type are now a contract. The desktop GLSL, Vulkan GLSL/SPIR-V and WGSL versions must implement that same meaning even when their syntax and binding declarations differ.</p>
+<p>For SDL<em>GPU source GLSL, follow CNA&#39;s documented descriptor layout. SpriteBatch&#39;s own 2D texture may use portable set 0/binding 0; native SDL</em>GPU fragment samplers occupy set 2. The per-draw uniform block is a 128-byte <code>std140</code> block. A shader that merely declares <code>uniform vec4 uTint</code> can compile on OpenGL but is not automatically a valid SDL_GPU layout. This is why the package contains real backend variants instead of relabeling one source string.</p>
+<h2 id="put-the-variants-into-shaderpackageext">Put the variants into <code>ShaderPackageEXT</code></h2>
+<p>With <code>CNA_CNAEXT</code> enabled, describe every payload with its real language, stage, entry point and diagnostic label. Text languages use strings; SPIR-V uses a byte vector whose size is a multiple of four.</p>
+<pre><code class="language-cpp">#include &quot;CNA/Graphics/ShaderCodeEXT.hpp&quot;
+#include &quot;CNA/Graphics/ShaderPackageEXT.hpp&quot;
+#include &quot;CNA/ShaderLanguageEXT.hpp&quot;
+#include &quot;CNA/ShaderStageEXT.hpp&quot;
+#include &quot;Microsoft/Xna/Framework/Graphics/ShaderEffect.hpp&quot;
+
+using CNA::Graphics::ShaderCodeEXT;
+using CNA::Graphics::ShaderPackageEXT;
+using CNA::ShaderLanguageEXT;
+using CNA::ShaderStageEXT;
+using Microsoft::Xna::Framework::Graphics::GraphicsDevice;
+using Microsoft::Xna::Framework::Graphics::ShaderEffect;
+
+ShaderPackageEXT MakeTintPackage(
+    std::string glslEsVertex,
+    std::string glslEsFragment,
+    std::string wgslVertex,
+    std::string wgslFragment,
+    std::vector&lt;std::uint8_t&gt; spirvVertex,
+    std::vector&lt;std::uint8_t&gt; spirvFragment)
+{
+    std::vector&lt;ShaderCodeEXT&gt; variants;
+    variants.emplace_back(ShaderLanguageEXT::GlslEs,
+        ShaderStageEXT::Vertex, &quot;main&quot;, &quot;tint.vert.glsl&quot;, glslEsVertex);
+    variants.emplace_back(ShaderLanguageEXT::GlslEs,
+        ShaderStageEXT::Fragment, &quot;main&quot;, &quot;tint.frag.glsl&quot;, glslEsFragment);
+    variants.emplace_back(ShaderLanguageEXT::Wgsl,
+        ShaderStageEXT::Vertex, &quot;vs_main&quot;, &quot;tint.wgsl&quot;, wgslVertex);
+    variants.emplace_back(ShaderLanguageEXT::Wgsl,
+        ShaderStageEXT::Fragment, &quot;fs_main&quot;, &quot;tint.wgsl&quot;, wgslFragment);
+    variants.emplace_back(ShaderLanguageEXT::SpirV,
+        ShaderStageEXT::Vertex, &quot;main&quot;, &quot;tint.vert.spv&quot;, spirvVertex);
+    variants.emplace_back(ShaderLanguageEXT::SpirV,
+        ShaderStageEXT::Fragment, &quot;main&quot;, &quot;tint.frag.spv&quot;, spirvFragment);
+
+    return ShaderPackageEXT(
+        std::move(variants),
+        {ShaderStageEXT::Vertex, ShaderStageEXT::Fragment});
+}</code></pre>
+<p>The package selector chooses one <em>complete</em> language pair supported by the live device. It does not combine a WGSL vertex stage with a GLSL fragment stage. Binary formats are preferred in CNA&#39;s deterministic selection order. If no complete pair is usable, construction reports the considered variants and refusal reasons.</p>
+<p>Create the effect once during loading and fail with its real diagnostic:</p>
+<pre><code class="language-cpp">auto package = MakeTintPackage(
+    ReadText(&quot;shaders/tint.vert.glsl&quot;),
+    ReadText(&quot;shaders/tint.frag.glsl&quot;),
+    ReadText(&quot;shaders/tint.wgsl&quot;),
+    ReadText(&quot;shaders/tint.wgsl&quot;),
+    ReadBytes(&quot;shaders/tint.vert.spv&quot;),
+    ReadBytes(&quot;shaders/tint.frag.spv&quot;));
+
+auto tintEffect = std::make_unique&lt;ShaderEffect&gt;(graphicsDevice, package);
+if (!tintEffect-&gt;IsEffectValid())
+    throw std::runtime_error(tintEffect-&gt;GetCompileErrorEXT());</code></pre>
+<p>Keep source labels meaningful. <code>GetShaderDiagnosticsEXT()</code> can then point to <code>tint.frag.glsl</code> and a source location instead of reporting an anonymous failed string.</p>
+<h2 id="wrap-raw-uniforms-behind-a-game-facing-class">Wrap raw uniforms behind a game-facing class</h2>
+<p>Game code should not scatter <code>SetUniformVec4(&quot;uTint&quot;, ...)</code> throughout rendering. A small wrapper gives the parameter a type and one update point:</p>
+<pre><code class="language-cpp">class TintEffect final : public ShaderEffect
+{
+public:
+    TintEffect(GraphicsDevice&amp; device, const ShaderPackageEXT&amp; package)
+        : ShaderEffect(device, package) {}
+
+    void SetTint(float r, float g, float b, float a)
+    {
+        tint_ = {r, g, b, a};
+    }
+
+protected:
+    void OnApply() override
+    {
+        ShaderEffect::OnApply();
+        SetUniformVec4(&quot;uTint&quot;, tint_[0], tint_[1], tint_[2], tint_[3]);
+    }
+
+private:
+    std::array&lt;float, 4&gt; tint_{1.0f, 1.0f, 1.0f, 1.0f};
+};</code></pre>
+<p>Use it like any effect passed to SpriteBatch:</p>
+<pre><code class="language-cpp">tintEffect.SetTint(1.0f, 0.65f, 0.35f, 1.0f);
+spriteBatch.Begin(SpriteSortMode::Immediate,
+                  BlendState::AlphaBlend,
+                  SamplerState::LinearClamp,
+                  nullptr, nullptr,
+                  &amp;tintEffect);
+spriteBatch.Draw(texture, destination, Color::White);
+spriteBatch.End();</code></pre>
+<p>Use the exact <code>SpriteBatch::Begin</code> overload present in the CNA revision you build against; the essential rule is that the same effect object receives parameters before its pass is applied. For additional textures, bind them with <code>SetTexture(unit, texture)</code> and declare the matching 2D, cube or 3D binding in the package.</p>
+<h2 id="compile-spir-v-reproducibly">Compile SPIR-V reproducibly</h2>
+<p>Do not compile production shaders by hand and commit an unexplained binary. Make the compiler invocation part of the build. One possible CMake shape is:</p>
+<pre><code class="language-cmake">find_program(GLSLANG_VALIDATOR glslangValidator REQUIRED)
+
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tint.vert.spv
+    COMMAND ${GLSLANG_VALIDATOR} -V
+            ${CMAKE_CURRENT_SOURCE_DIR}/shaders/tint.vert.vk.glsl
+            -o ${CMAKE_CURRENT_BINARY_DIR}/tint.vert.spv
+    DEPENDS shaders/tint.vert.vk.glsl
+    VERBATIM)
+
+add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/tint.frag.spv
+    COMMAND ${GLSLANG_VALIDATOR} -V
+            ${CMAKE_CURRENT_SOURCE_DIR}/shaders/tint.frag.vk.glsl
+            -o ${CMAKE_CURRENT_BINARY_DIR}/tint.frag.spv
+    DEPENDS shaders/tint.frag.vk.glsl
+    VERBATIM)</code></pre>
+<p>Pin or record the compiler version in release artifacts. Validate SPIR-V during the build, and copy every selected variant beside the executable or embed it through one deterministic generated source. A stale fragment binary combined with a new C++ wrapper is a package error even if both files individually compile.</p>
+<h2 id="prove-the-effect-is-portable">Prove the effect is portable</h2>
+<p>Render a 4×4 test texture whose corners are red, green, blue and white into a small target. Draw it at a non-square size with a tint such as <code>(0.5, 0.75, 1.0, 1.0)</code>. Read the target back and check known pixels. The asymmetric source exposes flips; the non-neutral tint proves the uniform was uploaded; alpha over a contrasting clear color proves the blend contract.</p>
+<p>Run that fixture for every renderer/language combination you publish. Store:</p>
+<ul><li>selected shader language and source labels;</li><li>renderer, adapter and driver identity;</li><li>compiler diagnostics, even warnings;</li><li>the actual image and a difference image;</li><li>exact or tolerance-based comparison rules.</li></ul>
+<p>If OpenGL passes and SDL_GPU fails, first check descriptor sets and <code>std140</code> offsets. If WebGPU alone fails, inspect WGSL entry points and resource groups. If every backend produces the same wrong tint, the shared wrapper or expected image is probably wrong. This is the level at which a “portable shader” becomes an engineering claim rather than a filename.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/cna/">#CNA</a><a href="/tag/shaders/">#Shaders</a><a href="/tag/glsl/">#GLSL</a><a href="/tag/spir-v/">#SPIR-V</a><a href="/tag/wgsl/">#WGSL</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">CNA Project Roadmap and the Path to 1.0</a></li><li><a href="/2027/10/14/performance-checklist-for-cna-games/">Performance Checklist for CNA Games</a></li><li><a href="/2027/10/07/porting-an-xna-game-to-cna-step-by-step/">Porting an XNA Game to CNA Step by Step</a></li><li><a href="/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/">Migrating a MonoGame or FNA Project to CNA</a></li><li><a href="/2027/09/23/creating-a-new-cna-graphics-renderer/">Creating a New CNA Graphics Renderer</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/10/"><span>October 2027</span><span class="count">3</span></a></li><li><a href="/2027/09/"><span>September 2027</span><span class="count">5</span></a></li><li><a href="/2027/08/"><span>August 2027</span><span class="count">4</span></a></li><li><a href="/2027/07/"><span>July 2027</span><span class="count">5</span></a></li><li><a href="/2027/06/"><span>June 2027</span><span class="count">4</span></a></li><li><a href="/2027/05/"><span>May 2027</span><span class="count">4</span></a></li><li><a href="/2027/04/"><span>April 2027</span><span class="count">5</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">50</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">24</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/accessibility/">Accessibility</a><a href="/tag/alsa/">ALSA</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/basiceffect/">BasicEffect</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/compression/">Compression</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/debugging/">Debugging</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/deployment/">Deployment</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/enet/">ENet</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fullscreen/">Fullscreen</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/game-loop/">Game Loop</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/gestures/">Gestures</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/glsl/">GLSL</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/headless/">Headless</a><a href="/tag/hidpi/">HiDPI</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lifecycle/">Lifecycle</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/migration/">Migration</a><a href="/tag/mobile/">Mobile</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/networking/">Networking</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/optimization/">Optimization</a><a href="/tag/packaging/">Packaging</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/render-targets/">Render Targets</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/roadmap/">Roadmap</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/saves/">Saves</a><a href="/tag/scaling/">Scaling</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/serialization/">Serialization</a><a href="/tag/server/">Server</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/shaders/">Shaders</a><a href="/tag/shadows/">Shadows</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/skinning/">Skinning</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/spir-v/">SPIR-V</a><a href="/tag/spritebatch/">SpriteBatch</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/storage/">Storage</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/surfaceformat/">SurfaceFormat</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/textures/">Textures</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/touch/">Touch</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/ui/">UI</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/wgsl/">WGSL</a><a href="/tag/win32/">Win32</a><a href="/tag/windowing/">Windowing</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

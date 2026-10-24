@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lighting, Shadows and PBR in CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="Progress from BasicEffect lighting to shadow maps and CNA&#39;s optional physically based material workflow.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/07/29/lighting-shadows-and-pbr-in-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Lighting, Shadows and PBR in CNA">
+  <meta property="og:description" content="Progress from BasicEffect lighting to shadow maps and CNA&#39;s optional physically based material workflow.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/07/29/lighting-shadows-and-pbr-in-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-07-29T12:00:00Z">July 29, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Lighting, Shadows and PBR in CNA</h1>
+      <p class="article-description">Progress from BasicEffect lighting to shadow maps and CNA&#39;s optional physically based material workflow.</p>
+    </header>
+    <div class="article-body"><p>CNA supports several lighting levels rather than forcing one material system. <code>BasicEffect</code> provides XNA-compatible directional lighting, ambient and emissive terms. More advanced CNA extensions and CNA Engine can add physically based materials, image-based lighting, local lights and shadows.</p>
+<p>Begin with correct geometry. Lit vertices need normals in a supported layout, transforms must treat directions correctly, and non-uniform scaling may require a normal matrix. Validate one white directional light before adding textures or several sources.</p>
+<p>PBR materials separate base color, metalness, roughness, normals and occlusion. Imported glTF assets must follow CNA&#39;s coordinate, tangent and texture conventions. A fallback renderer may use a simpler stock effect, but that fallback should preserve object identity and transparency rules even if it cannot reproduce the same response.</p>
+<h2 id="shadows-are-another-rendering-problem">Shadows are another rendering problem</h2>
+<p>A directional shadow map first renders depth from the light, then samples that map while drawing the camera view. Choose a stable light projection, bias carefully and inspect the depth target directly when debugging. Too little bias creates acne; too much detaches shadows from objects.</p>
+<p>Shadow resolution, caster count and update frequency are quality controls. Static or distant content may not need a fresh map every frame. Cull casters against the light volume and expose shadow draw counts in diagnostics.</p>
+<p>Image-based lighting needs environment data and a defined exposure. Do not compensate for an incorrect color space by arbitrarily changing light intensity. Base-color textures are commonly sRGB while normal and ORM data are linear; format selection must preserve that distinction on supported renderers.</p>
+<p>Test materials under neutral lights, extreme roughness and metalness, missing maps, mirrored transforms and renderer fallback. Screenshot tolerances should be renderer-aware because floating-point and sampling details vary, but large energy, orientation or channel errors are not aesthetic differences.</p>
+<p>The maintainable approach is layered: XNA-compatible effects for the broad baseline, capability-gated enhancements for richer renderers, and one material description that can select the best valid binder without hiding which path was used.</p>
+<h2 id="authoring-and-performance">Authoring and performance</h2>
+<p>Review imports on reference spheres under neutral lighting. Check normal-map handedness, ORM channels, alpha mode and double-sided intent before tuning lights. Preserve physical meaning: metalness is not a generic reflection slider.</p>
+<p>Cull local lights, bound shadow casters and reuse static environment data. Measure shadow draws and target switches separately from the main pass. When falling back, record omitted material features so differences remain documented rather than becoming vague renderer “quality.”</p>
+<h2 id="from-material-inputs-to-final-light">From material inputs to final light</h2>
+<p>Define the material contract before authoring content: base color, metalness, roughness, normal, emissive and occlusion, including color space and packed channels. Base color and emissive textures are typically color data; roughness, metalness and normals are numeric data and must not receive the same gamma treatment. Provide neutral defaults so a missing map has predictable meaning.</p>
+<p>Transform normals correctly under non-uniform scale and keep tangent basis handedness consistent with the content pipeline. Test with a directional light rotating around a reference sphere and plane. If the highlight flips or a normal map appears embossed inward, investigate basis conventions before altering artist values.</p>
+<h2 id="shadow-discipline">Shadow discipline</h2>
+<p>Select shadow casters and receivers explicitly. Directional lights may use cascades; local lights require different projections and costs. Stabilize directional projections where possible to reduce shimmering, apply bias in the correct space, and visualize shadow-map depth and cascade selection. Too much bias disconnects shadows from objects, while too little causes self-shadowing acne.</p>
+<p>Budget shadows by submitted geometry, target pixels and update frequency. Static lights can reuse maps until a caster moves. Small or distant lights may omit shadows, but the rule should be visible in tooling. Filter quality, cascade count and resolution make useful quality tiers.</p>
+<p>Validate PBR under a neutral environment before a dramatic scene. Use dielectric, metallic, rough and smooth reference materials, inspect energy behavior at grazing angles and compare backends with identical exposure and tone mapping. A renderer fallback may simplify the model, but it should preserve recognizable base color, opacity and light direction rather than silently substituting arbitrary constants.</p>
+<h2 id="worked-example-establish-a-lighting-baseline">Worked example: establish a lighting baseline</h2>
+<p>Before PBR, prove coordinate and normal conventions with <code>BasicEffect</code>:</p>
+<pre><code class="language-cpp">BasicEffect effect(device);
+effect.setWorldProperty(world);
+effect.setViewProperty(view);
+effect.setProjectionProperty(projection);
+effect.setLightingEnabledProperty(true);
+effect.EnableDefaultLighting();
+effect.setPreferPerPixelLightingProperty(true);
+effect.setTextureEnabledProperty(true);
+effect.setTextureProperty(&amp;albedo);</code></pre>
+<p>Render a sphere, cube and non-uniformly scaled object. If stock lighting is wrong, a custom PBR shader will not rescue the underlying vertex layout, winding or transform convention.</p>
+<p>For PBR, define a material record whose fields name meaning and color space:</p>
+<pre><code class="language-cpp">struct PbrMaterial {
+    Texture2D* baseColorSrgb;
+    Texture2D* normalLinear;
+    Texture2D* ormLinear; // R=occlusion, G=roughness, B=metalness
+    Vector4 baseColorFactor{1,1,1,1};
+    float roughnessFactor = 1.0f;
+    float metalnessFactor = 1.0f;
+    AlphaMode alphaMode = AlphaMode::Opaque;
+};</code></pre>
+<p>The shader converts base color to linear, keeps numeric maps linear, evaluates light, and tone-maps once at the end. Never compensate for a gamma mistake by changing artist values.</p>
+<h2 id="shadow-map-pass">Shadow-map pass</h2>
+<p>Render depth from the light into a target, then sample it from the camera pass using <code>lightViewProjection</code>. Visualize the depth texture and projected coordinates. Test a plane plus floating cube while varying slope and constant bias. Bias that hides acne but disconnects the cube&#39;s shadow is not a correct fix.</p>
+<p>Record shadow resolution, cascades, casters, draws and update frequency. Update static-light maps only after a caster changes. Quality tiers can reduce cascades, resolution or shadowed local lights in a stated order. Keep the neutral material chart in cross-renderer captures so exposure and shadow differences cannot hide behind a beautiful environment.</p>
+<h2 id="light-selection-and-environment-terms">Light selection and environment terms</h2>
+<p>Do not upload every light to every object. Partition or cull by influence, rank the remaining lights by a documented importance measure, and keep limits visible. Sudden changes in the selected set can flicker, so use stable ordering or hysteresis where necessary. Record considered and selected counts per object or tile.</p>
+<p>Image-based lighting normally separates diffuse irradiance from a prefiltered specular environment and a BRDF lookup. These assets must share the renderer&#39;s cube orientation and color-space conventions. Validate with a chrome sphere and a very rough sphere: the former exposes reflection direction and seams, the latter exposes diffuse/environment energy.</p>
+<p>Tone mapping and exposure are part of comparison. Lock them when testing renderers. Automatic exposure can make a darker incorrect frame appear similar after several seconds. Include raw linear target checks or fixed-exposure captures for parity fixtures.</p>
+<h2 id="authoring-and-fallback-checklist">Authoring and fallback checklist</h2>
+<p>Import base color, normal, occlusion/roughness/metalness, emissive, alpha mode and double-sided intent explicitly. Verify a material grid containing dielectric/metallic and rough/smooth extremes. Rotate one directional light and environment, inspect grazing angles, then add shadow receivers and alpha-tested casters.</p>
+<p>On a backend without the full PBR route, map base color, opacity and dominant light into a declared simpler technique. Report omitted normal, environment or shadow features. A fallback is useful when it preserves scene meaning and can be tested; a fixed white stock shader is not a material fallback.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/cna/">#CNA</a><a href="/tag/lighting/">#Lighting</a><a href="/tag/shadows/">#Shadows</a><a href="/tag/pbr/">#PBR</a><a href="/tag/graphics/">#Graphics</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">CNA Project Roadmap and the Path to 1.0</a></li><li><a href="/2027/10/14/performance-checklist-for-cna-games/">Performance Checklist for CNA Games</a></li><li><a href="/2027/10/07/porting-an-xna-game-to-cna-step-by-step/">Porting an XNA Game to CNA Step by Step</a></li><li><a href="/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/">Migrating a MonoGame or FNA Project to CNA</a></li><li><a href="/2027/09/23/creating-a-new-cna-graphics-renderer/">Creating a New CNA Graphics Renderer</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/10/"><span>October 2027</span><span class="count">3</span></a></li><li><a href="/2027/09/"><span>September 2027</span><span class="count">5</span></a></li><li><a href="/2027/08/"><span>August 2027</span><span class="count">4</span></a></li><li><a href="/2027/07/"><span>July 2027</span><span class="count">5</span></a></li><li><a href="/2027/06/"><span>June 2027</span><span class="count">4</span></a></li><li><a href="/2027/05/"><span>May 2027</span><span class="count">4</span></a></li><li><a href="/2027/04/"><span>April 2027</span><span class="count">5</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">50</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">24</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/accessibility/">Accessibility</a><a href="/tag/alsa/">ALSA</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/basiceffect/">BasicEffect</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/compression/">Compression</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/debugging/">Debugging</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/deployment/">Deployment</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/enet/">ENet</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fullscreen/">Fullscreen</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/game-loop/">Game Loop</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/gestures/">Gestures</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/glsl/">GLSL</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/headless/">Headless</a><a href="/tag/hidpi/">HiDPI</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lifecycle/">Lifecycle</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/migration/">Migration</a><a href="/tag/mobile/">Mobile</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/networking/">Networking</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/optimization/">Optimization</a><a href="/tag/packaging/">Packaging</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/render-targets/">Render Targets</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/roadmap/">Roadmap</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/saves/">Saves</a><a href="/tag/scaling/">Scaling</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/serialization/">Serialization</a><a href="/tag/server/">Server</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/shaders/">Shaders</a><a href="/tag/shadows/">Shadows</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/skinning/">Skinning</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/spir-v/">SPIR-V</a><a href="/tag/spritebatch/">SpriteBatch</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/storage/">Storage</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/surfaceformat/">SurfaceFormat</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/textures/">Textures</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/touch/">Touch</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/ui/">UI</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/wgsl/">WGSL</a><a href="/tag/win32/">Win32</a><a href="/tag/windowing/">Windowing</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

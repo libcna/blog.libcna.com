@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Models, Animation and Skinning in CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="Load CNA models, traverse meshes and bones, play animation clips and render weighted vertices with SkinnedEffect.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/07/08/models-animation-and-skinning-in-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Models, Animation and Skinning in CNA">
+  <meta property="og:description" content="Load CNA models, traverse meshes and bones, play animation clips and render weighted vertices with SkinnedEffect.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/07/08/models-animation-and-skinning-in-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-07-08T12:00:00Z">July 8, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Models, Animation and Skinning in CNA</h1>
+      <p class="article-description">Load CNA models, traverse meshes and bones, play animation clips and render weighted vertices with SkinnedEffect.</p>
+    </header>
+    <div class="article-body"><p>CNA&#39;s runtime <code>Model</code> API mirrors XNA&#39;s hierarchy of bones, meshes, mesh parts, effects and buffers. A loaded model is not a single draw call: copy absolute bone transforms, combine each mesh parent with the object&#39;s world transform, apply its effects and draw its parts.</p>
+<p>The CNA content format is not FNA&#39;s binary XNB model representation. Use CNA&#39;s content pipeline and documented readers, or import glTF through the supported route. Keep source assets and build recipes so generated content can be reproduced.</p>
+<h2 id="skinning">Skinning</h2>
+<p><code>SkinnedEffect</code> transforms each vertex by a weighted blend of bones before the ordinary world, view and projection transforms. CNA audits defaults, maximum bone counts, palette bounds and multi-bone blending against expected XNA behavior.</p>
+<p>An animation system evaluates a clip at simulation time, creates local bone transforms, composes the hierarchy and uploads the resulting palette. Normalize time for looping clips and define what happens at the exact end. Cross-fading blends compatible poses before building final skin matrices; blending already transformed vertices is too late.</p>
+<p>CNA&#39;s <code>SkinnedModelEXT</code> is a separate extension path for richer imported data and should not be confused with the core <code>Model</code> reader. Choose one asset contract deliberately and isolate conversion in the content layer.</p>
+<p>Performance depends on visible meshes, palette uploads and vertex count. Cull the model before evaluating expensive animation when possible, share immutable model data across instances, and keep per-character pose state separate. Do not mutate effects stored on a shared model without understanding who else draws it.</p>
+<p>Tests should include identity bones, one translated bone, a two-bone weighted vertex, a non-zero root, looping boundaries and a cloned effect. A recognizable character is useful visually, but tiny numeric fixtures reveal whether the fault lies in import, hierarchy composition, interpolation or the shader.</p>
+<h2 id="import-and-runtime-boundaries">Import and runtime boundaries</h2>
+<p>Validate indices, finite transforms, normalized weights, materials and bone references immediately after import. Decide how missing normals, tangents or clips are handled in the pipeline instead of inventing renderer-specific fallbacks.</p>
+<p>Animation events should detect clip-time marker crossings, including wraparound and large timesteps. Root motion needs one authority: animation or gameplay. Keep a bind-pose view and skeleton debug drawing; they distinguish a bad palette from a material or vertex-layout fault quickly.</p>
+<h2 id="evaluating-a-pose">Evaluating a pose</h2>
+<p>For every active clip, locate the keyframes around playback time and interpolate translation, rotation and scale with the appropriate operations. Build each local bone transform, combine it with its parent in hierarchy order, then multiply by the inverse bind pose to obtain the skinning palette expected by the shader. The exact multiplication convention must match CNA and the imported asset; capture a two-bone test where an incorrect order is unmistakable.</p>
+<p>Blending two clips means blending local poses before hierarchy propagation. Additive layers require a defined reference pose, while masks specify which bones a layer may affect. Normalize quaternions after interpolation and define behavior for missing tracks. Reusing the previous frame for an absent track can make results depend on playback history.</p>
+<h2 id="runtime-budgets-and-fallback">Runtime budgets and fallback</h2>
+<p>GPU skinning is usually the main path, but palette size is finite. The content pipeline may split a mesh into bone palettes or select a CPU fallback. Report that choice and its cost. Update animation only as often as needed for distant characters, but continue root motion and gameplay events at simulation frequency.</p>
+<p>Keep mesh geometry, skeleton and clips shareable while each character owns playback state and its current matrices. Allocate pose buffers once and reuse them. At load time, reject cyclic hierarchies, invalid parents, out-of-range blend indices and weights that cannot be normalized safely.</p>
+<p>Regression assets should include one rigid vertex, a weighted joint, non-uniform scale, multiple clips and a loop boundary. Compare a reference pose at exact timestamps, then render it across backends. This separates animation math from vertex layout, matrix upload and shader defects.</p>
+<h2 id="content-diagnostics-worth-keeping">Content diagnostics worth keeping</h2>
+<p>At import time, print mesh names, vertex layouts, material bindings, skeleton size, palette partitions, clip duration and keyframe count. At runtime, expose current clip, normalized time, blend weights and root-motion delta. Allow pausing on an exact timestamp and drawing bone axes over the mesh. These tools are inexpensive compared with diagnosing a character whose elbow fails only in one transition, and they give artists actionable information without requiring a graphics debugger.</p>
+<h2 id="worked-example-evaluate-a-palette">Worked example: evaluate a palette</h2>
+<p>Separate local sampling, hierarchy propagation and inverse-bind multiplication:</p>
+<pre><code class="language-cpp">void Animator::Evaluate(float time)
+{
+    for (std::size_t i = 0; i &lt; bones_.size(); ++i)
+        local_[i] = clip_.SampleBone(i, time, bones_[i].bindLocal);
+
+    for (std::size_t i = 0; i &lt; bones_.size(); ++i) {
+        const int parent = bones_[i].parent;
+        absolute_[i] = parent &lt; 0 ? local_[i]
+                                  : local_[i] * absolute_[parent];
+        palette_[i] = bones_[i].inverseBind * absolute_[i];
+    }
+}</code></pre>
+<p>Matrix order must match CNA and the importer; prove it with a two-bone asset, not intuition. With <code>SkinnedEffect</code>, assign bone transforms before applying passes. A custom <code>ShaderEffect</code> uses <code>SetUniformMat4Array</code>; setting one matrix does not fill a palette.</p>
+<p>Blend clips in local pose space, then propagate once. Missing tracks use the bind local transform, never the previous frame. Process animation markers from previous to current time and include wraparound and multi-marker jumps. Root motion belongs to either gameplay or visual animation, not both.</p>
+<p>Reject cyclic skeletons, invalid parents and indices, non-finite transforms and weights that cannot be normalized. Keep bind-pose, skeleton-axis and vertex-weight debug views. Together they identify whether corruption begins in import, pose evaluation, upload or shader execution.</p>
+<h2 id="import-rules-and-material-linkage">Import rules and material linkage</h2>
+<p>Keep source nodes, meshes, skins, animations and materials distinct during import. One mesh may be instanced by several nodes; one skeleton may drive several mesh parts. Flattening everything into one object too early duplicates data and loses the transform relationships needed to diagnose it.</p>
+<p>Convert coordinate system and units once, including inverse bind matrices and animation channels. Generate normals or tangents only under a documented policy. If a material needs tangent-space normal mapping but the mesh has no valid UV/tangent basis, disable that feature with a warning or fail content validation—do not let one renderer read arbitrary bytes.</p>
+<p>Palette limits are a content decision. When a mesh references more bones than a backend can upload, split it into parts whose vertices and indices map to local palettes, or choose a measured CPU-skinning fallback. Report the chosen route and keep palette remapping in the built asset so runtime behavior is deterministic.</p>
+<h2 id="playback-and-performance">Playback and performance</h2>
+<p>Allocate local, absolute and palette arrays once per animator. Share immutable skeletons and clips among characters. Distant characters can sample less often and interpolate visual poses, but gameplay events and authoritative root motion still advance at simulation frequency. Do not skip a footstep event merely because the mesh was off screen.</p>
+<p>Qualification should seek to exact beginning, middle, last key and loop boundary; blend two unrelated clips at several weights; test reverse or scaled time if supported; and recreate the graphics device while retaining CPU animation state. Store numeric bone transforms for tiny oracle assets in addition to screenshots. That catches a math regression even when camera or shading changes later.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/cna/">#CNA</a><a href="/tag/models/">#Models</a><a href="/tag/animation/">#Animation</a><a href="/tag/skinning/">#Skinning</a><a href="/tag/gltf/">#glTF</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">CNA Project Roadmap and the Path to 1.0</a></li><li><a href="/2027/10/14/performance-checklist-for-cna-games/">Performance Checklist for CNA Games</a></li><li><a href="/2027/10/07/porting-an-xna-game-to-cna-step-by-step/">Porting an XNA Game to CNA Step by Step</a></li><li><a href="/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/">Migrating a MonoGame or FNA Project to CNA</a></li><li><a href="/2027/09/23/creating-a-new-cna-graphics-renderer/">Creating a New CNA Graphics Renderer</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/10/"><span>October 2027</span><span class="count">3</span></a></li><li><a href="/2027/09/"><span>September 2027</span><span class="count">5</span></a></li><li><a href="/2027/08/"><span>August 2027</span><span class="count">4</span></a></li><li><a href="/2027/07/"><span>July 2027</span><span class="count">5</span></a></li><li><a href="/2027/06/"><span>June 2027</span><span class="count">4</span></a></li><li><a href="/2027/05/"><span>May 2027</span><span class="count">4</span></a></li><li><a href="/2027/04/"><span>April 2027</span><span class="count">5</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">50</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">24</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/accessibility/">Accessibility</a><a href="/tag/alsa/">ALSA</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/basiceffect/">BasicEffect</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/compression/">Compression</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/debugging/">Debugging</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/deployment/">Deployment</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/enet/">ENet</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fullscreen/">Fullscreen</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/game-loop/">Game Loop</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/gestures/">Gestures</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/glsl/">GLSL</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/headless/">Headless</a><a href="/tag/hidpi/">HiDPI</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lifecycle/">Lifecycle</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/migration/">Migration</a><a href="/tag/mobile/">Mobile</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/networking/">Networking</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/optimization/">Optimization</a><a href="/tag/packaging/">Packaging</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/render-targets/">Render Targets</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/roadmap/">Roadmap</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/saves/">Saves</a><a href="/tag/scaling/">Scaling</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/serialization/">Serialization</a><a href="/tag/server/">Server</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/shaders/">Shaders</a><a href="/tag/shadows/">Shadows</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/skinning/">Skinning</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/spir-v/">SPIR-V</a><a href="/tag/spritebatch/">SpriteBatch</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/storage/">Storage</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/surfaceformat/">SurfaceFormat</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/textures/">Textures</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/touch/">Touch</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/ui/">UI</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/wgsl/">WGSL</a><a href="/tag/win32/">Win32</a><a href="/tag/windowing/">Windowing</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

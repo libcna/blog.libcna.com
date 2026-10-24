@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Saving Games in CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="Use CNA storage APIs to build versioned, atomic and portable save files without depending on desktop paths.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/06/10/saving-games-in-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Saving Games in CNA">
+  <meta property="og:description" content="Use CNA storage APIs to build versioned, atomic and portable save files without depending on desktop paths.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/06/10/saving-games-in-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-06-10T12:00:00Z">June 10, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Saving Games in CNA</h1>
+      <p class="article-description">Use CNA storage APIs to build versioned, atomic and portable save files without depending on desktop paths.</p>
+    </header>
+    <div class="article-body"><p>Portable saving begins by not inventing a path such as <code>~/.mygame</code>. CNA keeps XNA&#39;s storage model: obtain a <code>StorageDevice</code>, open a <code>StorageContainer</code>, and let the platform choose the correct user-specific location. <code>TitleContainer</code> is for shipped read-only content, not progress.</p>
+<p>A good save format has an explicit version and game-owned schema:</p>
+<pre><code class="language-text">magic | format version | payload length | payload | checksum</code></pre>
+<p>Deserialize into temporary state, validate ranges and references, then replace the live game state only after the whole document succeeds. Never let a truncated file half-update a world.</p>
+<h2 id="make-writes-recoverable">Make writes recoverable</h2>
+<p>Write a temporary file in the same container, flush and close it, then replace the primary save. Keep the previous valid file as a backup when the platform permits it. A crash between “delete old” and “rename new” is otherwise enough to lose both versions.</p>
+<p>Version migrations should be one-way, small and tested with real historical fixtures. Preserve unknown optional data when practical, but reject a newer incompatible mandatory version with a clear message. A checksum detects corruption; it is not protection against deliberate modification.</p>
+<p>Separate settings, profiles, checkpoints and large world data. Settings benefit from frequent small writes, while a large world snapshot may need incremental or background serialization. Do not call graphics APIs from a storage worker, and return completion to the game loop before changing UI state.</p>
+<p>On mobile, save before suspension. On the web, synchronize the virtual filesystem to persistent browser storage and wait for completion at meaningful checkpoints. Private browsing or quota limits can still fail, so display failure and keep the in-memory session playable.</p>
+<p>Tests should cover first run, full round-trip, old-version migration, corrupted length, wrong checksum, interrupted replacement, missing backup and an unwritable container. Storage is successful only when recovery works—not merely when one happy-path file can be read immediately after it was written.</p>
+<h2 id="schema-design-and-synchronization">Schema design and synchronization</h2>
+<p>Give stable identifiers to referenced objects instead of serializing addresses or vector positions. Store enough metadata to reject an incompatible game or mod set. Validate counts before allocating collections so a corrupt length cannot request gigabytes.</p>
+<p>Autosave must capture a coherent state. Copy serializable data at a frame boundary and encode it in the background, or pause mutation through a narrow synchronization point. A worker traversing a world while simulation changes it can create a save that never represented a real frame.</p>
+<p>Show slot metadata from a small validated header before loading the payload. If a backup succeeds after primary corruption, tell the player and retain the bad file for diagnosis. Cloud synchronization needs an additional conflict policy: keep both divergent versions when timestamps and revision identifiers cannot establish authority.</p>
+<h2 id="separate-state-from-representation">Separate state from representation</h2>
+<p>Build a plain save model containing only durable facts. Runtime pointers, graphics resources and caches do not belong in it. Convert between the live world and this model at an explicit boundary so the data can be validated before gameplay sees it and the serialization format can change independently.</p>
+<p>Store a format version and migrate one version at a time. Loading version 3 into version 7 should run the same tested 3-to-4, 4-to-5, 5-to-6 and 6-to-7 transforms. Preserve fixtures from shipped releases. Use stable content identifiers rather than array positions or enum ordinals; designers will reorder data. Unknown optional fields may be ignored, while missing required content needs an actionable error.</p>
+<h2 id="writing-without-losing-progress">Writing without losing progress</h2>
+<p>Encode into memory or a temporary file, validate and flush it, then atomically replace the primary where the platform allows. Keep a known-good backup and checksum. Do not overwrite that backup until the new primary has successfully loaded.</p>
+<p>Autosave only at coherent boundaries such as a completed level or menu transition. If encoding happens on a worker, first copy an immutable save model; never traverse a world being mutated by the update thread. Test denied access, full storage, truncated data, corrupt checksums, unknown fields and termination during replacement. A save system is complete when it protects progress during failure, not merely when a normal round trip works.</p>
+<h2 id="worked-example-versioned-data-not-runtime-objects">Worked example: versioned data, not runtime objects</h2>
+<p>Define an intentionally boring model with stable identifiers and values that can be validated without constructing a level:</p>
+<pre><code class="language-cpp">struct SaveGame
+{
+    static constexpr int CurrentVersion = 3;
+    int version = CurrentVersion;
+    std::string profileId;
+    std::string currentLevelId;
+    std::vector&lt;std::string&gt; unlockedLevelIds;
+    std::unordered_map&lt;std::string, int&gt; inventory;
+    std::uint64_t playTimeSeconds = 0;
+};
+
+void Validate(const SaveGame&amp; save)
+{
+    if (save.version &lt; 1 || save.version &gt; SaveGame::CurrentVersion)
+        throw SaveError(&quot;unsupported save version&quot;);
+    if (save.profileId.empty() || save.profileId.size() &gt; 128)
+        throw SaveError(&quot;invalid profile id&quot;);
+    if (save.inventory.size() &gt; 4096)
+        throw SaveError(&quot;inventory is unreasonably large&quot;);
+    for (const auto&amp; [id, count] : save.inventory)
+        if (id.empty() || count &lt; 0 || count &gt; 999999)
+            throw SaveError(&quot;invalid inventory entry&quot;);
+}</code></pre>
+<p>Deserialize, bound collections before allocation, migrate, validate, and only then apply to the world. Preserve one fixture per released version. Run explicit one-step migrations in a loop instead of a single sprawling old-to-current conversion.</p>
+<h2 id="atomic-replacement-and-fault-injection">Atomic replacement and fault injection</h2>
+<p>Write <code>slot.tmp</code>, flush it, read and validate it, then replace <code>slot.sav</code> while retaining <code>slot.bak</code>. Platform APIs differ, so isolate replacement behind an interface and document whether rename is truly atomic. Never delete the known-good copy first.</p>
+<p>Inject failure after open, after half the bytes, after flush and before rename. Restart after each simulated crash and assert that either new primary or previous backup loads. Also test a valid checksum with invalid semantics: integrity proves preserved bytes, not valid game state. Cloud saves should carry revision and parent revision; two children of the same parent are a conflict even when one clock is later.</p>
+<h2 id="slots-settings-and-user-facing-recovery">Slots, settings and user-facing recovery</h2>
+<p>Keep global settings separate from campaign saves. Accessibility, language and input mappings should be available before a campaign loads and should not vanish when a slot is deleted. A slot header can expose display name, play time, location, format version, game build and thumbnail reference without decoding the full world payload. Validate that header before showing it.</p>
+<p>When primary load fails but backup succeeds, tell the player that recovery occurred and preserve the corrupt primary under a diagnostic name. Do not overwrite it immediately with the recovered data; developers may need the original bytes. When both fail, offer a safe route back to the menu and an export option where appropriate. “Start new game” must not be the only visible response to a transient storage error.</p>
+<p>Compression and encryption solve different problems. Compressing reduces size; it does not prevent modification or protect secrets. A checksum detects accidental corruption but is not authentication against an attacker. Most offline games should avoid placing valuable secrets in client saves at all. If confidentiality or authenticity is a product requirement, use a reviewed platform/security design rather than a homemade XOR layer.</p>
+<p>Test forward fields by loading a document containing unknown optional data. Test downgrade explicitly: either older builds reject a newer save without modifying it or the product guarantees compatible writes. Record save schema version separately from application version so a patch that does not change persistence need not invent a new format.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/cna/">#CNA</a><a href="/tag/storage/">#Storage</a><a href="/tag/saves/">#Saves</a><a href="/tag/serialization/">#Serialization</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">CNA Project Roadmap and the Path to 1.0</a></li><li><a href="/2027/10/14/performance-checklist-for-cna-games/">Performance Checklist for CNA Games</a></li><li><a href="/2027/10/07/porting-an-xna-game-to-cna-step-by-step/">Porting an XNA Game to CNA Step by Step</a></li><li><a href="/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/">Migrating a MonoGame or FNA Project to CNA</a></li><li><a href="/2027/09/23/creating-a-new-cna-graphics-renderer/">Creating a New CNA Graphics Renderer</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/10/"><span>October 2027</span><span class="count">3</span></a></li><li><a href="/2027/09/"><span>September 2027</span><span class="count">5</span></a></li><li><a href="/2027/08/"><span>August 2027</span><span class="count">4</span></a></li><li><a href="/2027/07/"><span>July 2027</span><span class="count">5</span></a></li><li><a href="/2027/06/"><span>June 2027</span><span class="count">4</span></a></li><li><a href="/2027/05/"><span>May 2027</span><span class="count">4</span></a></li><li><a href="/2027/04/"><span>April 2027</span><span class="count">5</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">50</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">24</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/accessibility/">Accessibility</a><a href="/tag/alsa/">ALSA</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/basiceffect/">BasicEffect</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/compression/">Compression</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/debugging/">Debugging</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/deployment/">Deployment</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/enet/">ENet</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fullscreen/">Fullscreen</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/game-loop/">Game Loop</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/gestures/">Gestures</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/glsl/">GLSL</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/headless/">Headless</a><a href="/tag/hidpi/">HiDPI</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lifecycle/">Lifecycle</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/migration/">Migration</a><a href="/tag/mobile/">Mobile</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/networking/">Networking</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/optimization/">Optimization</a><a href="/tag/packaging/">Packaging</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/render-targets/">Render Targets</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/roadmap/">Roadmap</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/saves/">Saves</a><a href="/tag/scaling/">Scaling</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/serialization/">Serialization</a><a href="/tag/server/">Server</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/shaders/">Shaders</a><a href="/tag/shadows/">Shadows</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/skinning/">Skinning</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/spir-v/">SPIR-V</a><a href="/tag/spritebatch/">SpriteBatch</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/storage/">Storage</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/surfaceformat/">SurfaceFormat</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/textures/">Textures</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/touch/">Touch</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/ui/">UI</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/wgsl/">WGSL</a><a href="/tag/win32/">Win32</a><a href="/tag/windowing/">Windowing</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

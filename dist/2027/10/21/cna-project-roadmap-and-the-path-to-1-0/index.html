@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNA Project Roadmap and the Path to 1.0 | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA&#39;s path to 1.0 is an evidence-driven stabilization program covering API contracts, renderer parity, platforms, packages and real game adoption.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNA Project Roadmap and the Path to 1.0">
+  <meta property="og:description" content="CNA&#39;s path to 1.0 is an evidence-driven stabilization program covering API contracts, renderer parity, platforms, packages and real game adoption.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-10-21T12:00:00Z">October 21, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a>, <a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">CNA Project Roadmap and the Path to 1.0</h1>
+      <p class="article-description">CNA&#39;s path to 1.0 is an evidence-driven stabilization program covering API contracts, renderer parity, platforms, packages and real game adoption.</p>
+    </header>
+    <div class="article-body"><p>CNA&#39;s version number should communicate stability, not the size of its feature list. A 1.0 release means applications can select a documented surface, build against a supported package, upgrade deliberately and trust that claimed capabilities have evidence.</p>
+<p>The first pillar is API stability. XNA-compatible declarations need continuing audit, CNAEXT boundaries must remain visible, and public ownership, threading and error contracts must be documented. Pre-1.0 is the time to remove accidental APIs rather than preserve them forever.</p>
+<p>The second pillar is renderer and platform qualification. Each supported combination needs a capability profile, shared fixtures, lifecycle tests and dated real-hardware evidence. Unsupported routes should fail clearly. A long renderer list is less useful than a smaller set with honest matrices.</p>
+<h2 id="from-repository-to-product">From repository to product</h2>
+<p>The installed C++ SDK, content tools, examples and package metadata must work outside CNA&#39;s source tree. Releases need reproducible tags, dependency versions, migration notes and clean consumer probes. Web, mobile and desktop artifacts should state exactly what they contain.</p>
+<p>Real games remain the strongest integration tests. XNA samples prove compatibility breadth; simulators and CNA Engine exercise scale, migration and modern extensions. Bugs found by consumers should become minimized tests in the owning module.</p>
+<p>Diagnostics, Inspector, Headless and Software make qualification repeatable. They are not side projects: they supply the evidence needed to stabilize performance and behavior across changes.</p>
+<p>The road to 1.0 therefore prioritizes closure over novelty: resolve documented blockers, reduce known gaps, qualify supported paths, freeze contracts and publish an upgrade policy. Features without maintainers or cross-platform evidence can remain experimental after 1.0 behind explicit options.</p>
+<p>Roadmaps change as testing discovers facts. CNA should keep dated status, distinguish implemented from qualified, and never turn aspiration into a support claim. Reaching 1.0 is the point where that discipline becomes a dependable promise to downstream games.</p>
+<h2 id="concrete-release-gates">Concrete release gates</h2>
+<p>A candidate should pass installed consumers, API snapshots, content interoperability, sanitizers, renderer fixtures and platform lifecycle tests from a clean tag. Limitations need stable identifiers. Notes must distinguish fixes, intentional breaks and experimental modules.</p>
+<p>After 1.0, semantic versioning governs supported APIs. Experimental options can evolve under marked contracts, while deprecations receive a migration window. Downstream projects should be able to plan upgrades from evidence rather than optimism.</p>
+<h2 id="what-release-readiness-means">What release readiness means</h2>
+<p>A 1.0 label should describe dependable contracts, not the end of development. Public headers need ownership and error behavior documented. Supported platform-renderer pairs need clean-build instructions, packaged smoke tests and an explicit feature matrix. Content produced by supported tooling must have a compatibility policy, and applications need a stated migration path when an API is deprecated.</p>
+<p>Quality gates should include unit tests, cross-renderer visual fixtures, sample builds, lifecycle stress, package validation and real-hardware qualification. Known unsupported features remain acceptable when capability reporting is honest and fallback behavior is documented. Silent partial implementations are release blockers because applications cannot make informed choices.</p>
+<h2 id="milestones-that-downstream-users-can-verify">Milestones that downstream users can verify</h2>
+<p>Organize work into observable milestones: contract stabilization, backend parity, toolchain reproducibility, packaging, documentation and release-candidate qualification. Each milestone should list artifacts and exit criteria rather than a percentage. Publish changes, accepted gaps and tested configurations with every candidate so maintainers can evaluate risk themselves.</p>
+<p>Before freezing, build representative existing games and ports, not only framework tests. Their feedback reveals awkward ownership, missing extension points and deployment assumptions. Once frozen, limit changes to documented release blockers and require regression coverage for every fix.</p>
+<p>After 1.0, keep experimental namespaces clearly marked, announce deprecations early and preserve a window in which old and new APIs coexist. Regular compatibility reports and reproducible packages matter more than an ambitious date. The path to 1.0 succeeds when users can build, ship, diagnose and upgrade CNA applications without relying on undocumented knowledge.</p>
+<h2 id="how-the-community-can-judge-progress">How the community can judge progress</h2>
+<p>Keep roadmap items linked to issues, tests, documentation or release artifacts. Distinguish committed release blockers from exploration and long-term ideas. Publish qualification gaps as openly as completed backends, because honest scope lets games choose supported targets. Regular candidates give downstream projects time to report incompatibilities before the freeze. The roadmap should therefore answer three concrete questions: what is promised, what evidence proves it today, and what remains before that promise becomes stable.</p>
+<h2 id="turn-1-0-ready-into-a-machine-readable-gate">Turn “1.0 ready” into a machine-readable gate</h2>
+<p>Each supported pair needs named evidence rather than a percentage:</p>
+<pre><code class="language-yaml">release: 1.0.0-rc1
+contracts:
+  public_headers: frozen
+  content_format: documented
+  deprecation_policy: published
+targets:
+  - platform: Linux
+    renderer: SDL_GPU
+    build: pass
+    conformance: pass
+    samples: pass
+    package_smoke: pass
+    hardware:
+      - {gpu: &quot;qualified-adapter-a&quot;, driver: &quot;recorded&quot;, result: pass}
+known_gaps:
+  - {feature: &quot;example optional feature&quot;, capability: false, fallback: documented}</code></pre>
+<p>The names are illustrative; the principle is that a release candidate points to artifacts: logs, package hashes, feature matrices and real-hardware reports. Unsupported optional behavior is acceptable when the capability is false and refusal/fallback is tested. A feature claimed true but only partially executed is a blocker.</p>
+<h2 id="release-candidate-sequence">Release-candidate sequence</h2>
+<p>Freeze public contracts, build every supported target from clean instructions, run unit and cross-renderer fixtures, build samples, package, install on clean systems, and run representative downstream games. Fix only release blockers during the candidate window and require a regression test for each fix. Publish accepted gaps and toolchain versions with the next candidate.</p>
+<p>After 1.0, keep experimental APIs marked and outside the stable promise. Deprecation announces replacement, supplies a migration example and retains an overlap window. Track compatibility against real games and preserve older content/save fixtures. A roadmap earns trust when downstream users can independently verify every “done” statement and predict the cost of an upgrade.</p>
+<h2 id="compatibility-promises-to-write-before-release">Compatibility promises to write before release</h2>
+<p>Define which public C++ headers and symbols are stable, which build options and target identities are supported, and whether ABI compatibility is promised or source compatibility is the contract. State content-format/version behavior, save responsibility, renderer/platform capability reporting and minimum toolchains. Ambiguity here becomes downstream breakage later.</p>
+<p>Document ownership and thread affinity for public resources. Publish how unsupported features fail. Specify deprecation length and semantic-versioning rules. Experimental APIs must be visually and documentationally distinct so users understand that they are outside the 1.0 promise.</p>
+<h2 id="ecosystem-readiness">Ecosystem readiness</h2>
+<p>Framework tests alone do not qualify the surrounding ecosystem. Build CNA samples, the content pipeline, representative games and bindings explicitly included in scope. Verify installed-package consumption from a separate project and validate documentation commands in a clean environment. Produce release archives/packages with licenses and symbols.</p>
+<p>Invite downstream maintainers to test candidates against real projects and track their reports as release evidence. Classify blockers by broken promise, not popularity of the reporter. Publish what was tested and what was not.</p>
+<h2 id="after-the-tag">After the tag</h2>
+<p>Retain exact source, dependency locks, packages, symbols, test results and qualification metadata. Create a maintenance branch/policy for critical fixes. Run compatibility fixtures from earlier releases against every update. The purpose of 1.0 is not declaring CNA finished; it is making a stable, evidence-backed base on which games and the broader CNA ecosystem can plan.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/category/projects/">Projects</a><a href="/tag/cna/">#CNA</a><a href="/tag/roadmap/">#Roadmap</a><a href="/tag/release/">#Release</a><a href="/tag/testing/">#Testing</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">CNA Project Roadmap and the Path to 1.0</a></li><li><a href="/2027/10/14/performance-checklist-for-cna-games/">Performance Checklist for CNA Games</a></li><li><a href="/2027/10/07/porting-an-xna-game-to-cna-step-by-step/">Porting an XNA Game to CNA Step by Step</a></li><li><a href="/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/">Migrating a MonoGame or FNA Project to CNA</a></li><li><a href="/2027/09/23/creating-a-new-cna-graphics-renderer/">Creating a New CNA Graphics Renderer</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/10/"><span>October 2027</span><span class="count">3</span></a></li><li><a href="/2027/09/"><span>September 2027</span><span class="count">5</span></a></li><li><a href="/2027/08/"><span>August 2027</span><span class="count">4</span></a></li><li><a href="/2027/07/"><span>July 2027</span><span class="count">5</span></a></li><li><a href="/2027/06/"><span>June 2027</span><span class="count">4</span></a></li><li><a href="/2027/05/"><span>May 2027</span><span class="count">4</span></a></li><li><a href="/2027/04/"><span>April 2027</span><span class="count">5</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">50</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">24</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/accessibility/">Accessibility</a><a href="/tag/alsa/">ALSA</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/basiceffect/">BasicEffect</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/compression/">Compression</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/debugging/">Debugging</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/deployment/">Deployment</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/enet/">ENet</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fullscreen/">Fullscreen</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/game-loop/">Game Loop</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/gestures/">Gestures</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/glsl/">GLSL</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/headless/">Headless</a><a href="/tag/hidpi/">HiDPI</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lifecycle/">Lifecycle</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/migration/">Migration</a><a href="/tag/mobile/">Mobile</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/networking/">Networking</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/optimization/">Optimization</a><a href="/tag/packaging/">Packaging</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/render-targets/">Render Targets</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/roadmap/">Roadmap</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/saves/">Saves</a><a href="/tag/scaling/">Scaling</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/serialization/">Serialization</a><a href="/tag/server/">Server</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/shaders/">Shaders</a><a href="/tag/shadows/">Shadows</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/skinning/">Skinning</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/spir-v/">SPIR-V</a><a href="/tag/spritebatch/">SpriteBatch</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/storage/">Storage</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/surfaceformat/">SurfaceFormat</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/textures/">Textures</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/touch/">Touch</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/ui/">UI</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/wgsl/">WGSL</a><a href="/tag/win32/">Win32</a><a href="/tag/windowing/">Windowing</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Accessibility in CNA Games | CNA&#39;s Blog</title>
+  <meta name="description" content="Build accessibility into a CNA game&#39;s input, presentation, audio and timing policies without requiring a separate engine API.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/09/02/accessibility-in-cna-games/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Accessibility in CNA Games">
+  <meta property="og:description" content="Build accessibility into a CNA game&#39;s input, presentation, audio and timing policies without requiring a separate engine API.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/09/02/accessibility-in-cna-games/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-09-02T12:00:00Z">September 2, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Accessibility in CNA Games</h1>
+      <p class="article-description">Build accessibility into a CNA game&#39;s input, presentation, audio and timing policies without requiring a separate engine API.</p>
+    </header>
+    <div class="article-body"><p>Accessibility is primarily a game-design responsibility. CNA supplies the building blocks—rebindable keyboard and controller input, text input, display scaling, audio control, effects and platform capabilities—but the application decides whether critical information has alternatives.</p>
+<p>Represent actions by meaning instead of hard-coded keys. Permit rebinding, multiple bindings and hold/toggle choices. Avoid requiring simultaneous inputs that exclude one-handed play, and display controller labels reported by the connected device.</p>
+<p>Text and UI should scale independently of the 3D scene. Respect safe areas, maintain contrast and do not encode state by color alone. CRT, motion, flashing and camera-shake effects need intensity controls or an off switch. Draw critical captions after a heavy post-process when clarity matters.</p>
+<h2 id="more-than-visuals">More than visuals</h2>
+<p>Provide separate music, effects and dialogue levels. Caption important speech and non-speech cues with direction where useful. Never make an audio cue the only warning of immediate danger.</p>
+<p>Allow pause, adjustable difficulty and enough time to read prompts. A deterministic fixed-step simulation can support slow modes, but networked play needs rules that remain fair for every participant. Avoid rapid repeated button presses when a hold alternative is possible.</p>
+<p>Text entry should use <code>TextInputEXT</code> and the platform IME rather than a US-keyboard translation. Touch targets need generous size and cancellation behavior. On unsupported platforms, capability checks should lead to a meaningful alternative rather than a disabled workflow with no explanation.</p>
+<p>Test accessibility settings from first launch through saving and recovery. Make menus themselves usable before the player can enable assistance. Automated contrast and layout checks help, but reviews by people with different access needs reveal problems no API checklist can certify.</p>
+<p>CNA does not label a game accessible. It makes portable implementation possible; the game&#39;s defaults, alternatives and evidence determine the result.</p>
+<h2 id="verification-as-a-feature">Verification as a feature</h2>
+<p>Map critical information and actions to visual, audible and tactile channels; rows with one channel deserve review. Test increased text scale, no sound, no color distinction and keyboard-only or controller-only navigation.</p>
+<p>Settings need previews and safe reversal. Save accessibility choices outside campaign slots so they apply before loading, and include the settings screens themselves in automated menu traversal.</p>
+<h2 id="design-systems-not-isolated-toggles">Design systems, not isolated toggles</h2>
+<p>Text size affects layout, subtitles need speaker names and background contrast, and color alternatives require icons or patterns in the game itself. Centralize these decisions in theme, typography, caption and input services so a new screen inherits them. A setting that only works in the main menu is worse than a smaller feature applied consistently.</p>
+<p>Remapping should operate on actions rather than physical keys and must cover gameplay, menus and confirmation dialogs. Detect conflicts, support multiple bindings, and always preserve a route back to settings. Adjustable hold/toggle behavior, aim assistance, timing windows and camera motion can remove different barriers without changing the underlying rules for everyone.</p>
+<h2 id="verify-with-people-and-tools">Verify with people and tools</h2>
+<p>Automated checks can find missing labels, unreachable focus targets, low contrast and text overflowing at maximum scale. They cannot establish whether combat audio conveys useful direction or whether a rapidly flashing effect is comfortable. Combine instrumentation with playtests by people who use the relevant features and compensate them for expertise.</p>
+<p>Create test scenarios for keyboard-only navigation, controller-only navigation, no audio, grayscale display, reduced motion and maximum text size. Verify that achievements and progression remain possible. Document known limitations plainly and treat accessibility regressions like input or save regressions: owned, reproduced and fixed before release rather than postponed as optional polish.</p>
+<h2 id="include-accessibility-in-the-definition-of-done">Include accessibility in the definition of done</h2>
+<p>Every new interaction should identify its focus order, readable label, non-color cue, remappable action and behavior under text scaling and reduced motion. Every cinematic should define captions and a skip route. Review these while the feature is still editable, not after localization and certification. Publish the implemented options in release notes and keep defaults conservative. Players should be able to reach accessibility settings before sound, flashes or difficult input are required.</p>
+<p>When a feature cannot yet be made accessible, document the specific barrier and planned remedy instead of describing the whole game with a vague accessibility claim.</p>
+<h2 id="worked-example-action-based-input-and-presentation-settings">Worked example: action-based input and presentation settings</h2>
+<p>Gameplay asks for actions, not keys:</p>
+<pre><code class="language-cpp">enum class Action { MoveLeft, MoveRight, Jump, Confirm, Cancel, Pause };
+
+bool InputActions::Pressed(Action action) const
+{
+    for (const Binding&amp; binding : bindings_.at(action))
+        if (devices_.Pressed(binding)) return true;
+    return false;
+}</code></pre>
+<p>Allow several bindings per action, detect conflicts and keep an emergency route to navigation settings. Menus and confirmation dialogs use the same action layer as gameplay. A toggle option should transform semantics at this layer instead of teaching each mechanic to reinterpret a held button.</p>
+<p>Centralize visual choices in a theme object:</p>
+<pre><code class="language-cpp">struct AccessibilityTheme {
+    float textScale = 1.0f;
+    bool highContrast = false;
+    bool reduceMotion = false;
+    bool distinguishWithPatterns = true;
+    SubtitleMode subtitles = SubtitleMode::DialogueAndEffects;
+};</code></pre>
+<p>Screens query theme values during layout; they do not cache one startup font size. Reduced motion replaces camera shake, flashes and large parallax with defined alternatives rather than merely shortening them. Color-coded teams also use shape, icon or label.</p>
+<p>Automate menu traversal using keyboard actions only and controller actions only. Render every screen at maximum text scale and narrow aspect ratio, then detect clipped focus bounds. Run gameplay with audio muted, grayscale output and reduced motion. Automated checks do not replace players with relevant disabilities, but they prevent known requirements from regressing between those playtests.</p>
+<h2 id="captions-audio-and-motion">Captions, audio and motion</h2>
+<p>Captions identify speaker, preserve meaningful non-dialogue cues and remain readable over changing scenes. Let players adjust size and background opacity. Use timed text rather than baking one language and size into video. Test overlapping speakers, rapid lines and narrow layouts.</p>
+<p>Important audio cues need visual or haptic alternatives that retain direction or urgency. Flashing warnings need non-flashing forms. Separate master, music, effects and dialogue volume so players can improve signal-to-noise. Test mono compatibility and useful dynamic-range modes.</p>
+<p>Reduced motion includes shake, head bob, parallax, zoom, distortion and animated backgrounds. Replace effects instead of simply accelerating them. Avoid unsafe flashing and test combinations—two mild effects can overlap into a stronger result.</p>
+<h2 id="focus-and-readable-ui">Focus and readable UI</h2>
+<p>Maintain one visible focus, deterministic navigation and a route out of every modal. Return focus sensibly when a dialog closes. Labels describe purpose, not only a glyph. Red/green status also uses text, icon or pattern.</p>
+<p>Test maximum text scale with longest localized strings. Reflow instead of clipping or shrinking below a readable minimum. Apply saved accessibility settings before title animation, sound or difficult input. Publish precise implemented options and known barriers in release notes so players can judge suitability without trial and error.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/cna/">#CNA</a><a href="/tag/accessibility/">#Accessibility</a><a href="/tag/input/">#Input</a><a href="/tag/ui/">#UI</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">CNA Project Roadmap and the Path to 1.0</a></li><li><a href="/2027/10/14/performance-checklist-for-cna-games/">Performance Checklist for CNA Games</a></li><li><a href="/2027/10/07/porting-an-xna-game-to-cna-step-by-step/">Porting an XNA Game to CNA Step by Step</a></li><li><a href="/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/">Migrating a MonoGame or FNA Project to CNA</a></li><li><a href="/2027/09/23/creating-a-new-cna-graphics-renderer/">Creating a New CNA Graphics Renderer</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/10/"><span>October 2027</span><span class="count">3</span></a></li><li><a href="/2027/09/"><span>September 2027</span><span class="count">5</span></a></li><li><a href="/2027/08/"><span>August 2027</span><span class="count">4</span></a></li><li><a href="/2027/07/"><span>July 2027</span><span class="count">5</span></a></li><li><a href="/2027/06/"><span>June 2027</span><span class="count">4</span></a></li><li><a href="/2027/05/"><span>May 2027</span><span class="count">4</span></a></li><li><a href="/2027/04/"><span>April 2027</span><span class="count">5</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">50</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">24</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/accessibility/">Accessibility</a><a href="/tag/alsa/">ALSA</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/basiceffect/">BasicEffect</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/compression/">Compression</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/debugging/">Debugging</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/deployment/">Deployment</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/enet/">ENet</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fullscreen/">Fullscreen</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/game-loop/">Game Loop</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/gestures/">Gestures</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/glsl/">GLSL</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/headless/">Headless</a><a href="/tag/hidpi/">HiDPI</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lifecycle/">Lifecycle</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/migration/">Migration</a><a href="/tag/mobile/">Mobile</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/networking/">Networking</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/optimization/">Optimization</a><a href="/tag/packaging/">Packaging</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/render-targets/">Render Targets</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/roadmap/">Roadmap</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/saves/">Saves</a><a href="/tag/scaling/">Scaling</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/serialization/">Serialization</a><a href="/tag/server/">Server</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/shaders/">Shaders</a><a href="/tag/shadows/">Shadows</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/skinning/">Skinning</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/spir-v/">SPIR-V</a><a href="/tag/spritebatch/">SpriteBatch</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/storage/">Storage</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/surfaceformat/">SurfaceFormat</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/textures/">Textures</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/touch/">Touch</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/ui/">UI</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/wgsl/">WGSL</a><a href="/tag/win32/">Win32</a><a href="/tag/windowing/">Windowing</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

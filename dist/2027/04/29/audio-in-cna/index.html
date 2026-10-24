@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Audio in CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA provides XNA-style sound effects, instances, music, microphones and 3D audio across SDL3, ALSA and silent test backends.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/04/29/audio-in-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Audio in CNA">
+  <meta property="og:description" content="CNA provides XNA-style sound effects, instances, music, microphones and 3D audio across SDL3, ALSA and silent test backends.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/04/29/audio-in-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-04-29T12:00:00Z">April 29, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Audio in CNA</h1>
+      <p class="article-description">CNA provides XNA-style sound effects, instances, music, microphones and 3D audio across SDL3, ALSA and silent test backends.</p>
+    </header>
+    <div class="article-body"><p>CNA implements substantially more than a function that sends a WAV file to the speakers. Its audio surface follows XNA 4.0 from short sound effects and controllable instances through positional sound, dynamic streaming, microphones, XACT wave and sound banks, songs, playlists and visualization data. Beneath that public API, a selected audio platform opens the real device and a mixer turns all active voices into the final stream.</p>
+<p>This separation is important. Game code deals in <code>SoundEffect</code>, <code>Cue</code> or <code>Song</code>; it does not call SDL or ALSA. A headless server can use the same gameplay code with silent audio, while a Linux build without SDL can select CNA&#39;s own mixer and ALSA device.</p>
+<h2 id="soundeffect-decoded-reusable-audio">SoundEffect: decoded, reusable audio</h2>
+<p><code>SoundEffect</code> represents audio held for repeated low-latency playback. Loading through <code>ContentManager</code> gives the resource the same ownership behavior as other content:</p>
+<pre><code class="language-cpp">using Microsoft::Xna::Framework::Audio::SoundEffect;
+
+SoundEffect* jumpSound = nullptr;
+
+void MyGame::LoadContent()
+{
+    jumpSound = Content.Load&lt;SoundEffect&gt;(&quot;Audio/Jump&quot;);
+}
+
+void MyGame::OnJump()
+{
+    if (!jumpSound-&gt;Play(0.85f, 0.0f, 0.0f))
+    {
+        // The voice limit was reached. Gameplay must continue normally.
+    }
+}</code></pre>
+<p>The overload accepts volume, pitch and pan. Pan ranges from <code>-1</code> on the left to <code>1</code> on the right; pitch uses XNA&#39;s <code>-1</code> to <code>1</code> range. <code>Play()</code> returns <code>false</code> when a new instance cannot be started, which should normally drop a non-essential effect rather than interrupt gameplay.</p>
+<p>Files are recognized by their contents rather than their extension. CNA decodes WAV containing PCM, IEEE float, Microsoft ADPCM or IMA ADPCM. Ogg Vorbis, MP3 and FLAC are also supported. Ogg Opus, WMA/xWMA and XMA are not decoded and fail explicitly instead of playing incorrect bytes.</p>
+<p>The raw-buffer constructor has a narrower contract: it expects headerless, little-endian signed 16-bit PCM. Passing an entire WAV file to it includes the RIFF header as if it were sample data and produces noise. Load encoded files through a path, stream or content asset; use the buffer constructor only when the application really generated PCM samples.</p>
+<p><code>SoundEffect</code> is move-only. Instances retain the underlying audio data they need, and disposing the effect cascades correctly to its tracked live instances. This makes resource ownership unambiguous in C++ rather than pretending that a copied wrapper is a second independent sound.</p>
+<h2 id="soundeffectinstance-explicit-playback-state">SoundEffectInstance: explicit playback state</h2>
+<p>Create an instance when the game needs to pause, resume, stop, loop or change a sound after starting it:</p>
+<pre><code class="language-cpp">auto engineLoop = engineSound-&gt;CreateInstance();
+engineLoop.setIsLoopedProperty(true);
+engineLoop.setVolumeProperty(0.55f);
+engineLoop.setPitchProperty(-0.1f);
+engineLoop.Play();
+
+// Later, during Update:
+engineLoop.setPitchProperty(rpmToPitch(currentRpm));
+engineLoop.setVolumeProperty(loadToVolume(engineLoad));</code></pre>
+<p>The instance exposes <code>Playing</code>, <code>Paused</code> and <code>Stopped</code> state. Repeated <code>Play()</code> while already playing does not create a second voice. <code>Stop()</code> can end immediately or follow the supported XNA stop behavior, and <code>Dispose()</code> releases the track safely.</p>
+<p>Avoid creating a new instance for every frame of a continuous sound. A vehicle engine, wind loop or machine hum should have a stable instance whose parameters change. Short, overlapping effects such as footsteps can use a bounded pool. The pool size is a game decision: reserve voices for important UI and player feedback instead of allowing a dense particle effect to consume everything.</p>
+<p>Global <code>SoundEffect::MasterVolume</code> affects sound effects, while individual instance volume remains useful for categories owned by the game. A typical audio service stores music, effects, dialogue and ambience levels, then combines a category value with the per-event value. Persist those settings and provide mute behavior without destroying every loaded resource.</p>
+<h2 id="real-positional-audio-through-apply3d">Real positional audio through Apply3D</h2>
+<p><code>AudioListener</code> describes the player or camera, while <code>AudioEmitter</code> describes a source. Both include position, velocity and orientation. <code>SoundEffectInstance::Apply3D()</code> calculates attenuation, stereo placement and Doppler pitch using CNA&#39;s XNA-compatible parameters.</p>
+<pre><code class="language-cpp">AudioListener listener;
+listener.setPositionProperty(cameraPosition);
+listener.setForwardProperty(cameraForward);
+listener.setUpProperty(cameraUp);
+listener.setVelocityProperty(playerVelocity);
+
+AudioEmitter emitter;
+emitter.setPositionProperty(trainPosition);
+emitter.setVelocityProperty(trainVelocity);
+
+trainLoop.Apply3D(listener, emitter);</code></pre>
+<p>Choose one world-unit convention. <code>DistanceScale</code>, <code>SpeedOfSound</code> and the velocities must describe the same scale or attenuation and Doppler will feel wrong. Teleports should not be represented as enormous physical velocities. After loading a save, respawning or resuming from pause, reset the velocity used for audio before applying 3D again.</p>
+<p>Plain pan and 3D spatialization are distinct modes. Once playback has submitted audio in one mode, switching incompatibly is refused until the instance is stopped and can be configured again. This preserves the behavior applications expect from XNA instead of silently combining unrelated controls.</p>
+<h2 id="dynamicsoundeffectinstance">DynamicSoundEffectInstance</h2>
+<p><code>DynamicSoundEffectInstance</code> is for audio produced over time: a synthesizer, voice chat decoder, procedural engine, emulator or another streaming source. The application submits PCM buffers and responds to buffer-needed notifications before the queue becomes empty.</p>
+<p>Keep a small bounded queue ahead of playback. Too little data causes gaps when one frame is late; too much adds latency. Generate or decode on a worker when appropriate, but marshal event state safely and never let an unlimited producer queue grow behind the device. A stream that temporarily has no buffer waits silently for more data rather than becoming an ordinary stopped one-shot track.</p>
+<p>The sample rate and channel layout are fixed when the dynamic instance is created. Submitted data must match that contract. Reuse byte buffers where possible and validate sample alignment; a stereo 16-bit frame contains two signed samples, not two bytes.</p>
+<h2 id="xact-audioengine-wavebank-soundbank-and-cue">XACT: AudioEngine, WaveBank, SoundBank and Cue</h2>
+<p>CNA also implements the XNA/XACT runtime surface. <code>AudioEngine</code> loads the global settings, <code>WaveBank</code> makes wave data available, <code>SoundBank</code> exposes authored sounds, and <code>Cue</code> controls one selected sound:</p>
+<pre><code class="language-cpp">AudioEngine audioEngine(&quot;Content/Audio/GameAudio.xgs&quot;);
+WaveBank waveBank(audioEngine, &quot;Content/Audio/Wave Bank.xwb&quot;);
+SoundBank soundBank(audioEngine, &quot;Content/Audio/Sound Bank.xsb&quot;);
+
+auto cue = soundBank.GetCue(&quot;Explosion&quot;);
+cue.Play();
+
+// Call regularly so categories, cues and deferred work advance.
+audioEngine.Update();</code></pre>
+<p>Categories provide authored volume, pause, resume and stop control. Cues can contain variations, loop regions and per-track processing rather than being simple aliases for a single file. Keep the engine and banks alive longer than their cues and update the engine from the game loop.</p>
+<p>XACT is valuable when porting an original XNA title because it preserves the project&#39;s authored organization. A new small game may prefer a direct <code>SoundEffect</code> service, but it should not flatten an existing bank into unrelated files unless it is prepared to reproduce categories, variations and loop semantics itself.</p>
+<h2 id="songs-and-mediaplayer">Songs and MediaPlayer</h2>
+<p>Long music belongs to <code>Song</code> and the static <code>MediaPlayer</code>. Unlike short sound effects, supported Vorbis, MP3 and FLAC songs are decoded while they play, so a long track does not occupy its fully decoded size in memory.</p>
+<pre><code class="language-cpp">Song* theme = Content.Load&lt;Song&gt;(&quot;Music/Theme&quot;);
+MediaPlayer::setVolumeProperty(0.65f);
+MediaPlayer::setIsRepeatingProperty(true);
+MediaPlayer::Play(theme);</code></pre>
+<p><code>MediaPlayer</code> maintains a queue, supports repeat and shuffle, exposes play position and state, and raises active-song and media-state events. Visualization can provide current frequency and sample data when enabled. Enable it only when used because analysis is additional work.</p>
+<p>Looping a streamed song from its beginning is cheap. Seeking to an unusual loop point inside a long compressed stream may require the decoder to search through the file and can cause a one-time underrun. Measure authored loop behavior on the intended backend.</p>
+<h2 id="recording-with-microphone">Recording with Microphone</h2>
+<p><code>Microphone::getAllProperty()</code> enumerates actual capture devices. An empty collection means that none is available; CNA does not invent a default microphone. Select a device, choose a valid buffer duration, subscribe to buffer-ready notification, start capture and retrieve queued bytes with a buffer sized through <code>GetSampleSizeInBytes()</code>.</p>
+<p>Capture is permission-sensitive on mobile and web targets. Losing a USB microphone is also normal runtime behavior. Stop capture when leaving the relevant screen and never record merely because enumeration succeeded. The application must explain why it needs input and handle denial without blocking the rest of the game.</p>
+<p>The ALSA capture path reads ten-millisecond chunks on its own thread and retains at most eight seconds. If the game stops polling, it receives recent audio rather than an unbounded history. Tests use ALSA&#39;s silent or file devices; they never record the developer&#39;s room.</p>
+<h2 id="selecting-an-audio-platform">Selecting an audio platform</h2>
+<p>Audio selection is independent of the CNA window platform:</p>
+<div class="table-wrap"><table><thead><tr><th><code>CNA_AUDIO_PLATFORM</code></th><th>Intended use</th></tr></thead><tbody><tr><td><code>SDL3</code></td><td>Portable default for normal desktop and supported platform builds</td></tr><tr><td><code>ALSA</code></td><td>Linux playback and capture through CNA&#39;s own mixer, including SDL-free builds</td></tr><tr><td><code>NULL</code></td><td>Silent servers, CI and tests that must not open hardware</td></tr></tbody></table></div>
+<p>An SDL-free Linux server with real audio can use:</p>
+<pre><code class="language-bash">cmake -S . -B build-alsa -G Ninja \
+  -DCNA_ENABLE_SDL=OFF \
+  -DCNA_PLATFORM=HEADLESS \
+  -DCNA_GRAPHICS_RENDERER=HEADLESS \
+  -DCNA_AUDIO_PLATFORM=ALSA</code></pre>
+<p>ALSA needs development headers when building. At runtime CNA loads <code>libasound.so.2</code>; if it is missing or the selected device cannot open, the XNA layer reports <code>NoAudioHardwareException</code>. <code>CNA_AUDIO_DEVICE</code> selects a playback PCM, and <code>CNA_AUDIO_RECORDING_DEVICE</code> selects capture. The <code>null</code> ALSA device is useful for timing tests, while its file device can record the exact mixed stream.</p>
+<p>CNA requests float stereo at 44.1 kHz and negotiates what the device supports. Its ALSA thread works in roughly ten-millisecond periods with four periods buffered, recovers from underruns and suspension, and does not wait indefinitely during shutdown. PipeWire and PulseAudio desktops are normally reached through their ALSA compatibility plugin; CNA does not maintain redundant native backends merely to reach the same default device.</p>
+<p>The CNA mixer converts each track to the output rate, applies pitch, gain, per-track filtering and pan, then adds it at master gain. Mono is duplicated into both channels. Resampling uses linear interpolation, matching FAudio/FNA behavior more closely than SDL&#39;s windowed-sinc route; therefore a strongly pitched sound can differ slightly between SDL3 and ALSA builds.</p>
+<h2 id="performance-diagnostics-and-testing">Performance, diagnostics and testing</h2>
+<p>Audio problems are often lifetime or scheduling problems rather than decoder problems. Watch allocated voices and voice creations in CNA diagnostics. A rising creation count during a stable loop suggests that the game is recreating instances. Unexpected voice growth can reveal a missing stop or disposal path.</p>
+<p>Test at three levels:</p>
+<ul><li>unit-test category math, queues and game-owned audio policy with the Null backend;</li><li>test decoding, duration, channel order, loop points and mixer output against known samples;</li><li>manually qualify a real device for latency, unplug behavior, suspend/resume and routing.</li></ul>
+<p>Do not make a screenshot test depend on audible completion. Drive gameplay from simulation events, and let audio observe them. Likewise, a missing device must not prevent a dedicated server from starting.</p>
+<p>The ALSA implementation has extensive sample-exact tests against silent and file devices, including gain order, pitch interpolation, loops, streams, capture and MediaPlayer completion. That evidence does not automatically prove every PipeWire, PulseAudio or physical sound-card configuration. Real-hardware qualification remains a separate step and should be reported as such.</p>
+<h2 id="a-maintainable-game-audio-layer">A maintainable game audio layer</h2>
+<p>Keep loaded assets in a cache, long-running instances in stable owners, and short effects behind a bounded voice allocator. Centralize category volumes and pause rules. Separate music queues from effect voices, and isolate microphone permission and capture from ordinary playback.</p>
+<p>Most importantly, preserve the XNA-level contract above the backend. The same game can then use SDL3 on a desktop, CNA&#39;s mixer with ALSA on an SDL-free Linux system, and Null audio in CI without filling gameplay code with platform branches. That is the real purpose of Audio in CNA: not one playback call, but a portable and testable audio system from authored XACT content to the final device buffer.</p>
+<h2 id="worked-example-bounded-sound-effect-voices">Worked example: bounded sound-effect voices</h2>
+<p>A real game should not create an unlimited instance for every collision. This small owner pre-allocates voices, reuses stopped instances and refuses excess playback instead of growing mixer work without limit. Exact pointer aliases depend on the CNA revision, but the ownership pattern is the important part:</p>
+<pre><code class="language-cpp">class SoundPool
+{
+public:
+    SoundPool(std::shared_ptr&lt;SoundEffect&gt; effect, std::size_t count)
+        : effect_(std::move(effect))
+    {
+        for (std::size_t i = 0; i &lt; count; ++i)
+            voices_.push_back(effect_-&gt;CreateInstance());
+    }
+
+    bool Play(float volume, float pitch, float pan)
+    {
+        for (auto&amp; voice : voices_)
+        {
+            if (voice-&gt;getStateProperty() != SoundState::Playing)
+            {
+                voice-&gt;setVolumeProperty(std::clamp(volume, 0.0f, 1.0f));
+                voice-&gt;setPitchProperty(std::clamp(pitch, -1.0f, 1.0f));
+                voice-&gt;setPanProperty(std::clamp(pan, -1.0f, 1.0f));
+                voice-&gt;Play();
+                return true;
+            }
+        }
+        return false;
+    }
+
+private:
+    std::shared_ptr&lt;SoundEffect&gt; effect_;
+    std::vector&lt;std::unique_ptr&lt;SoundEffectInstance&gt;&gt; voices_;
+};</code></pre>
+<p>Create pools for important and disposable categories. A UI confirmation might reserve two voices, weapon fire sixteen, while ambient sounds can accept dropping the oldest quiet voice. Count rejected plays in diagnostics. If the counter spikes, change the design or pool size based on evidence.</p>
+<p>For 3D sound, update the listener once per simulation frame and apply emitter state before playback. Keep world-to-audio scale consistent: if one game unit is one metre, velocity and Doppler calculations must use the same convention. Test an emitter left, center and right at fixed distance, then moving toward and away from a stationary listener.</p>
+<h2 id="a-streaming-producer-without-underruns">A streaming producer without underruns</h2>
+<p><code>DynamicSoundEffectInstance</code> works best when the producer owns a bounded PCM queue. Generate or decode on a worker, submit complete buffers from the permitted thread, and maintain a small target latency:</p>
+<pre><code class="language-cpp">void StreamPlayer::Update()
+{
+    while (instance_-&gt;getPendingBufferCountProperty() &lt; targetBuffers_)
+    {
+        auto pcm = decoded_.TryPop();
+        if (!pcm)
+        {
+            ++underruns_;
+            pcm = MakeSilence(framesPerBuffer_, channels_);
+        }
+        instance_-&gt;SubmitBuffer(pcm-&gt;data(), 0, pcm-&gt;size());
+    }
+}</code></pre>
+<p>Do not decode inside an audio callback if decoding can block or allocate. Bound the queue so a fast worker cannot buffer an entire movie. Track pending buffers, underruns and decode time. Test with artificial stalls longer than one buffer to prove recovery does not repeat stale data or lose channel alignment. Microphone capture follows the same discipline in reverse: bound retained audio, stop capture when inactive, and treat permission denial or device removal as ordinary feature states.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/cna/">#CNA</a><a href="/tag/audio/">#Audio</a><a href="/tag/xna/">#XNA</a><a href="/tag/sdl3/">#SDL3</a><a href="/tag/alsa/">#ALSA</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">CNA Project Roadmap and the Path to 1.0</a></li><li><a href="/2027/10/14/performance-checklist-for-cna-games/">Performance Checklist for CNA Games</a></li><li><a href="/2027/10/07/porting-an-xna-game-to-cna-step-by-step/">Porting an XNA Game to CNA Step by Step</a></li><li><a href="/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/">Migrating a MonoGame or FNA Project to CNA</a></li><li><a href="/2027/09/23/creating-a-new-cna-graphics-renderer/">Creating a New CNA Graphics Renderer</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/10/"><span>October 2027</span><span class="count">3</span></a></li><li><a href="/2027/09/"><span>September 2027</span><span class="count">5</span></a></li><li><a href="/2027/08/"><span>August 2027</span><span class="count">4</span></a></li><li><a href="/2027/07/"><span>July 2027</span><span class="count">5</span></a></li><li><a href="/2027/06/"><span>June 2027</span><span class="count">4</span></a></li><li><a href="/2027/05/"><span>May 2027</span><span class="count">4</span></a></li><li><a href="/2027/04/"><span>April 2027</span><span class="count">5</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">50</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">24</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/accessibility/">Accessibility</a><a href="/tag/alsa/">ALSA</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/basiceffect/">BasicEffect</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/compression/">Compression</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/debugging/">Debugging</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/deployment/">Deployment</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/enet/">ENet</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fullscreen/">Fullscreen</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/game-loop/">Game Loop</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/gestures/">Gestures</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/glsl/">GLSL</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/headless/">Headless</a><a href="/tag/hidpi/">HiDPI</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lifecycle/">Lifecycle</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/migration/">Migration</a><a href="/tag/mobile/">Mobile</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/networking/">Networking</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/optimization/">Optimization</a><a href="/tag/packaging/">Packaging</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/render-targets/">Render Targets</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/roadmap/">Roadmap</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/saves/">Saves</a><a href="/tag/scaling/">Scaling</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/serialization/">Serialization</a><a href="/tag/server/">Server</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/shaders/">Shaders</a><a href="/tag/shadows/">Shadows</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/skinning/">Skinning</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/spir-v/">SPIR-V</a><a href="/tag/spritebatch/">SpriteBatch</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/storage/">Storage</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/surfaceformat/">SurfaceFormat</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/textures/">Textures</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/touch/">Touch</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/ui/">UI</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/wgsl/">WGSL</a><a href="/tag/win32/">Win32</a><a href="/tag/windowing/">Windowing</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

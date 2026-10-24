@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Creating a New CNA Graphics Renderer | CNA&#39;s Blog</title>
+  <meta name="description" content="Add a CNA renderer through the registry, capability profiles, resource contracts and shared parity fixtures instead of scattering backend branches.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/09/23/creating-a-new-cna-graphics-renderer/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Creating a New CNA Graphics Renderer">
+  <meta property="og:description" content="Add a CNA renderer through the registry, capability profiles, resource contracts and shared parity fixtures instead of scattering backend branches.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/09/23/creating-a-new-cna-graphics-renderer/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-09-23T12:00:00Z">September 23, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Creating a New CNA Graphics Renderer</h1>
+      <p class="article-description">Add a CNA renderer through the registry, capability profiles, resource contracts and shared parity fixtures instead of scattering backend branches.</p>
+    </header>
+    <div class="article-body"><p>A CNA graphics renderer implements the internal renderer contract beneath <code>GraphicsDevice</code>. Game code continues to use XNA types; the backend translates resources, state and draws to a graphics API or CPU implementation.</p>
+<p>Add a canonical public identity to the renderer registry and CMake selection. Declare capability classes accurately. A backend must not advertise render targets, instancing or a surface format before the corresponding contract works and has evidence.</p>
+<p>Implement device creation and presentation first, then resources and state in dependency order: textures and buffers, blend/depth/rasterizer/sampler state, primitive draws, render targets, readback and effects. Validate sizes and enum mappings at the boundary. Native objects need deterministic retirement even when the public wrapper is disposed during an in-flight frame.</p>
+<h2 id="prove-parity-incrementally">Prove parity incrementally</h2>
+<p>Run shared fixtures as each feature arrives. Begin with clear and one triangle, then asymmetric textured sprites, blending, scissor, depth, indexed geometry, targets and stock effects. Compare against the established oracle with the documented tolerance.</p>
+<p>Normalize coordinate and render-target conventions inside the backend. Application code should not flip textures or reverse winding based on renderer name. If the API cannot implement a feature, report the limitation through capabilities and the feature matrix.</p>
+<p>Support diagnostics from the beginning: renderer identity, draw and primitive counts, resource metadata and debug labels make later failures tractable. Add a minimal standalone diagnostic dump so a broken full game is not the only reproduction.</p>
+<p>Finally test loss, resize, failed allocation and teardown, not only successful drawing. A renderer is a resource-lifetime system attached to a presentation surface. Correct pixels in one frame are necessary, but parity, recovery and honest limits are what make it a CNA backend.</p>
+<h2 id="effects-and-pipeline-caches">Effects and pipeline caches</h2>
+<p>Stock effects need identical semantics, not merely shaders that compile. Validate defaults, fog, lighting and vertex variants. Cache native pipelines by every affecting state; an incomplete key can reuse the wrong blend, topology or target format.</p>
+<p>Bound cache growth and expose hit/miss diagnostics. Qualify ordinary games and hostile state-transition fixtures before marking the renderer production-ready.</p>
+<h2 id="bring-up-one-invariant-at-a-time">Bring up one invariant at a time</h2>
+<p>Start with device creation, clear and presentation. Add a hard-coded triangle, then vertex declarations, indexed drawing, textures, samplers, blending, depth and render targets. At every step keep a fixture that proves the new contract. Introducing models, effects and post-processing together makes the first incorrect assumption impossible to locate.</p>
+<p>Translate CNA state into immutable native pipeline descriptions where required. The cache key must include every value affecting native behavior—shader program, vertex layout, blend, depth, rasterizer and target formats—while excluding irrelevant object addresses. Log key creation and cache size in diagnostics. A wrong key can reuse an incompatible pipeline and produce failures that depend on draw order.</p>
+<h2 id="synchronization-and-resource-lifetime">Synchronization and resource lifetime</h2>
+<p>Uploads, draws, readbacks and destruction must obey the backend&#39;s queue model. Track when staging memory may be reused and retire native resources only after submitted work no longer references them. Device teardown should drain or abandon work according to a documented policy and tolerate partially created resources.</p>
+<p>Render-target transitions, texture layout changes and CPU readback need explicit tests. Include resize, device recreation, empty draws, zero work frames and resource destruction immediately after submission. Validation-layer output belongs in CI logs and should be treated as a defect even when pixels appear correct.</p>
+<p>Finish with parity scenes and real applications across several drivers. Publish unsupported formats and limits through capabilities, not hidden renderer-name checks. Performance qualification should separately measure submission overhead, upload bandwidth, pipeline-cache behavior and representative scenes so correctness work is not confused with premature tuning.</p>
+<h2 id="evidence-for-production-status">Evidence for production status</h2>
+<p>Archive feature-matrix results, validation logs, reference captures and performance data with exact driver and hardware identity. Run resource-lifetime stress for hours, not seconds, and confirm memory returns to baseline after repeated scene changes. Qualify both debug and optimized binaries because synchronization timing differs. Finally, package the renderer as users receive it and test selection, fallback and a missing-module error. Production-ready describes the complete delivery path, not only the native draw implementation.</p>
+<h2 id="worked-example-translate-state-into-a-pipeline-key">Worked example: translate state into a pipeline key</h2>
+<p>Modern APIs often require an immutable pipeline. CNA state must become a complete value key, never an object address:</p>
+<pre><code class="language-cpp">struct PipelineKey
+{
+    ShaderId vertexShader;
+    ShaderId fragmentShader;
+    VertexLayoutKey vertexLayout;
+    BlendKey blend;
+    DepthStencilKey depthStencil;
+    RasterizerKey rasterizer;
+    std::array&lt;SurfaceFormat, 4&gt; colorFormats;
+    DepthFormat depthFormat;
+    std::uint8_t sampleCount;
+
+    bool operator==(const PipelineKey&amp;) const = default;
+};
+
+NativePipeline&amp; Renderer::ResolvePipeline(const DrawState&amp; state)
+{
+    PipelineKey key = BuildKey(state);
+    if (auto found = pipelines_.find(key); found != pipelines_.end())
+        return found-&gt;second;
+    return pipelines_.emplace(key, CreateNativePipeline(key)).first-&gt;second;
+}</code></pre>
+<p>Hash every field participating in equality. A missing target format or vertex layout can reuse an incompatible native pipeline and make output depend on draw order. Bound cache growth, record hits/misses and clear it at the correct device lifetime.</p>
+<h2 id="submission-and-retirement">Submission and retirement</h2>
+<p>Uploads use staging memory whose lifetime extends until the queue has consumed it. Destruction likewise becomes retirement: mark the resource unavailable to new CNA draws immediately, but free native storage only after the last submission fence. Readback needs an explicit synchronization point and row-pitch conversion.</p>
+<p>Bring up clear/present, one triangle, indexed drawing, vertex formats, texture upload, samplers, blend, depth, targets, readback and effects in that order. Preserve a fixture after every step. Run validation layers as errors, then repeat optimized without them. Resize and device-loss paths, empty frames, destroy-after-submit and target-to-texture transitions belong in qualification before real games.</p>
+<p>Publish unsupported formats and limits in capabilities. Never replace an unsupported operation silently with stock output. A precise refusal lets games choose a fallback; a plausible wrong image corrupts both application and parity testing.</p>
+<h2 id="shader-and-effect-integration">Shader and effect integration</h2>
+<p>Stock effects, source <code>ShaderEffect</code> and compiled XNA effects are separate contracts. Implement only routes the backend can execute faithfully, and enable each capability after its complete parity suite passes. Parsing an effect or accepting source while drawing a fixed substitute is not support.</p>
+<p>For source packages, report accepted languages and resource layouts. Preserve source labels and native compiler diagnostics. Validate vertex input locations against CNA declarations, uniform offsets, texture dimensions and sampler slots. For compiled effects, reflection, techniques, passes, pass state and sampler connections must all execute; pass zero alone is not enough.</p>
+<h2 id="presentation-and-failure-recovery">Presentation and failure recovery</h2>
+<p>Presentation sits at the platform-renderer boundary. Acquire only the native surface/window handles required, choose a supported swap format and handle zero-sized windows without creating invalid resources. Resize/recreate at a safe boundary and keep offscreen resource ownership independent of the swap chain.</p>
+<p>Define renderer initialization failure clearly. If selection supports fallback, tear down every partially created object before trying another backend and publish the reason. During device loss or fatal queue failure, either recreate all affected resources through a tested route or fail the application cleanly—never continue with stale native handles.</p>
+<h2 id="qualification-matrix">Qualification matrix</h2>
+<p>Run primitives, vertex declarations, index types, textures and mips, samplers, blend/depth/rasterizer state, targets, readback, stock effects, supported custom effects, SpriteBatch, models and lifetime stress. Include odd sizes, empty work, invalid ranges and rapid creation/destruction. Cross-renderer captures prove shared semantics; backend validation logs prove native correctness. Finally measure CPU submission, uploads, target changes and pipeline cache behavior with exact hardware/driver metadata.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/cna/">#CNA</a><a href="/tag/renderer-api/">#Renderer API</a><a href="/tag/graphics/">#Graphics</a><a href="/tag/architecture/">#Architecture</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">CNA Project Roadmap and the Path to 1.0</a></li><li><a href="/2027/10/14/performance-checklist-for-cna-games/">Performance Checklist for CNA Games</a></li><li><a href="/2027/10/07/porting-an-xna-game-to-cna-step-by-step/">Porting an XNA Game to CNA Step by Step</a></li><li><a href="/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/">Migrating a MonoGame or FNA Project to CNA</a></li><li><a href="/2027/09/23/creating-a-new-cna-graphics-renderer/">Creating a New CNA Graphics Renderer</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/10/"><span>October 2027</span><span class="count">3</span></a></li><li><a href="/2027/09/"><span>September 2027</span><span class="count">5</span></a></li><li><a href="/2027/08/"><span>August 2027</span><span class="count">4</span></a></li><li><a href="/2027/07/"><span>July 2027</span><span class="count">5</span></a></li><li><a href="/2027/06/"><span>June 2027</span><span class="count">4</span></a></li><li><a href="/2027/05/"><span>May 2027</span><span class="count">4</span></a></li><li><a href="/2027/04/"><span>April 2027</span><span class="count">5</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">50</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">24</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/accessibility/">Accessibility</a><a href="/tag/alsa/">ALSA</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/basiceffect/">BasicEffect</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/compression/">Compression</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/debugging/">Debugging</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/deployment/">Deployment</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/enet/">ENet</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fullscreen/">Fullscreen</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/game-loop/">Game Loop</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/gestures/">Gestures</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/glsl/">GLSL</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/headless/">Headless</a><a href="/tag/hidpi/">HiDPI</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lifecycle/">Lifecycle</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/migration/">Migration</a><a href="/tag/mobile/">Mobile</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/networking/">Networking</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/optimization/">Optimization</a><a href="/tag/packaging/">Packaging</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/render-targets/">Render Targets</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/roadmap/">Roadmap</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/saves/">Saves</a><a href="/tag/scaling/">Scaling</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/serialization/">Serialization</a><a href="/tag/server/">Server</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/shaders/">Shaders</a><a href="/tag/shadows/">Shadows</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/skinning/">Skinning</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/spir-v/">SPIR-V</a><a href="/tag/spritebatch/">SpriteBatch</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/storage/">Storage</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/surfaceformat/">SurfaceFormat</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/textures/">Textures</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/touch/">Touch</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/ui/">UI</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/wgsl/">WGSL</a><a href="/tag/win32/">Win32</a><a href="/tag/windowing/">Windowing</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

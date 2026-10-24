@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Windowing, Fullscreen and Display Scaling | CNA&#39;s Blog</title>
+  <meta name="description" content="Manage CNA windows, backbuffers, fullscreen transitions, virtual resolution and high-density displays without mixing logical and drawable units.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/08/19/windowing-fullscreen-and-display-scaling/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Windowing, Fullscreen and Display Scaling">
+  <meta property="og:description" content="Manage CNA windows, backbuffers, fullscreen transitions, virtual resolution and high-density displays without mixing logical and drawable units.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/08/19/windowing-fullscreen-and-display-scaling/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-08-19T12:00:00Z">August 19, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Windowing, Fullscreen and Display Scaling</h1>
+      <p class="article-description">Manage CNA windows, backbuffers, fullscreen transitions, virtual resolution and high-density displays without mixing logical and drawable units.</p>
+    </header>
+    <div class="article-body"><p>A CNA window has several related sizes: logical client bounds, drawable pixels, backbuffer dimensions and possibly a virtual game resolution. Treating them as one integer pair works until a high-density display, browser canvas or mobile rotation appears.</p>
+<p>Configure preferred backbuffer size and fullscreen through <code>GraphicsDeviceManager</code>, apply changes at a controlled point, then read the resulting viewport rather than assuming the request was granted exactly. Window managers and mobile platforms may constrain the result.</p>
+<p>Fullscreen can mean an exclusive display mode or a borderless desktop window depending on platform and renderer. Preserve the previous windowed bounds and make transitions idempotent. A failed mode request should leave a usable window.</p>
+<h2 id="scaling-policy">Scaling policy</h2>
+<p>A virtual resolution gives gameplay and UI a stable coordinate system. Fit it into the actual backbuffer with letterboxing, integer scaling or stretch according to the game&#39;s needs. Convert pointer and touch coordinates through the same transform, including offsets introduced by bars.</p>
+<p>Pixel art usually prefers integer scaling and point sampling. Vector-like UI benefits from content scale and larger font resources. Safe areas further constrain mobile layout; they are not equivalent to the full viewport.</p>
+<p>On resize, recreate size-dependent render targets only after dimensions stabilize and avoid holding references to the old buffers. Update camera projection, scissor rectangles and post-processing targets together. Zero-sized or hidden windows should skip presentation safely.</p>
+<p>Test drag resizing, maximize, repeated fullscreen toggles, DPI movement between monitors, unusual aspect ratios, browser canvas resizing and device rotation. The picture, input mapping and UI must agree. Correct scaling is not only a graphics feature—it is a coordinate contract shared by rendering and input.</p>
+<h2 id="presentation-failure-and-persistence">Presentation failure and persistence</h2>
+<p>Store a preference, not a blindly trusted display mode. Validate it against current adapters and fall back to a safe window; a monitor may have disappeared since the previous run.</p>
+<p>Debounce target recreation during continuous resize. Log requested and actual logical, drawable and backbuffer dimensions together—this single record makes DPI and letterbox failures reproducible.</p>
+<h2 id="a-single-mapping-for-rendering-and-input">A single mapping for rendering and input</h2>
+<p>Choose a virtual game resolution, calculate the largest destination rectangle with the desired aspect ratio, and derive one transform from virtual coordinates to the viewport. Rendering uses that transform; mouse and touch use its inverse. Reject or specially handle input in letterbox bars. Keeping both directions together prevents buttons from drifting away from their pictures on high-DPI displays.</p>
+<p>Pixel-art games may require an integer scale and nearest sampling. When the window is too small, select a documented fallback instead of silently switching filters. Vector-like UI can scale continuously but still needs minimum physical target sizes and readable fonts. Test fractional desktop scaling such as 125% and 150%, not only integer Retina-style ratios.</p>
+<h2 id="changing-display-mode-safely">Changing display mode safely</h2>
+<p>Distinguish windowed, borderless fullscreen and exclusive fullscreen in settings and capability checks. Save the last known-good mode, apply a change temporarily, and revert after a timeout unless the player confirms. If the requested monitor or mode disappears, recover to a visible window on an available display.</p>
+<p>A resize can invalidate swap-chain state and size-dependent render targets. Queue one coherent recreation at a frame boundary, then notify cameras and UI layout. Test dragging between monitors with different scale factors, minimizing to zero drawable size, alt-tab from fullscreen and reconnecting a display. Diagnostics should record monitor, mode, refresh rate, logical size, pixel size, viewport and active scaling policy.</p>
+<h2 id="configuration-checklist">Configuration checklist</h2>
+<p>Test the smallest supported window, common laptop and desktop resolutions, ultrawide, portrait and every available scale factor. Verify pointer mapping at all four viewport corners and in letterbox bars. Change mode repeatedly while audio and input remain active, then restart and confirm the saved choice recovers safely. Screenshots should include diagnostic dimensions so a scaling defect can be reproduced without guessing which of several coordinate spaces was wrong.</p>
+<p>Include multi-window behavior only when the platform advertises it, and state clearly which window owns fullscreen, input focus and presentation timing.</p>
+<h2 id="worked-example-letterboxed-virtual-resolution">Worked example: letterboxed virtual resolution</h2>
+<p>For a 320×180 game inside an arbitrary drawable, choose one scale and centered viewport:</p>
+<pre><code class="language-cpp">ViewportLayout Fit(int drawableW, int drawableH, int virtualW, int virtualH)
+{
+    const float scale = std::min(
+        drawableW / static_cast&lt;float&gt;(virtualW),
+        drawableH / static_cast&lt;float&gt;(virtualH));
+    const int w = static_cast&lt;int&gt;(std::floor(virtualW * scale));
+    const int h = static_cast&lt;int&gt;(std::floor(virtualH * scale));
+    return {{(drawableW - w) / 2, (drawableH - h) / 2, w, h}, scale};
+}
+
+std::optional&lt;Vector2&gt; ToVirtual(Vector2 pixel, const ViewportLayout&amp; v)
+{
+    if (!v.rectangle.Contains(pixel)) return std::nullopt;
+    return Vector2((pixel.X - v.rectangle.X) / v.scale,
+                   (pixel.Y - v.rectangle.Y) / v.scale);
+}</code></pre>
+<p>Use drawable pixels for viewport math and logical coordinates only after converting through platform scale. Pixel-art mode can floor <code>scale</code> to an integer when it is at least one. Define what happens below native size—downscale with point sampling, allow fractional linear sampling or require a minimum window—and expose that as policy.</p>
+<h2 id="safe-fullscreen-changes">Safe fullscreen changes</h2>
+<p>Keep the last confirmed mode. Apply a requested monitor, dimensions and mode temporarily, display a countdown, and revert unless confirmed. If the monitor disappears or creation fails, recover to a conservative visible window. Persist the confirmed choice only.</p>
+<p>Recreate size-dependent targets once at a frame boundary after resize. Minimized windows may report zero drawable area; skip presentation rather than allocating zero-sized targets. Test dragging between displays with different DPI, repeated alt-tab, exclusive-mode failure and startup with a disconnected saved monitor. Log logical size, drawable size, scale, viewport, monitor and refresh rate in one record.</p>
+<h2 id="fonts-cameras-and-capture">Fonts, cameras and capture</h2>
+<p>The 3D camera aspect ratio uses the render viewport, not necessarily the whole window. A letterboxed 16:9 game in an ultrawide window still projects at 16:9. UI may use virtual units while font selection chooses assets appropriate for actual density. Scaling a tiny bitmap font after layout is not equivalent to a readable high-density font.</p>
+<p>Screenshots also need policy: whether capture includes letterbox bars, post-processing and system-space UI. Read the correct completed target and store its dimensions. Otherwise reports differ from what the player saw because capture happened before final composite.</p>
+<p>Refresh rate and presentation interval are not the simulation tick. Refresh display information after monitor/mode changes, but keep gameplay time independent. Expose adaptive presentation through capabilities rather than renderer-name assumptions.</p>
+<h2 id="failure-symptoms">Failure symptoms</h2>
+<p>Blur usually means content was rendered and filtered at unintended sizes. Misplaced input means coordinate transforms disagree. UI jumping across monitors indicates delayed DPI updates. Black after alt-tab points to presentation or target recreation. Log all coordinate spaces together and reproduce one transition at a time; random backbuffer changes merely mask the contract error.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/cna/">#CNA</a><a href="/tag/windowing/">#Windowing</a><a href="/tag/fullscreen/">#Fullscreen</a><a href="/tag/scaling/">#Scaling</a><a href="/tag/hidpi/">#HiDPI</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">CNA Project Roadmap and the Path to 1.0</a></li><li><a href="/2027/10/14/performance-checklist-for-cna-games/">Performance Checklist for CNA Games</a></li><li><a href="/2027/10/07/porting-an-xna-game-to-cna-step-by-step/">Porting an XNA Game to CNA Step by Step</a></li><li><a href="/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/">Migrating a MonoGame or FNA Project to CNA</a></li><li><a href="/2027/09/23/creating-a-new-cna-graphics-renderer/">Creating a New CNA Graphics Renderer</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/10/"><span>October 2027</span><span class="count">3</span></a></li><li><a href="/2027/09/"><span>September 2027</span><span class="count">5</span></a></li><li><a href="/2027/08/"><span>August 2027</span><span class="count">4</span></a></li><li><a href="/2027/07/"><span>July 2027</span><span class="count">5</span></a></li><li><a href="/2027/06/"><span>June 2027</span><span class="count">4</span></a></li><li><a href="/2027/05/"><span>May 2027</span><span class="count">4</span></a></li><li><a href="/2027/04/"><span>April 2027</span><span class="count">5</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">50</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">24</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/accessibility/">Accessibility</a><a href="/tag/alsa/">ALSA</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/basiceffect/">BasicEffect</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/compression/">Compression</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/debugging/">Debugging</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/deployment/">Deployment</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/enet/">ENet</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fullscreen/">Fullscreen</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/game-loop/">Game Loop</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/gestures/">Gestures</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/glsl/">GLSL</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/headless/">Headless</a><a href="/tag/hidpi/">HiDPI</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lifecycle/">Lifecycle</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/migration/">Migration</a><a href="/tag/mobile/">Mobile</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/networking/">Networking</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/optimization/">Optimization</a><a href="/tag/packaging/">Packaging</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/render-targets/">Render Targets</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/roadmap/">Roadmap</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/saves/">Saves</a><a href="/tag/scaling/">Scaling</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/serialization/">Serialization</a><a href="/tag/server/">Server</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/shaders/">Shaders</a><a href="/tag/shadows/">Shadows</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/skinning/">Skinning</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/spir-v/">SPIR-V</a><a href="/tag/spritebatch/">SpriteBatch</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/storage/">Storage</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/surfaceformat/">SurfaceFormat</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/textures/">Textures</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/touch/">Touch</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/ui/">UI</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/wgsl/">WGSL</a><a href="/tag/win32/">Win32</a><a href="/tag/windowing/">Windowing</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

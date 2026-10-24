@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The CNA Software Renderer | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA&#39;s CPU rasterizer renders real pixels without a GPU and serves as a deterministic graphics oracle, CI backend and terminal presentation source.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/05/13/the-cna-software-renderer/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="The CNA Software Renderer">
+  <meta property="og:description" content="CNA&#39;s CPU rasterizer renders real pixels without a GPU and serves as a deterministic graphics oracle, CI backend and terminal presentation source.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/05/13/the-cna-software-renderer/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-05-13T12:00:00Z">May 13, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">The CNA Software Renderer</h1>
+      <p class="article-description">CNA&#39;s CPU rasterizer renders real pixels without a GPU and serves as a deterministic graphics oracle, CI backend and terminal presentation source.</p>
+    </header>
+    <div class="article-body"><p><code>CNA_GRAPHICS_RENDERER=SOFTWARE</code> is a real CPU rasterizer, not a no-op device. It produces an RGBA framebuffer, implements a substantial XNA/Core graphics subset and can present through a normal window or CNA&#39;s Terminal platform.</p>
+<pre><code class="language-bash">cmake -S . -B build-software \
+  -DCNA_GRAPHICS_RENDERER=SOFTWARE
+cmake --build build-software</code></pre>
+<p>The renderer is valuable when GPU availability is uncertain, but its most important role is verification. A software frame is reproducible enough for pixel oracles, screenshot tests and comparisons against EasyGL and other renderers. CNA&#39;s differential tools dump matching scenes and compare them with an explicit tolerance.</p>
+<h2 id="what-it-renders">What it renders</h2>
+<p>The implementation covers ordinary textures, <code>SpriteBatch</code>, render targets, depth behavior, buffers, primitives, stock-effect paths and the states needed by CNA&#39;s shared fixtures. It intentionally does not pretend to be a universal GPU emulator. Custom GPU shaders and backend-specific features need a fallback or another renderer.</p>
+<p>A useful software test creates a small target, clears to a distinctive color, draws asymmetric geometry and reads the pixels back. Assert representative interior, edge and background pixels. Tiny fixtures make a failure explainable; a full game screenshot is better as a later integration gate.</p>
+<h2 id="performance-expectations">Performance expectations</h2>
+<p>CPU rendering trades portability and determinism for throughput. Reduce resolution, overdraw and expensive blending when using it interactively. It is not fair to compare its frame rate with a hardware renderer and conclude that the API is slow—the selected execution hardware is fundamentally different.</p>
+<p>The renderer also catches assumptions that a GPU driver might tolerate: uninitialized state, incorrect winding, invalid bounds and dependence on implicit presentation behavior. When Software and a GPU backend disagree, compare the smallest shared fixture first and consult the feature matrix before declaring either image correct.</p>
+<p>Software rendering lets CNA test graphics on machines with no display server, feed completed frames to a terminal and retain a readable reference implementation. That makes it an engineering tool as much as a deployment option.</p>
+<h2 id="building-trustworthy-pixel-tests">Building trustworthy pixel tests</h2>
+<p>Fix every input that influences the image: target size, clear color, viewport, matrices, texture bytes, sampler, blend mode and draw order. Read the backbuffer only after drawing finishes and compare exact bytes or a tolerance justified by the operation. Store the expected image beside a description of what each region proves.</p>
+<p>Prefer several tiny fixtures to one enormous golden screenshot. Separate alpha blending, depth, scissor and render-target sampling. When a fixture fails, its name already identifies the subsystem; a full game capture can remain the final integration gate.</p>
+<p>Software also serves tools: build machines can render thumbnails, servers can generate maps, and documentation can create images without a GPU. Those uses still obey the feature matrix. Profile triangle setup, sampling, overdraw and blending before increasing resolution; coarse culling and smaller targets usually matter more than micro-optimizing arithmetic.</p>
+<h2 id="what-the-rasterizer-must-preserve">What the rasterizer must preserve</h2>
+<p>A software backend still implements a graphics contract. It transforms and clips vertices, maps them into the viewport, evaluates depth and culling, interpolates attributes, samples textures, blends fragments and writes the selected target. Differences in half-pixel rules, winding, interpolation or float-to-byte conversion can move an edge or change a blended pixel. Reference tests therefore need triangles touching viewport boundaries, reversed winding, sub-pixel geometry, transparent overlap and nearly equal depth values.</p>
+<p>Texture tests should separate addressing from filtering. A tiny image with a unique color in every texel can verify point and linear sampling under clamp and wrap modes. Similar fixtures cover source rectangles, scissor tests, color write masks and sampling a completed render target. Each failed image should identify one rule rather than combine ten effects into an ambiguous scene.</p>
+<h2 id="integrating-it-into-development">Integrating it into development</h2>
+<p>Name captures with the scene, dimensions and format. Use exact byte comparison for integer-like fixtures and a documented tolerance only where interpolation makes exact agreement unreasonable. Always emit a difference image on failure; it turns a mysterious checksum into a visible one-pixel edge or channel error.</p>
+<p>Expose submitted primitives, clipped primitives, shaded pixels, depth rejects, texture samples and target switches. These counters show whether a slow frame comes from geometry, overdraw or state churn and make optimizations measurable. Unsupported operations must fail clearly or advertise a missing capability. A precise subset with excellent diagnostics is more useful than broad but unpredictable emulation.</p>
+<h2 id="worked-example-a-pixel-oracle">Worked example: a pixel oracle</h2>
+<p>The best software-renderer test draws a tiny scene and checks pixels that can be calculated by hand:</p>
+<pre><code class="language-cpp">RenderTarget2D target(device, 8, 8, false,
+                      SurfaceFormat::Color, DepthFormat::None);
+device.SetRenderTarget(&amp;target);
+device.Clear(Color::Magenta);
+
+SpriteBatch batch(device);
+batch.Begin(SpriteSortMode::Deferred,
+            BlendState::AlphaBlend,
+            SamplerState::PointClamp);
+batch.Draw(checkerTexture, Rectangle(2, 2, 4, 4),
+           Color(128, 255, 255, 255));
+batch.End();
+
+device.SetRenderTarget(nullptr);
+std::vector&lt;Color&gt; pixels(64);
+target.GetData(pixels);
+Require(pixels[0] == Color::Magenta);
+Require(pixels[2 + 2 * 8] == expectedTopLeft);
+Require(pixels[5 + 5 * 8] == expectedBottomRight);</code></pre>
+<p>Use the constructor and <code>GetData</code> overload in your CNA revision, but preserve explicit format, state, known texture bytes, unbinding before readback and coordinate-specific assertions. A PNG is a debugging artifact; test data should determine pass or failure.</p>
+<p>Build a fixture ladder: clear, opaque rectangle, alpha, scissor, rotation, depth and target sampling. For triangles, test two primitives sharing an edge so no pixel is doubled or left as a crack. For filtering, use a 2×2 texture with unrelated colors and sample at texel centers and half positions.</p>
+<h2 id="reading-a-failure">Reading a failure</h2>
+<p>Print <code>(x, y)</code>, expected RGBA and actual RGBA. A uniform channel error suggests packing or color conversion. A mirrored image suggests origin convention. Shared-edge failures indicate coverage rules. Correct RGB with wrong alpha points to blending or write masks.</p>
+<p>Run the fixture on software and at least one GPU backend, but only compare capabilities both claim. Keep exact cases exact and place justified tolerances in fixture metadata. For thumbnail or map-generation tools, also bound input dimensions, output pixels and execution time: deterministic CPU rendering still needs resource limits.</p>
+<h2 id="common-mistakes-and-a-qualification-plan">Common mistakes and a qualification plan</h2>
+<p>Do not assume CPU output is automatically deterministic. Parallel tile scheduling can change floating-point accumulation order; uninitialized padding can enter hashes; a system image decoder may produce different channel conversions. Fix thread count for reference tests, initialize every byte, and feed already-decoded canonical texture data into low-level fixtures.</p>
+<p>Clipping belongs before perspective division, and interpolants need the correct perspective rule. A triangle crossing the near plane is therefore an essential fixture. So are negative viewport origins, empty scissors, clockwise/counter-clockwise culling, 16- and 32-bit indices, NaN rejection and zero-area primitives. Refuse invalid buffer ranges before accessing memory.</p>
+<p>For alpha, calculate one pixel on paper. With premultiplied source <code>S</code> over destination <code>D</code>, the expected RGB is <code>S.rgb + D.rgb * (1 - S.a)</code>. Store that numeric expectation. If a test obtains the right visual color only after changing both asset and blend state, it has not established which contract is correct.</p>
+<p>Qualify in three layers:</p>
+<ol><li>arithmetic tests for packing, interpolation, depth and blend;</li><li>tiny rendering fixtures for one feature at a time;</li><li>representative CNA scenes shared with GPU renderers.</li></ol>
+<p>Record unsupported capabilities in the same matrix. Passing the scene by ignoring a shader or substituting a white texture is not compatibility. A production use such as server map rendering should additionally have a maximum wall time, memory budget and cancellation path.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/cna/">#CNA</a><a href="/tag/software-rendering/">#Software Rendering</a><a href="/tag/testing/">#Testing</a><a href="/tag/graphics/">#Graphics</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/10/21/cna-project-roadmap-and-the-path-to-1-0/">CNA Project Roadmap and the Path to 1.0</a></li><li><a href="/2027/10/14/performance-checklist-for-cna-games/">Performance Checklist for CNA Games</a></li><li><a href="/2027/10/07/porting-an-xna-game-to-cna-step-by-step/">Porting an XNA Game to CNA Step by Step</a></li><li><a href="/2027/09/30/migrating-a-monogame-or-fna-project-to-cna/">Migrating a MonoGame or FNA Project to CNA</a></li><li><a href="/2027/09/23/creating-a-new-cna-graphics-renderer/">Creating a New CNA Graphics Renderer</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/10/"><span>October 2027</span><span class="count">3</span></a></li><li><a href="/2027/09/"><span>September 2027</span><span class="count">5</span></a></li><li><a href="/2027/08/"><span>August 2027</span><span class="count">4</span></a></li><li><a href="/2027/07/"><span>July 2027</span><span class="count">5</span></a></li><li><a href="/2027/06/"><span>June 2027</span><span class="count">4</span></a></li><li><a href="/2027/05/"><span>May 2027</span><span class="count">4</span></a></li><li><a href="/2027/04/"><span>April 2027</span><span class="count">5</span></a></li><li><a href="/2027/03/"><span>March 2027</span><span class="count">4</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">50</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">24</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/accessibility/">Accessibility</a><a href="/tag/alsa/">ALSA</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/ansi/">ANSI</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/ascii-art/">ASCII Art</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/basiceffect/">BasicEffect</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/camera/">Camera</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/clipboard/">Clipboard</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/compression/">Compression</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/crt/">CRT</a><a href="/tag/ctest/">CTest</a><a href="/tag/debugging/">Debugging</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/deployment/">Deployment</a><a href="/tag/developer-tools/">Developer Tools</a><a href="/tag/devices/">Devices</a><a href="/tag/diagnostics/">Diagnostics</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/enet/">ENet</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fullscreen/">Fullscreen</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/game-loop/">Game Loop</a><a href="/tag/gamepad/">Gamepad</a><a href="/tag/games/">Games</a><a href="/tag/gestures/">Gestures</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/glsl/">GLSL</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/haptics/">Haptics</a><a href="/tag/hdr/">HDR</a><a href="/tag/headless/">Headless</a><a href="/tag/hidpi/">HiDPI</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/ime/">IME</a><a href="/tag/input/">Input</a><a href="/tag/inspector/">Inspector</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/joystick/">Joystick</a><a href="/tag/json/">JSON</a><a href="/tag/lifecycle/">Lifecycle</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/migration/">Migration</a><a href="/tag/mobile/">Mobile</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/networking/">Networking</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/optimization/">Optimization</a><a href="/tag/packaging/">Packaging</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/performance/">Performance</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform/">Platform</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/post-processing/">Post-processing</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/profiling/">Profiling</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/render-targets/">Render Targets</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/roadmap/">Roadmap</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/saves/">Saves</a><a href="/tag/scaling/">Scaling</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/serialization/">Serialization</a><a href="/tag/server/">Server</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/shaders/">Shaders</a><a href="/tag/shadows/">Shadows</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/skinning/">Skinning</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/spir-v/">SPIR-V</a><a href="/tag/spritebatch/">SpriteBatch</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/storage/">Storage</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/surfaceformat/">SurfaceFormat</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/terminal/">Terminal</a><a href="/tag/testing/">Testing</a><a href="/tag/textures/">Textures</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/touch/">Touch</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/ui/">UI</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/wgsl/">WGSL</a><a href="/tag/win32/">Win32</a><a href="/tag/windowing/">Windowing</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>
