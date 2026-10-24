@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>xna4-spec | CNA&#39;s Blog</title>
+  <meta name="description" content="xna4-spec is a machine-readable specification of the Microsoft XNA 4.0 API.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/11/15/xna4-spec/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="xna4-spec">
+  <meta property="og:description" content="xna4-spec is a machine-readable specification of the Microsoft XNA 4.0 API.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/11/15/xna4-spec/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-11-15T15:54:03Z">November 15, 2026</time></span><span>Updated <time datetime="2026-09-13T16:11:01Z">September 13, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/tooling/">Tooling</a></span></div>
+      <h1 class="article-title">xna4-spec</h1>
+      <p class="article-description">xna4-spec is a machine-readable specification of the Microsoft XNA 4.0 API.</p>
+    </header>
+    <div class="article-body"><p><strong>xna4-spec</strong> is a machine-readable specification of the Microsoft XNA 4.0 API.</p>
+<p>It converts the original Microsoft XNA documentation into structured XML files that can be searched, validated, compared, and processed automatically.</p>
+<p><strong>GitHub:</strong> <a href="https://github.com/libcna/xna4-spec">github.com/libcna/xna4-spec</a></p>
+<h2 id="web">Web</h2>
+<p>You can convert these XML files into a website. A new <code>web</code> directory will be created.</p>
+<p><img src="https://github.com/libcna/xna4-spec/raw/develop/web.png" alt="Web" loading="lazy"></p>
+<h2 id="example-keyboard-xml">Example: Keyboard.xml</h2>
+<pre><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;xna-type xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+xsi:noNamespaceSchemaLocation=&quot;../../xna.xsd&quot;
+name=&quot;Keyboard&quot; kind=&quot;class&quot;
+namespace=&quot;Microsoft.Xna.Framework.Input&quot;
+assembly=&quot;Microsoft.Xna.Framework.Input&quot;
+modifier=&quot;static&quot;&gt;
+&lt;summary&gt;&lt;![CDATA[Allows retrieval of keystrokes from a keyboard input device.]]&gt;&lt;/summary&gt;
+&lt;syntax&gt;&lt;![CDATA[public static class Keyboard]]&gt;&lt;/syntax&gt;
+&lt;platforms&gt;
+&lt;platform&gt;Xbox 360&lt;/platform&gt;
+&lt;platform&gt;Windows XP SP2&lt;/platform&gt;
+&lt;platform&gt;Windows Vista&lt;/platform&gt;
+&lt;/platforms&gt;
+&lt;constructors&gt;
+&lt;/constructors&gt;
+&lt;properties&gt;
+&lt;/properties&gt;
+&lt;methods&gt;
+&lt;method name=&quot;GetState&quot; returnType=&quot;KeyboardState&quot; isStatic=&quot;true&quot;&gt;
+&lt;summary&gt;&lt;![CDATA[Returns the current keyboard state.]]&gt;&lt;/summary&gt;
+&lt;overloads&gt;
+&lt;overload signature=&quot;GetState(PlayerIndex)&quot;&gt;
+&lt;summary&gt;&lt;![CDATA[Returns the current Chatpad state for the specified player.]]&gt;&lt;/summary&gt;
+&lt;syntax&gt;&lt;![CDATA[public static KeyboardState GetState (
+PlayerIndex playerIndex
+)]]&gt;&lt;/syntax&gt;
+&lt;parameters&gt;
+&lt;parameter name=&quot;playerIndex&quot; type=&quot;PlayerIndex&quot;&gt;&lt;![CDATA[Player index of the Chatpad to query.]]&gt;&lt;/parameter&gt;
+&lt;/parameters&gt;
+&lt;returns&gt;&lt;![CDATA[Current Chatpad state.]]&gt;&lt;/returns&gt;
+&lt;exceptions&gt;
+&lt;exception type=&quot;InvalidOperationException&quot;&gt;&lt;![CDATA[An invalid operation occurred when querying the Chatpad state.]]&gt;&lt;/exception&gt;
+&lt;/exceptions&gt;
+&lt;remarks&gt;&lt;![CDATA[Each player can have their own Chatpad, which is queried as a keyboard. To query an attached USB keyboard instead, use the GetState method that does not require a player index. This method works on Xbox 360 platforms only. Windows does not include driver support for the ChatPad. This method is included in the assemblies for Windows, but it is effectively a null function on that platform. Calls to Keyboard.GetState(playerIndex) from a Windows application are accepted, but will never return a ChatPad state change (key press or release).]]&gt;&lt;/remarks&gt;
+&lt;platforms&gt;
+&lt;platform&gt;Xbox 360&lt;/platform&gt;
+&lt;platform&gt;Windows XP SP2&lt;/platform&gt;
+&lt;platform&gt;Windows Vista&lt;/platform&gt;
+&lt;platform&gt;Zune&lt;/platform&gt;
+&lt;/platforms&gt;
+&lt;/overload&gt;
+&lt;/overloads&gt;
+&lt;/method&gt;
+&lt;/methods&gt;
+&lt;fields&gt;
+&lt;/fields&gt;
+&lt;events&gt;
+&lt;/events&gt;
+&lt;/xna-type&gt;</code></pre>
+<h2 id="why-does-it-exist">Why does it exist?</h2>
+<p>The original XNA documentation was written for people.</p>
+<p>That is useful when you want to read about <code>SpriteBatch.Draw()</code> or <code>GraphicsDevice.Clear()</code>.</p>
+<p>It is less useful when you want to answer questions such as:</p>
+<ul><li>Which XNA types are still missing from CNA?</li><li>Does CNA expose every property of <code>GraphicsDevice</code>?</li><li>How many overloads of a method existed?</li><li>Which APIs were Windows-only?</li><li>Which interfaces did a class implement?</li><li>Which exceptions were documented?</li><li>How complete is an XNA reimplementation?</li></ul>
+<p>For those questions, structured data is much more useful than thousands of HTML documentation pages.</p>
+<p>That is what xna4-spec provides.</p>
+<h2 id="one-xml-file-per-xna-type">One XML file per XNA type</h2>
+<p>The repository contains one XML document for each class, struct, interface, enum, or delegate.</p>
+<p>For example:</p>
+<pre><code class="language-text">Microsoft.Xna.Framework/
+├── Game.xml
+├── GameTime.xml
+├── Matrix.xml
+├── Vector2.xml
+├── Vector3.xml
+└── ...
+
+Microsoft.Xna.Framework.Graphics/
+├── GraphicsDevice.xml
+├── SpriteBatch.xml
+├── Texture2D.xml
+├── BasicEffect.xml
+└── ...</code></pre>
+<p>There is also a master:</p>
+<pre><code class="language-text">index.xml</code></pre>
+<p>which provides an index across the complete specification.</p>
+<h2 id="what-is-stored">What is stored?</h2>
+<p>The XML contains considerably more than just type names.</p>
+<p>For a class such as <code>SpriteBatch</code>, the specification can record:</p>
+<ul><li>namespace</li><li>assembly</li><li>type kind</li><li>implemented interfaces</li><li>description</li><li>constructors</li><li>properties</li><li>fields</li><li>methods</li><li>method overloads</li><li>parameters</li><li>return values</li><li>exceptions</li><li>remarks</li><li>original C# syntax</li><li>platform availability</li></ul>
+<p>For example, an overload is not merely recorded as:</p>
+<pre><code class="language-text">Begin</code></pre>
+<p>but with its complete signature and parameter information.</p>
+<p>That makes automated comparison much more useful.</p>
+<h2 id="a-schema-for-xna">A schema for XNA</h2>
+<p>The repository contains an XML Schema:</p>
+<p><strong><a href="https://github.com/libcna/xna4-spec/blob/develop/xna.xsd">xna.xsd</a></strong></p>
+<p>It defines the structure of the specification.</p>
+<p>For example, it knows that an XNA type can be:</p>
+<pre><code class="language-text">class
+struct
+enum
+interface
+delegate</code></pre>
+<p>and defines structured representations for constructors, properties, methods, overloads, fields, events, parameters, exceptions, platform information, and other metadata.</p>
+<p>This means the XML files are not just loosely structured notes.</p>
+<p>They can be validated against a common schema.</p>
+<h2 id="current-scope">Current scope</h2>
+<p>The current specification covers <strong>19 XNA namespaces</strong> and approximately <strong>544 types</strong>.</p>
+<p>Large areas include:</p>
+<ul><li><code>Microsoft.Xna.Framework</code></li><li><code>Microsoft.Xna.Framework.Graphics</code></li><li><code>Microsoft.Xna.Framework.Graphics.PackedVector</code></li><li><code>Microsoft.Xna.Framework.Audio</code></li><li><code>Microsoft.Xna.Framework.Input</code></li><li><code>Microsoft.Xna.Framework.Input.Touch</code></li><li><code>Microsoft.Xna.Framework.Media</code></li><li><code>Microsoft.Xna.Framework.Net</code></li><li><code>Microsoft.Xna.Framework.Storage</code></li><li><code>Microsoft.Xna.Framework.Content</code></li><li><code>Microsoft.Xna.Framework.GamerServices</code></li></ul>
+<p>It also contains the XNA Content Pipeline namespaces, including graphics, audio, processors, serialization, and build tasks.</p>
+<p>So xna4-spec describes more than just the runtime API normally used by a game.</p>
+<h2 id="where-did-the-information-come-from">Where did the information come from?</h2>
+<p>The data was converted from Microsoft&#39;s original XNA 4.0 documentation, historically published under the previous-versions section of Microsoft Learn.</p>
+<p>xna4-spec is therefore <strong>not an independently invented XNA API</strong>.</p>
+<p>It is a structured representation of Microsoft&#39;s documentation.</p>
+<p>The repository also preserves Microsoft&#39;s ownership and attribution for that documentation and is explicitly an unofficial community project.</p>
+<h2 id="why-is-this-useful-for-cna">Why is this useful for CNA?</h2>
+<p>CNA is trying to reproduce the XNA 4.0 programming model in C++.</p>
+<p>That creates a very practical question:</p>
+<blockquote><p>How do we know when the API surface is complete?</p></blockquote>
+<p>Without a machine-readable reference, this can become a manual process.</p>
+<p>Someone opens the XNA documentation.</p>
+<p>Then opens CNA.</p>
+<p>Then compares classes and members one by one.</p>
+<p>That does not scale very well.</p>
+<p>With xna4-spec, the process can instead become:</p>
+<pre><code class="language-text">XNA 4.0 specification
+        ↓
+   automated audit
+        ↓
+CNA public API
+        ↓
+missing / implemented / different</code></pre>
+<p>A tool can iterate through the specification and compare it against CNA.</p>
+<h2 id="api-completeness-reports">API completeness reports</h2>
+<p>This makes xna4-spec particularly useful for generating compatibility reports.</p>
+<p>Imagine that the specification says:</p>
+<pre><code class="language-text">Texture2D
+
+Constructors: 4
+Properties:   12
+Methods:      18</code></pre>
+<p>An audit can inspect CNA and determine:</p>
+<pre><code class="language-text">Implemented: 31
+Missing:      3
+Different:    0</code></pre>
+<p>That provides a much stronger basis for compatibility work than simply saying:</p>
+<blockquote><p>Texture2D is implemented.</p></blockquote>
+<p>A type can exist while still missing important constructors, overloads, properties, or behavior.</p>
+<h2 id="overloads-matter">Overloads matter</h2>
+<p>XNA makes heavy use of method overloads.</p>
+<p><code>SpriteBatch.Draw</code>, for example, has many variations.</p>
+<p>A simplistic API database that records only:</p>
+<pre><code class="language-text">SpriteBatch.Draw</code></pre>
+<p>would lose a large amount of important compatibility information.</p>
+<p>xna4-spec records individual signatures.</p>
+<p>That allows an audit to distinguish between:</p>
+<pre><code class="language-text">Draw(Texture2D, Vector2, Color)</code></pre>
+<p>and:</p>
+<pre><code class="language-text">Draw(
+    Texture2D,
+    Rectangle,
+    Rectangle?,
+    Color,
+    float,
+    Vector2,
+    SpriteEffects,
+    float)</code></pre>
+<p>For a compatibility project, that distinction is essential.</p>
+<h2 id="platform-information">Platform information</h2>
+<p>The original XNA ecosystem was not limited to one platform.</p>
+<p>Documentation contains APIs associated with:</p>
+<ul><li>Windows</li><li>Xbox 360</li><li>Windows Phone</li></ul>
+<p>xna4-spec preserves platform information from the original documentation.</p>
+<p>This is useful even though CNA does not necessarily intend to reproduce every historical XNA platform.</p>
+<p>It lets an audit distinguish between:</p>
+<pre><code class="language-text">missing API</code></pre>
+<p>and:</p>
+<pre><code class="language-text">historical API outside CNA&#39;s intended target</code></pre>
+<p>That prevents compatibility statistics from becoming misleading.</p>
+<h2 id="the-content-pipeline-is-included-too">The Content Pipeline is included too</h2>
+<p>Another interesting part of the repository is the XNA Content Pipeline API.</p>
+<p>Namespaces include areas such as:</p>
+<pre><code class="language-text">Microsoft.Xna.Framework.Content.Pipeline
+Microsoft.Xna.Framework.Content.Pipeline.Audio
+Microsoft.Xna.Framework.Content.Pipeline.Graphics
+Microsoft.Xna.Framework.Content.Pipeline.Processors
+Microsoft.Xna.Framework.Content.Pipeline.Serialization.Compiler
+Microsoft.Xna.Framework.Content.Pipeline.Serialization.Intermediate
+Microsoft.Xna.Framework.Content.Pipeline.Tasks</code></pre>
+<p>CNA&#39;s content architecture does not have to reproduce every part of Microsoft&#39;s original design-time toolchain exactly.</p>
+<p>But having the original API documented in a structured format is still valuable when deciding what should be compatible, replaced, or intentionally excluded.</p>
+<h2 id="it-is-an-offline-reference">It is an offline reference</h2>
+<p>Another simple benefit is preservation.</p>
+<p>The original XNA documentation is old.</p>
+<p>Websites change.</p>
+<p>URLs disappear.</p>
+<p>Documentation can be reorganized or eventually removed.</p>
+<p>xna4-spec keeps a structured copy of the relevant API information inside a Git repository.</p>
+<p>That makes it possible to inspect the XNA 4.0 API without depending entirely on Microsoft&#39;s current website remaining available forever.</p>
+<p>For a project concerned with software longevity, that matters.</p>
+<h2 id="it-is-not-a-behavioral-specification">It is not a behavioral specification</h2>
+<p>There is an important limitation.</p>
+<p>xna4-spec primarily describes the <strong>documented API contract</strong>.</p>
+<p>It cannot automatically tell us every detail of how Microsoft&#39;s original implementation behaved.</p>
+<p>Documentation might say:</p>
+<pre><code class="language-text">Matrix.Invert(Matrix)</code></pre>
+<p>and provide its signature and description.</p>
+<p>But that does not necessarily tell us every floating-point edge case of Microsoft&#39;s implementation.</p>
+<p>Likewise, documentation may omit implementation quirks that real XNA applications depend on.</p>
+<p>So CNA compatibility work needs several kinds of evidence:</p>
+<pre><code class="language-text">xna4-spec
+    ↓
+What API was documented?
+
+Original XNA runtime / reference investigation
+    ↓
+How did it actually behave?
+
+Tests and samples
+    ↓
+Does CNA reproduce that behavior?</code></pre>
+<p>xna4-spec is therefore an important <strong>API oracle</strong>, but not the only compatibility oracle.</p>
+<h2 id="different-from-the-cna-bible">Different from the CNA Bible</h2>
+<p>xna4-spec and the CNA Bible also have very different purposes.</p>
+<h3 id="xna4-spec">xna4-spec</h3>
+<p>Answers:</p>
+<blockquote><p>What does the XNA 4.0 API contain?</p></blockquote>
+<p>It is primarily structured machine-readable data.</p>
+<h3 id="cna-bible">CNA Bible</h3>
+<p>Answers:</p>
+<blockquote><p>How does CNA work?</p></blockquote>
+<p>It is a long-form technical book about CNA&#39;s implementation, architecture, renderers, content, testing, ecosystem, and other topics.</p>
+<p>The relationship is roughly:</p>
+<pre><code class="language-text">xna4-spec
+    ↓
+reference for original XNA API
+
+CNA
+    ↓
+implementation
+
+CNA Bible
+    ↓
+documentation of CNA and its architecture</code></pre>
+<p>They complement each other rather than duplicate each other.</p>
+<h2 id="useful-beyond-cna">Useful beyond CNA</h2>
+<p>Although xna4-spec was created with CNA compatibility work in mind, it is not inherently tied to CNA.</p>
+<p>Any project implementing or studying XNA 4.0 could potentially use the data.</p>
+<p>For example, it could be used to:</p>
+<ul><li>audit another XNA implementation</li><li>generate API tables</li><li>build documentation tools</li><li>study the original framework</li><li>compare XNA-compatible frameworks</li><li>generate test inventories</li><li>identify platform-specific APIs</li><li>preserve XNA API metadata</li></ul>
+<p>The repository is simply structured XNA information.</p>
+<p>What a tool does with it is a separate question.</p>
+<h2 id="a-machine-readable-map-of-xna-4-0">A machine-readable map of XNA 4.0</h2>
+<p>CNA is large, but its compatibility target is large too.</p>
+<p>XNA 4.0 contains hundreds of types spread across graphics, audio, input, media, content, networking, storage, Gamer Services, the Content Pipeline, and other areas.</p>
+<p>Keeping that target in a machine-readable form makes compatibility work much more systematic.</p>
+<p>Instead of relying on memory or manually browsing old documentation, CNA can ask:</p>
+<pre><code class="language-text">What existed in XNA?
+What have we implemented?
+What is intentionally out of scope?
+What is still missing?</code></pre>
+<p>That is what <strong>xna4-spec</strong> is for:</p>
+<p><strong>a structured, offline, machine-readable map of the XNA 4.0 API that can be used to measure and guide compatibility work.</strong></p></div>
+    <footer class="taxonomy-links"><a href="/category/tooling/">Tooling</a><a href="/tag/testing/">#Testing</a><a href="/tag/api/">#API</a><a href="/tag/xna4-spec/">#xna4-spec</a><a href="/tag/xna-4-0/">#XNA 4.0</a><a href="/tag/compatibility/">#Compatibility</a><a href="/tag/specification/">#Specification</a><a href="/tag/tooling/">#Tooling</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

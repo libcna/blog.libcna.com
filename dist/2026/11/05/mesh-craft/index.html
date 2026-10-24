@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mesh Craft | CNA&#39;s Blog</title>
+  <meta name="description" content="MeshCraft is a C++23 3D scene editor and content-authoring toolkit built around its own editable MC3 scene format.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/11/05/mesh-craft/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Mesh Craft">
+  <meta property="og:description" content="MeshCraft is a C++23 3D scene editor and content-authoring toolkit built around its own editable MC3 scene format.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/11/05/mesh-craft/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-11-05T15:09:09Z">November 5, 2026</time></span><span>Updated <time datetime="2026-10-17T15:08:11Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">Mesh Craft</h1>
+      <p class="article-description">MeshCraft is a C++23 3D scene editor and content-authoring toolkit built around its own editable MC3 scene format.</p>
+    </header>
+    <div class="article-body"><p><strong>MeshCraft</strong> is a C++23 3D scene editor and content-authoring toolkit built around its own editable <strong>MC3</strong> scene format.</p>
+<p>It belongs to the wider CNA ecosystem, but it is not part of CNA itself.</p>
+<p>The project combines:</p>
+<ul><li>a 3D editor</li><li>the MC3 scene format</li><li>reusable scene and asset libraries</li><li>PBR materials</li><li>CSG modeling</li><li>animation</li><li>command-line conversion tools</li><li>glTF/GLB export</li><li>the binary MCB format</li><li>integration with CNA</li></ul>
+<p><strong>GitHub:</strong> <a href="https://github.com/libcna/mesh-craft">github.com/libcnalab/mesh-craft</a></p>
+<p><strong>Try online:</strong> <a href="https://play.libcna.com/mesh-craft/MeshCraft.html">https://play.libcna.com/mesh-craft/MeshCraft.html</a></p>
+<p><img src="/wp-content/uploads/2026/09/mesh-craft_screenshot.png" alt="Mesh craft screenshot" loading="lazy"></p>
+<h2 id="the-main-idea">The main idea</h2>
+<p>Most real-time 3D formats eventually describe triangles.</p>
+<p>MeshCraft instead wants its source files to preserve <strong>how a scene was constructed</strong>.</p>
+<p>For example, instead of storing only the final mesh of a wall with a doorway, an MC3 document can retain the original boxes and the boolean operation that created the opening.</p>
+<p>That makes the source scene editable.</p>
+<p>The workflow can look like this:</p>
+<pre><code class="language-text">MeshCraft
+    ↓
+.mc3.xml
+    ↓
+mc3togltf
+    ↓
+.gltf / .glb
+    ↓
+CNA content pipeline
+    ↓
+CNA application</code></pre>
+<p>MC3 is therefore primarily an <strong>authoring format</strong>.</p>
+<p>glTF or another runtime-oriented representation can be generated later.</p>
+<h2 id="mc3-meshcraft-3d">MC3: MeshCraft 3D</h2>
+<p>The native MeshCraft source format is called <strong>MC3</strong>, or MeshCraft 3D.</p>
+<p>Files normally use:</p>
+<pre><code class="language-text">scene.mc3.xml</code></pre>
+<p>MC3 is XML-based and describes a scene as structured, editable objects rather than only as baked geometry.</p>
+<p>A document can contain things such as:</p>
+<ul><li>primitives</li><li>groups</li><li>transforms</li><li>materials</li><li>textures</li><li>lights</li><li>cameras</li><li>animations</li><li>reusable definitions</li><li>instances</li><li>layers</li><li>tags</li><li>collision hints</li><li>environment settings</li><li>states and actions</li></ul>
+<p>The format also records information such as units, coordinate system, rotation units, and Euler rotation order.</p>
+<p>The full specification lives directly in the repository:</p>
+<p><strong><a href="https://github.com/libcnalab/mesh-craft/blob/develop/MC3_FORMAT.md">MC3_FORMAT.md</a></strong></p>
+<h2 id="mc3-example-castle-mc3-xml">MC3 Example (castle.mc3.xml)</h2>
+<pre><code class="language-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;mc3 version=&quot;0.3&quot; model=&quot;MedievalCastle&quot; unit=&quot;meter&quot; rotation_units=&quot;degrees&quot; euler_order=&quot;XYZ&quot;&gt;
+
+&lt;environment&gt;
+&lt;background color=&quot;0.47 0.65 0.88&quot;/&gt;
+&lt;fog mode=&quot;linear&quot; color=&quot;0.72 0.80 0.92&quot; start=&quot;130&quot; end=&quot;320&quot;/&gt;
+&lt;/environment&gt;
+
+&lt;lights&gt;
+&lt;ambient color=&quot;0.35 0.37 0.45&quot; brightness=&quot;0.45&quot;/&gt;
+&lt;directional name=&quot;Sun&quot; color=&quot;1.0 0.95 0.80&quot; brightness=&quot;2.8&quot;
+direction=&quot;-0.55 -1.0 -0.45&quot; cast_shadows=&quot;true&quot;/&gt;
+&lt;point name=&quot;LampCourt1&quot; color=&quot;1.0 0.85 0.60&quot; brightness=&quot;8&quot; position=&quot; 10 3.5 5&quot; range=&quot;20&quot;/&gt;
+&lt;point name=&quot;LampCourt2&quot; color=&quot;1.0 0.85 0.60&quot; brightness=&quot;8&quot; position=&quot;-10 3.5 -5&quot; range=&quot;20&quot;/&gt;
+&lt;spot name=&quot;GateLight&quot; color=&quot;0.95 0.90 0.70&quot; brightness=&quot;12&quot;
+position=&quot;0 8 30&quot; direction=&quot;0 -0.8 -1&quot; angle=&quot;35&quot; falloff=&quot;50&quot; range=&quot;28&quot;/&gt;
+&lt;/lights&gt;
+
+&lt;cameras&gt;
+&lt;camera name=&quot;Main&quot; type=&quot;perspective&quot; position=&quot; 60 30 65&quot; target=&quot; 0 10 -5&quot; fov=&quot;55&quot; near=&quot;0.1&quot; far=&quot;500&quot;/&gt;
+...&lt;/cameras&gt;
+
+&lt;materials&gt;
+&lt;material id=&quot;stone&quot; roughness=&quot;0.85&quot; metallic=&quot;0.0&quot;&gt;
+&lt;base_color&gt;0.70 0.65 0.58 1.0&lt;/base_color&gt;
+&lt;/material&gt;
+...&lt;/materials&gt;
+
+&lt;definitions&gt;
+
+&lt;definition id=&quot;corner_tower&quot;&gt;
+&lt;group name=&quot;CTower&quot;&gt;
+&lt;cylinder name=&quot;TBody&quot; radius=&quot;4.5&quot; height=&quot;14&quot; segments=&quot;24&quot; position=&quot;0 7.0 0&quot; material=&quot;stone&quot;/&gt;
+&lt;cylinder name=&quot;TParapet&quot; radius=&quot;4.8&quot; height=&quot;0.8&quot; segments=&quot;24&quot; position=&quot;0 14.4 0&quot; material=&quot;dark_stone&quot;/&gt;
+&lt;box name=&quot;TM0&quot; size=&quot;1.3 1.6 1.3&quot; position=&quot; 4.00 15.2 0.00&quot; material=&quot;stone&quot;/&gt;...
+&lt;cone name=&quot;TRoof&quot; radius=&quot;5.2&quot; height=&quot;6.5&quot; segments=&quot;24&quot; position=&quot;0 19.25 0&quot; material=&quot;roof_tile&quot;/&gt;
+&lt;/group&gt;
+&lt;/definition&gt;..
+
+&lt;/definitions&gt;
+
+&lt;objects&gt;
+
+&lt;plane name=&quot;Ground&quot; size=&quot;300 300&quot; axis=&quot;y&quot; position=&quot;0 0.00 0&quot; material=&quot;grass&quot;/&gt;
+&lt;plane name=&quot;MoatWater&quot; size=&quot; 68 68&quot; axis=&quot;y&quot; position=&quot;0 0.05 0&quot; material=&quot;moat_water&quot;/&gt;
+&lt;plane name=&quot;Courtyard&quot; size=&quot; 44 44&quot; axis=&quot;y&quot; position=&quot;0 0.10 0&quot; material=&quot;dirt&quot;/&gt;
+
+..&lt;box name=&quot;Road&quot; size=&quot;5.2 0.06 60&quot; position=&quot;0 0.12 62&quot; material=&quot;dirt&quot;/&gt;
+
+&lt;/objects&gt;
+
+&lt;actions&gt;
+&lt;action name=&quot;WaveFlagNW&quot; duration=&quot;3.2&quot; loop=&quot;true&quot;&gt;
+&lt;channel target=&quot;FlagNW&quot; property=&quot;rotation.y&quot;&gt;
+&lt;keyframe time=&quot;0.0&quot; value=&quot; 0.0&quot; interp=&quot;cubic&quot;/&gt;
+&lt;keyframe time=&quot;1.6&quot; value=&quot;12.0&quot; interp=&quot;cubic&quot;/&gt;
+&lt;keyframe time=&quot;3.2&quot; value=&quot; 0.0&quot; interp=&quot;cubic&quot;/&gt;
+&lt;/channel&gt;...
+&lt;/action&gt;...
+
+&lt;/actions&gt;
+
+&lt;/mc3&gt;</code></pre>
+<h2 id="primitive-modeling">Primitive modeling</h2>
+<p>MeshCraft can construct scenes from common geometric primitives.</p>
+<p>Current MC3 primitives include:</p>
+<ul><li>box</li><li>sphere</li><li>cylinder</li><li>cone</li><li>plane</li><li>torus</li><li>capsule</li><li>disk</li><li>grid</li><li>icosphere</li></ul>
+<p>Objects have ordinary hierarchical transforms:</p>
+<pre><code class="language-text">position
+rotation
+scale
+pivot</code></pre>
+<p>Objects can also be placed into groups so that more complicated models can be assembled from smaller components.</p>
+<p>This makes MC3 suitable for procedural and construction-oriented assets where keeping the original object hierarchy is useful.</p>
+<h2 id="csg">CSG</h2>
+<p>MeshCraft also supports <strong>Constructive Solid Geometry</strong>, or CSG.</p>
+<p>Objects can participate in boolean operations such as:</p>
+<ul><li>union</li><li>difference</li><li>intersection</li></ul>
+<p>The implementation uses the Manifold library.</p>
+<p>For example, a simple building could begin as a box:</p>
+<pre><code class="language-text">Building</code></pre>
+<p>and then subtract other boxes:</p>
+<pre><code class="language-text">Building
+ - Door opening
+ - Window opening
+ - Window opening
+ - Window opening</code></pre>
+<p>The resulting geometry can eventually be exported as an ordinary mesh, while the MC3 source still describes the construction used to create it.</p>
+<h2 id="extrusion-along-paths">Extrusion along paths</h2>
+<p>MC3 can also describe extrusion along several types of paths, including:</p>
+<ul><li>lines</li><li>arcs</li><li>helices</li><li>polylines</li><li>Bézier paths</li></ul>
+<p>This allows more complex geometry to be constructed without manually defining all of its triangles.</p>
+<p>It can be useful for things such as pipes, rails, architectural details, cables, curved structures, or other repeated profiles.</p>
+<h2 id="pbr-materials">PBR materials</h2>
+<p>MeshCraft is not limited to simple vertex colors.</p>
+<p>Its material system supports modern PBR properties including:</p>
+<ul><li>base color</li><li>metallic</li><li>roughness</li><li>emissive</li><li>normal textures</li><li>occlusion textures</li></ul>
+<p>That makes it possible to author assets intended for CNA&#39;s more advanced rendering paths as well as for export to glTF-compatible tools.</p>
+<h2 id="reusable-definitions-and-instances">Reusable definitions and instances</h2>
+<p>MC3 supports reusable object definitions.</p>
+<p>Instead of duplicating complete geometry every time an object appears, a scene can define something once and instantiate it repeatedly.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">Definition: StreetLamp
+        ↓
+     Instance
+     Instance
+     Instance
+     Instance</code></pre>
+<p>This is useful for scenes containing repeated objects such as:</p>
+<ul><li>windows</li><li>doors</li><li>lamps</li><li>furniture</li><li>trees</li><li>props</li><li>architectural modules</li></ul>
+<p>MC3 also supports reusable libraries and imports between documents.</p>
+<p>A library can declare its own namespace and version, and another scene can import definitions from it.</p>
+<p>This moves MeshCraft beyond a simple single-file model format toward a reusable asset-authoring system.</p>
+<h2 id="includes-and-asset-libraries">Includes and asset libraries</h2>
+<p>MC3 files can also include definitions, materials, and textures from other MC3 files.</p>
+<p>For example:</p>
+<pre><code class="language-xml">&lt;include file=&quot;furniture.mc3.xml&quot;/&gt;
+&lt;include file=&quot;materials.mc3.xml&quot;/&gt;</code></pre>
+<p>A scene can then reuse those assets without copying their definitions into every file.</p>
+<p>Local definitions can override imported ones where appropriate.</p>
+<p>The loader also handles nested includes, prevents cycles, and preserves the include structure when files are saved again.</p>
+<p>This matters once an asset collection grows beyond a few isolated models.</p>
+<h2 id="animation">Animation</h2>
+<p>MeshCraft includes animation support as part of the source format.</p>
+<p>Animation channels can affect properties such as:</p>
+<ul><li>position</li><li>rotation</li><li>scale</li><li>visibility</li><li>material color</li><li>deformation</li></ul>
+<p>The editor provides a timeline and supports keyframes with different interpolation modes.</p>
+<p>This means MC3 is not limited to static architectural modeling.</p>
+<p>However, MeshCraft should not be confused with a complete character-animation package such as Blender. More specialized workflows such as complex skeletal character authoring may still be better performed in dedicated DCC software and brought into the CNA ecosystem through glTF.</p>
+<h2 id="cameras-lights-and-environment">Cameras, lights and environment</h2>
+<p>An MC3 scene can also describe scene-level information rather than only meshes.</p>
+<p>This includes:</p>
+<ul><li>cameras</li><li>lights</li><li>fog</li><li>background/environment configuration</li></ul>
+<p>MC3 understands both Y-up and Z-up coordinate systems and preserves the authored coordinate convention.</p>
+<p>The editor, exporter, picking system, gizmos, cameras, lights and other systems consistently transform the scene into the appropriate working coordinate space.</p>
+<h2 id="the-meshcraft-editor">The MeshCraft editor</h2>
+<p>The <code>MeshCraft</code> executable provides the interactive editor.</p>
+<p>Its current features include:</p>
+<ul><li>3D viewport</li><li>orbit camera</li><li>object hierarchy</li><li>object selection</li><li>multi-selection</li><li>transform gizmos</li><li>local/world transforms</li><li>property editing</li><li>material editing</li><li>CSG operations</li><li>extrusion</li><li>animation timeline</li><li>layers and tags</li><li>collision hints</li><li>LOD definitions</li><li>environment editing</li><li>first-person walk mode</li><li>undo/redo</li><li>autosave</li><li>glTF/GLB export</li></ul>
+<p>The UI uses Dear ImGui, but the editor&#39;s rendering path goes through CNA rather than directly building the application around native OpenGL calls.</p>
+<p>That makes MeshCraft itself another substantial consumer of CNA.</p>
+<h2 id="meshcraft-is-modular">MeshCraft is modular</h2>
+<p>The project is not one giant editor executable.</p>
+<p>Its main architecture is divided into several components.</p>
+<h3 id="mc3">mc3</h3>
+<p>The core MC3 library.</p>
+<p>It contains the <code>Mc3Document</code> data model and XML parsing/writing.</p>
+<p>Importantly, this layer has <strong>no graphics dependency</strong>.</p>
+<p>An application can therefore manipulate MC3 documents without initializing CNA or creating a graphics device.</p>
+<h3 id="mcb">mcb</h3>
+<p>Support for the binary <strong>MCB</strong> format.</p>
+<p>This provides a more compact binary representation for cases where parsing the editable XML source format is not desirable.</p>
+<h3 id="mc3togltf">mc3togltf</h3>
+<p>A command-line converter:</p>
+<pre><code class="language-text">.mc3.xml → .gltf / .glb</code></pre>
+<p>This is one of the most important tools for CNA integration.</p>
+<h3 id="mc3tomcb">mc3tomcb</h3>
+<p>A converter between editable MC3 and the binary MCB representation.</p>
+<h3 id="meshcraft">MeshCraft</h3>
+<p>The interactive graphical editor.</p>
+<p>Only the editor needs the complete graphics and UI environment.</p>
+<h2 id="gltf-and-glb-export">glTF and GLB export</h2>
+<p>MeshCraft can export scenes to glTF or binary GLB.</p>
+<p>For example:</p>
+<pre><code class="language-bash">mc3togltf scene.mc3.xml scene.glb</code></pre>
+<p>This provides a clean boundary between authoring and runtime content.</p>
+<p>The editable source can remain:</p>
+<pre><code class="language-text">building.mc3.xml</code></pre>
+<p>while a generated runtime asset becomes:</p>
+<pre><code class="language-text">building.glb</code></pre>
+<p>CNA can then process the glTF/GLB asset through its own content pipeline.</p>
+<p>This is already being used experimentally by CNA projects.</p>
+<p>For example, the Iron Gang project in CNA Lab has a content path resembling:</p>
+<pre><code class="language-text">MC3
+ ↓
+MeshCraft
+ ↓
+GLB
+ ↓
+CNA glTF conversion
+ ↓
+CNJ
+ ↓
+ContentManager
+ ↓
+CNA game</code></pre>
+<p>That allows a game to use a CNA-oriented runtime format without making CNJ the editable source format.</p>
+<h2 id="why-not-author-everything-directly-in-gltf">Why not author everything directly in glTF?</h2>
+<p>glTF is excellent as an interchange and runtime-delivery format.</p>
+<p>But that is a different problem from preserving the original constructive scene.</p>
+<p>After a boolean operation or procedural construction has been baked to triangles, much of the information needed to conveniently edit that construction may be gone.</p>
+<p>MeshCraft therefore treats the formats differently:</p>
+<pre><code class="language-text">MC3
+authoring / editable source
+
+        ↓ export
+
+glTF / GLB
+interchange
+
+        ↓ processing
+
+CNA runtime content</code></pre>
+<p>The distinction is similar to keeping an editable project file instead of treating the final exported asset as the only source.</p>
+<h2 id="mcb-is-not-cnb">MCB is not CNB</h2>
+<p>There are several similarly named formats in the wider CNA ecosystem, so the distinction is useful.</p>
+<p><strong>MCB</strong> belongs to MeshCraft and is a binary representation related to MC3.</p>
+<p>CNA also has its own content formats and content-pipeline concepts.</p>
+<p>They solve different problems.</p>
+<p>MeshCraft remains responsible for authoring its scene representation, while CNA remains responsible for the application&#39;s runtime content system.</p>
+<h2 id="cna-is-a-dependency-not-the-purpose-of-mc3">CNA is a dependency, not the purpose of MC3</h2>
+<p>The editor uses CNA, but the MC3 format and tooling are designed to remain separable from it.</p>
+<p>For example:</p>
+<pre><code class="language-text">mc3
+mcb
+mc3togltf
+mc3tomcb</code></pre>
+<p>can perform useful work without needing the complete graphical editor.</p>
+<p>This separation is intentional.</p>
+<p>A file-format library should not require a GPU simply because an editor for the same format happens to have a 3D viewport.</p>
+<h2 id="more-than-a-model-editor">More than a model editor</h2>
+<p>The long-term interesting part of MeshCraft is that it sits between a simple mesh editor and a complete world-authoring system.</p>
+<p>MC3 already has concepts for:</p>
+<pre><code class="language-text">geometry
+materials
+hierarchy
+instances
+libraries
+animation
+lights
+cameras
+environment
+collision hints
+states
+actions</code></pre>
+<p>That gives the format room to describe much more than one isolated triangle mesh.</p>
+<p>At the same time, MeshCraft does not need to become another general-purpose Blender.</p>
+<p>Its strongest role in the CNA ecosystem is likely to remain more focused:</p>
+<p><strong>a lightweight, structured authoring environment whose output can flow cleanly into CNA applications.</strong></p>
+<h2 id="meshcraft-and-cna">MeshCraft and CNA</h2>
+<p>The relationship can be summarized like this:</p>
+<pre><code class="language-text">MeshCraft
+    │
+    │ authors
+    ▼
+MC3 source scene
+    │
+    │ exports
+    ▼
+glTF / GLB
+    │
+    │ CNA content tools
+    ▼
+CNA runtime content
+    │
+    ▼
+CNA application</code></pre>
+<p>CNA handles the runtime framework.</p>
+<p>MeshCraft handles 3D authoring.</p>
+<p>MC3 preserves the editable source.</p>
+<p>glTF provides the interchange boundary.</p>
+<p>That division keeps the projects independent while still giving them a useful workflow together.</p>
+<h2 id="an-authoring-layer-for-the-cna-ecosystem">An authoring layer for the CNA ecosystem</h2>
+<p>MeshCraft started as a 3D editor, but it is increasingly better described as an <strong>authoring toolchain</strong>.</p>
+<p>The editor is one part.</p>
+<p>MC3 is another.</p>
+<p>The libraries and converters are another.</p>
+<p>Together they provide a path from structured editable scenes to assets that can eventually be consumed by games and applications built on CNA.</p>
+<p>That is the role MeshCraft can play in the wider ecosystem:</p>
+<p><strong>CNA provides the runtime. MeshCraft helps create the worlds and assets that run on it.</strong></p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/tag/cna-ecosystem/">#CNA Ecosystem</a><a href="/tag/tools/">#Tools</a><a href="/tag/meshcraft/">#MeshCraft</a><a href="/tag/mc3/">#MC3</a><a href="/tag/3d/">#3D</a><a href="/tag/content-pipeline/">#Content Pipeline</a><a href="/tag/gltf/">#glTF</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

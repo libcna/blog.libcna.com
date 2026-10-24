@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backrooms Simulator | CNA&#39;s Blog</title>
+  <meta name="description" content="Backrooms Simulator is a deterministic, effectively unbounded first-person exploration game built with C++23 and CNA.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/01/21/backrooms-simulator/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Backrooms Simulator">
+  <meta property="og:description" content="Backrooms Simulator is a deterministic, effectively unbounded first-person exploration game built with C++23 and CNA.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/01/21/backrooms-simulator/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-01-21T12:00:00Z">January 21, 2027</time></span><span>Updated <time datetime="2026-10-17T14:35:22Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a>, <a href="/category/games/">Games</a></span></div>
+      <h1 class="article-title">Backrooms Simulator</h1>
+      <p class="article-description">Backrooms Simulator is a deterministic, effectively unbounded first-person exploration game built with C++23 and CNA.</p>
+    </header>
+    <div class="article-body"><p><strong>Backrooms Simulator</strong> is a quiet first-person exploration game built with C++23 and CNA.</p>
+<p>It generates an effectively unbounded sequence of rooms, storage areas and maintenance tunnels. There is no combat, damage, inventory, quest or game-over state. The rare figures that inhabit the world are atmospheric and harmless.</p>
+<p><strong>Source:</strong> <a href="https://github.com/libcnalab/backrooms-simulator">https://github.com/libcnalab/backrooms-simulator</a></p>
+<p><strong>Web status:</strong> Backrooms Simulator currently targets Linux desktop and is not available on <code>play.libcna.com</code>. A playable web version is being prepared.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/backrooms-simulator/main/docs/screenshots/level0-01.jpg" alt="Level 0: the yellow rooms" loading="lazy"></p>
+<h2 id="three-connected-environments">Three connected environments</h2>
+<p>The current world has three distinct level families:</p>
+<ol><li><strong>The Yellow Rooms</strong> — patterned wallpaper, office carpet, ceiling tiles, fluorescent lights, partitions and occasional furniture.</li><li><strong>Service Storage</strong> — taller concrete spaces, shelving, boxes, beams and industrial lighting.</li><li><strong>Maintenance Tunnels</strong> — lower concrete passages with cabinets, ducts, pipes and pressure assemblies.</li></ol>
+<p>Framed maintenance entrances connect the levels. A 64-bit seed makes the complete layout deterministic, including geometry, collision and the placement of rare details.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/backrooms-simulator/main/docs/screenshots/level1-01.jpg" alt="Level 1: service storage" loading="lazy"></p>
+<p>The three levels share a generator, but not a single cosmetic theme.</p>
+<p>Level 0 groups cells into irregular office zones. Openings between those zones are composed consistently, while offset partition plans, supports, columns, false doors and rare furniture break up the grid. Selected regions can become uninterrupted 60-metre halls with their own fluorescent arrangement.</p>
+<p>Level 1 prefers larger service bays. Sparse shelf layouts, structural supports, roof beams, boxes and hanging fixtures give it a different scale from the offices. Level 2 opens the topology into longer passages and chambers, adding cabinets, ducts, ledges and supported pipe runs.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/backrooms-simulator/main/docs/screenshots/level0-04.jpg" alt="Another deterministic arrangement of the Yellow Rooms" loading="lazy"></p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/backrooms-simulator/main/docs/screenshots/level1-03.jpg" alt="A wider service-storage layout with its industrial details" loading="lazy"></p>
+<p>Because the level profile is data-driven and versioned, the program records the algorithm version, recipe, seed and profile fingerprint needed to reproduce a location.</p>
+<h2 id="how-the-generator-works">How the generator works</h2>
+<p>The base spatial unit is a five-metre cell. Eight by eight cells form a 40-metre chunk, and groups of six by six cells choose larger regional patterns.</p>
+<p>Stable hashes decide features such as:</p>
+<pre><code class="language-text">room and partition layouts
+asymmetric openings
+light arrangements
+support and shelf plans
+furniture and false doors
+rare entrances between levels
+harmless inhabitants</code></pre>
+<p>Generating a chunk again with the same seed produces the same geometry and collision, even at negative coordinates. The project does not save a collection of chunk files and does not need to remember every place already visited.</p>
+<p>Connectivity is treated as a structural rule rather than luck. The room graph retains border connectors, and geometry and collision are generated from the same decisions so a visible opening is also traversable.</p>
+<h2 id="bounded-streaming-for-an-unbounded-world">Bounded streaming for an unbounded world</h2>
+<p>Only a 5 by 5 neighborhood of 40-metre chunks remains active around the player. Missing chunks are created gradually and distant chunks unload.</p>
+<p>The project reuses GPU buffers and keeps bounded layout caches, so walking farther does not require retaining the whole generated world. Native frustum checks reduce drawing, while chunk-relative geometry avoids losing precision far from the origin.</p>
+<p>This makes the project a focused test of CNA resource creation, buffer reuse, texture sampling, audio and long-running first-person rendering.</p>
+<p>Incremental generation is synchronous and prepares no more than one missing chunk per update. That keeps work bounded, although an occasional generation or upload can still produce a visible frame-time spike.</p>
+<p>The spare pool retains up to 48 vertex buffers, while the game-owned room-layout cache holds no more than 256 entries. When those bounds are exceeded, old resources are retired rather than allowing memory to grow with travel distance.</p>
+<p>Collision does not depend on whether the visual chunk is currently loaded. It queries the same deterministic wall, prop and entrance rules directly. Chunk-local vertex coordinates also reduce floating-point jitter after travelling far from the origin.</p>
+<p>The window title exposes this machinery during play: position, active and drawn chunks, triangle counts, buffer creation and reuse, packed capacity, room-cache size, entity counts, chunk build time, FPS and update rate.</p>
+<h2 id="materials-and-lighting">Materials and lighting</h2>
+<p>Most geometry is generated by the application. Original wallpaper, carpet and concrete images supply reusable surface detail, with procedural fallbacks when a file cannot be decoded.</p>
+<p>CNA creates mipmaps and applies anisotropic sampling so floor and wall patterns remain stable at shallow angles. Office walls use a local baked fluorescent contribution, while obstruction and reflected floor response help partitions feel connected to their lights.</p>
+<p>The industrial and tunnel levels reuse concrete with different tint families and construction details. Pipe runs inspect adjacent wall plans, so their exposed ends and supports remain consistent across chunk boundaries.</p>
+<p>Lighting remains deliberately inexpensive. It is baked into vertices instead of using real moving shadow lights. Large floor pools are approximate, and the creatures receive soft contact spots rather than dynamic shadows.</p>
+<h2 id="atmosphere-without-combat">Atmosphere without combat</h2>
+<p>Three creature silhouettes can appear: the Wanderer, Watcher and Crawler. They drift inside their local area, never attack, never chase and fade away when the player comes close.</p>
+<p>Fluorescent hum, footsteps, transitions and sparse creature sounds use licensed CC0 audio. Lighting is baked cheaply enough to support continuous generation, while original wallpaper, carpet and concrete textures give each level its own material identity.</p>
+<p>The three figures also have distinct silhouettes: a clothed wanderer, a tall watcher and a low crawler. One immutable mesh is shared by each type. They move only inside their original clear cell and cannot physically obstruct the player.</p>
+<p>Approaching one causes it to fade instead of attacking. Sparse breath or rustle sounds use distance attenuation, line-of-sight checks and stereo panning, with a shared cooldown so the soundscape does not become a constant series of creature cues.</p>
+<p>This design keeps the tension of noticing something at the end of a room without changing the project into a combat or pursuit game.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/backrooms-simulator/main/docs/screenshots/creature-watcher.jpg" alt="The tall Watcher silhouette in the Yellow Rooms" loading="lazy"></p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/backrooms-simulator/main/docs/screenshots/level2-01.jpg" alt="Level 2: maintenance tunnels" loading="lazy"></p>
+<h2 id="current-scope">Current scope</h2>
+<p>The delivered milestone is intentionally compact. It has no authored story, vertical traversal, moving doors or save file. Linux desktop with CNA&#39;s OPENGLES3 renderer is the supported target today.</p>
+<p>Deterministic tests cover world profiles, lighting, entrances and collision. Long automated sweeps exercise tens of kilometres of streamed terrain and record buffer reuse, memory and build-time evidence.</p>
+<h2 id="controls-and-reproducible-starts">Controls and reproducible starts</h2>
+<p>The controls are intentionally conventional:</p>
+<div class="table-wrap"><table><thead><tr><th>Input</th><th>Action</th></tr></thead><tbody><tr><td>Mouse</td><td>Look around</td></tr><tr><td><code>W A S D</code></td><td>Move</td></tr><tr><td><code>Shift</code></td><td>Toggle walking and running</td></tr><tr><td><code>R</code></td><td>Return to the current level&#39;s spawn</td></tr><tr><td><code>Escape</code></td><td>Release the mouse, then quit</td></tr><tr><td>Left click</td><td>Capture the mouse again</td></tr></tbody></table></div>
+<p>Command-line arguments can choose the seed, level, exact position, field of view, movement speeds and multisampling. That makes a reported location reproducible without walking through kilometres of rooms first.</p>
+<p>A dedicated streaming mode automatically travels 9.6 kilometres, or another requested distance, while collecting runtime evidence. It bypasses ordinary collision for the sweep, so controller and collision validation remain separate tests rather than implied by that result.</p>
+<h2 id="validation-and-honest-limits">Validation and honest limits</h2>
+<p>Debug and Release suites check deterministic generation, profile parsing and lighting. Additional controller tests cover mouse directions, movement speed, collision and level transitions. The delivery gallery contains 104 inspected panorama views plus targeted creature and industrial checks.</p>
+<p>A four-lap streaming run completed 38.4 kilometres while keeping active chunks, cache size and buffer capacity bounded. This is useful evidence for long-distance resource behavior, not a promise about frame rate on every desktop.</p>
+<p>The current limitations are explicit:</p>
+<ul><li>movement remains on a flat floor with no jumping, crouching or stairs;</li><li>room families are varied but predominantly axis-aligned;</li><li>generation and upload happen synchronously;</li><li>creature motion is simple rather than articulated;</li><li>subjective audio balance still needs listening on a real machine;</li><li>native Wayland input is not yet qualified as thoroughly as the X11/Xwayland path.</li></ul>
+<p>The browser edition mentioned above is future work, not an existing claim hidden behind the Linux build instructions.</p>
+<p>Backrooms Simulator is a small game, but it gives CNA a useful workload that can keep generating and rendering new space for as long as the player keeps walking.</p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/category/games/">Games</a><a href="/tag/cna/">#CNA</a><a href="/tag/backrooms-simulator/">#Backrooms Simulator</a><a href="/tag/c-23/">#C++23</a><a href="/tag/3d/">#3D</a><a href="/tag/procedural-generation/">#Procedural Generation</a><a href="/tag/exploration/">#Exploration</a><a href="/tag/streaming/">#Streaming</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

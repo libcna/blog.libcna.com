@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNA Demos | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA Demos is a searchable catalog of focused, executable examples that also doubles as an automated compatibility and regression suite for CNA.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/12/31/cna-demos/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNA Demos">
+  <meta property="og:description" content="CNA Demos is a searchable catalog of focused, executable examples that also doubles as an automated compatibility and regression suite for CNA.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/12/31/cna-demos/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-12-31T12:00:00Z">December 31, 2026</time></span><span>Updated <time datetime="2026-10-17T14:35:22Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">CNA Demos</h1>
+      <p class="article-description">CNA Demos is a searchable catalog of focused, executable examples that also doubles as an automated compatibility and regression suite for CNA.</p>
+    </header>
+    <div class="article-body"><p><strong>CNA Demos</strong> is a catalog of small, focused programs that demonstrate the API of <a href="/2026/09/13/what-is-cna/">CNA</a>.</p>
+<p>Each demo is intended to answer one practical question: how do I clear a frame, draw a texture, load content, play audio, read input, use a render target or select a renderer?</p>
+<p><strong>Source:</strong> <a href="https://github.com/libcna/cna-demos">https://github.com/libcna/cna-demos</a></p>
+<p><strong>Web status:</strong> CNA Demos is not currently published on <code>play.libcna.com</code>. A playable web version is being prepared.</p>
+<p><img src="https://raw.githubusercontent.com/libcna/cna-demos/next/references/OPENGLES3/content.cnj.sprite_font.png" alt="A SpriteFont loaded from CNA&#39;s CNJ content format" loading="lazy"></p>
+<h2 id="one-executable-hundreds-of-examples">One executable, hundreds of examples</h2>
+<p>The project currently contains <strong>719 demos in 19 categories</strong>. They cover the XNA-compatible surface, CNA extensions and the experimental C API.</p>
+<p>The collection can be browsed interactively or controlled from the command line:</p>
+<pre><code class="language-text">cna-demos --list
+cna-demos --search sprite
+cna-demos --info graphics.render_target.render_target2d
+cna-demos graphics.sprite_batch.draw_texture</code></pre>
+<p>Stable hierarchical IDs connect a demo to its source file. For example:</p>
+<pre><code class="language-text">graphics.sprite_batch.draw_texture</code></pre>
+<p>maps directly to:</p>
+<pre><code class="language-text">demos/graphics/sprite_batch/draw_texture.cpp</code></pre>
+<p>That makes the catalog useful both as documentation and as code that can be copied into a project.</p>
+<p><img src="https://raw.githubusercontent.com/libcna/cna-demos/next/references/OPENGLES3/graphics.sprite_batch.draw_texture.png" alt="A focused SpriteBatch texture-drawing demo" loading="lazy"></p>
+<h2 id="documentation-that-executes">Documentation that executes</h2>
+<p>CNA Demos is more than a sample gallery. Every entry carries searchable metadata, including the API names it demonstrates and whether it can run unattended.</p>
+<p>Of the 719 current demos:</p>
+<ul><li>685 are automated;</li><li>31 are smoke-only;</li><li>3 require manual interaction.</li></ul>
+<p>CTest discovers the entries and exposes one test per demo. Automated runs can use frame limits, produce result reports and capture screenshots.</p>
+<p>The same catalog therefore serves three roles:</p>
+<pre><code class="language-text">learning material
+      +
+API coverage map
+      +
+regression suite</code></pre>
+<h2 id="how-it-differs-from-samples-and-tests">How it differs from samples and tests</h2>
+<p>CNA already has several repositories that teach or verify the framework, but they work at different scales.</p>
+<div class="table-wrap"><table><thead><tr><th>Project</th><th>Main purpose</th><th>Typical unit</th></tr></thead><tbody><tr><td>CNA unit tests</td><td>Verify behavior and contracts for maintainers</td><td>One assertion or edge case</td></tr><tr><td>Renderer regression tests</td><td>Compare pixels and backend behavior</td><td>A controlled render scene</td></tr><tr><td>cna-samples</td><td>Port Microsoft&#39;s complete XNA examples</td><td>One technique or small game</td></tr><tr><td>cna-examples</td><td>Offer an interactive tour in one application</td><td>One catalog screen</td></tr><tr><td>CNA Demos</td><td>Provide executable documentation</td><td>One concept, ID and source file</td></tr></tbody></table></div>
+<p>A sample may combine a camera, models, lighting, input and content to explain a complete technique. A CNA Demo deliberately isolates one of those parts so that the important call remains visible.</p>
+<p>The project therefore avoids wrapping CNA in another convenience engine. Its small framework removes repeated application boilerplate, but the source being taught still calls the real CNA API.</p>
+<h2 id="what-the-catalog-records">What the catalog records</h2>
+<p>Every entry carries structured metadata rather than only a filename and title. The catalog can record:</p>
+<ul><li>a stable ID and human-readable title;</li><li>a short description and searchable tags;</li><li>the CNA or XNA API names demonstrated;</li><li>whether the demo is a console program, a <code>Game</code> or a separate executable;</li><li>which renderer, audio, display, network or hardware capabilities it needs;</li><li>how many frames an automated game should run;</li><li>whether its output is deterministic enough for reference images;</li><li>whether a known CNA defect is expected to make it fail.</li></ul>
+<p>The same data drives the terminal browser, command-line search, JSON export, CTest registration and coverage report. Adding a demo does not require updating a central switch statement: the source file registers itself and the build discovers it.</p>
+<h2 id="three-kinds-of-execution">Three kinds of execution</h2>
+<p>The catalog separates the form of a demo from what an unattended run can prove.</p>
+<p>An <strong>automated</strong> demo contains checks that establish its intended behavior. A <strong>smoke-only</strong> demo can start, update and shut down automatically, but still needs a person to judge the feature—for example physical keyboard, mouse or gamepad input. A <strong>manual</strong> demo is not started by an unattended batch because it requires hardware, credentials or another external observer.</p>
+<p>Reports use four result states:</p>
+<div class="table-wrap"><table><thead><tr><th>Result</th><th>Meaning</th></tr></thead><tbody><tr><td><code>PASSED</code></td><td>The program completed and every check held</td></tr><tr><td><code>FAILED</code></td><td>A check failed, an exception escaped or a child returned an error</td></tr><tr><td><code>SKIPPED</code></td><td>A declared requirement is unavailable in this environment</td></tr><tr><td><code>NOT RUN</code></td><td>A manual or unavailable standalone demo was intentionally not launched</td></tr></tbody></table></div>
+<p>This distinction matters. A program compiling is not evidence that it ran; a program starting is not evidence that a person inspected its pixels; a missing audio device is not the same thing as an audio assertion failing.</p>
+<p>Known framework bugs remain visible as expected failures. If a demo marked with a known issue unexpectedly starts passing, the batch reports that change so the obsolete marker can be reviewed and removed.</p>
+<h2 id="measuring-real-api-coverage">Measuring real API coverage</h2>
+<p>The generated coverage report maps demo metadata back to CNA&#39;s public surface. At the current checkpoint, at least one demo names:</p>
+<ul><li>308 of 329 XNA 4.0 types;</li><li>2,128 of 2,326 XNA methods, properties, constructors and events;</li><li>3,082 of 3,205 public CNA C API routes.</li></ul>
+<p>Those numbers do not claim that one short program proves every semantic detail. They provide a concrete inventory of what has executable evidence and what still needs attention.</p>
+<p>The project also records known CNA issues found while writing or running the demos. This makes the catalog an independent consumer of the framework rather than a second copy of CNA&#39;s own tests.</p>
+<p>The coverage is generated from the repository rather than maintained as an optimistic checklist. Demo metadata is reconciled with CNA&#39;s XNA inventory and its public C headers. Anything not matched remains in the backlog or appears as a CNA-specific name that should be reviewed.</p>
+<p>Fields and enum values are reported separately because producing one program for every enum constant would create noise rather than useful documentation. The goal is meaningful behavior, not inflating a percentage.</p>
+<p><img src="/wp-content/uploads/2026/12/cna-demos-texture-cube.png" alt="A TextureCube demo showing all six faces and authored mip levels" loading="lazy"></p>
+<h2 id="the-c-api-collection">The C API collection</h2>
+<p>The C API is exercised by 177 standalone C programs. They compile as C callers and reach the experimental ABI rather than silently testing the C++ layer from C++ code.</p>
+<p>This part of the catalog covers areas such as:</p>
+<pre><code class="language-text">runtime and window lifecycle
+vectors, matrices, curves and colors
+graphics resources and effects
+textures, render targets and models
+input devices and haptics
+content, CNB and media
+audio and XACT-style objects
+networking and gamer services</code></pre>
+<p>Some remaining routes are hardware-dependent, service-dependent, test hooks or constant type-name helpers. The coverage report keeps those dispositions explicit instead of treating every declaration as equally runnable on a headless machine.</p>
+<h2 id="renderer-aware-runs">Renderer-aware runs</h2>
+<p>CNA Demos can be built with several renderers in one executable and can select a compiled-in renderer for an individual run. The current complete checkpoint covers OPENGLES3, OPENGL33, SDL_GPU, SOFTWARE, HEADLESS and STUB builds.</p>
+<p>Small reference scenes are captured on both OPENGLES3 and the software renderer. This helps distinguish an application mistake from a renderer-specific difference while keeping each test easy to inspect.</p>
+<p>A standard validation checkpoint builds the selected configuration, validates metadata and assets, runs the CLI and framework tests, executes the per-demo CTest entries and then performs complete SOFTWARE and OPENGLES3 smoke batches.</p>
+<p>The software renderer is particularly useful because it needs no GPU or display server. Windowed GL runs can be isolated under Xvfb, while HEADLESS and STUB cover code paths where presenting pixels is intentionally absent.</p>
+<p>Renderer requirements stay attached to individual entries. A 3D demo can therefore be skipped honestly on a 2D-only renderer while a math or storage demo still runs.</p>
+<p><img src="/wp-content/uploads/2026/12/cna-demos-punctual-shadows.png" alt="Focused point-light and spot-light shadow cases from an OPENGLES3 validation run" loading="lazy"></p>
+<h2 id="visual-references">Visual references</h2>
+<p>Most demos prove their result with values and state checks. A few graphics concepts require a picture as well.</p>
+<p>The initial visual-regression set contains three deterministic scenes on both SOFTWARE and OPENGLES3:</p>
+<ul><li>clearing the back buffer to a known color;</li><li>drawing a small texture through <code>SpriteBatch</code>;</li><li>loading and rendering a compiled SpriteFont.</li></ul>
+<p>The capture path itself uses CNA: <code>GraphicsDevice::GetBackBufferData</code> reads the frame and <code>Texture2D::SaveAsPng</code> writes it. The comparison tool retains actual images and highlighted mismatch masks when a reference differs.</p>
+<p>Only deliberately deterministic demos are accepted into this set. Time-driven animation is not called deterministic merely because it was captured at a numbered frame; fixed-step catch-up behavior can still put two renderers at different game times.</p>
+<p><img src="/wp-content/uploads/2026/12/cna-demos-shader-package.png" alt="A focused shader-package demo comparing original colors with selected shader output" loading="lazy"></p>
+<h2 id="safe-unattended-behavior">Safe unattended behavior</h2>
+<p>Automation is designed not to interfere with a developer&#39;s normal environment.</p>
+<p>Gamer Services examples use a dedicated local profile store and a demo identity instead of contacting a service configured for another game. Most networking examples remain local; the one System Link case declares its network requirement and is serialized in parallel CTest runs because it uses the discovery port.</p>
+<p>Audio can use SDL&#39;s dummy driver in CI. Input programs are usually smoke-only unless CNA provides a controlled emulation path. A random demo receives its seed from the harness so a failed run can be reproduced.</p>
+<p>These rules let the catalog grow without turning a full smoke run into an uncontrolled collection of windows, prompts and external connections.</p>
+<h2 id="adding-another-concept">Adding another concept</h2>
+<p>The authoring workflow is intentionally small:</p>
+<ol><li>choose a hierarchical ID;</li><li>add one source file under the matching <code>demos/</code> path;</li><li>register it as a console or game demo;</li><li>describe its APIs, requirements and automation class;</li><li>build and run <code>cna-demos --validate</code>;</li><li>execute it on every renderer its claim covers.</li></ol>
+<p>No CMake list needs a new entry. This makes a large catalog maintainable while keeping every example independently readable.</p>
+<h2 id="a-practical-companion-to-cna">A practical companion to CNA</h2>
+<p>CNA&#39;s unit tests verify framework internals and contracts. CNA Demos approaches the same system from the perspective of an application author.</p>
+<p>It asks whether a public feature can be discovered, compiled, executed, automated and explained in isolation. That combination makes it useful when learning CNA, debugging a renderer or reviewing compatibility work.</p>
+<p>The repository is licensed under the Microsoft Public License, like CNA itself.</p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/tag/cna/">#CNA</a><a href="/tag/cna-demos/">#CNA Demos</a><a href="/tag/xna/">#XNA</a><a href="/tag/c-23/">#C++23</a><a href="/tag/testing/">#Testing</a><a href="/tag/examples/">#Examples</a><a href="/tag/renderers/">#Renderers</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FX support in CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA can load and execute compiled XNA/FNA Effect Framework binaries across six renderer families, while keeping legacy FX separate from ShaderEffect.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/12/24/fx-support-in-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="FX support in CNA">
+  <meta property="og:description" content="CNA can load and execute compiled XNA/FNA Effect Framework binaries across six renderer families, while keeping legacy FX separate from ShaderEffect.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/12/24/fx-support-in-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-12-24T18:45:36Z">December 24, 2026</time></span><span>Updated <time datetime="2026-10-17T13:51:23Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">FX support in CNA</h1>
+      <p class="article-description">CNA can load and execute compiled XNA/FNA Effect Framework binaries across six renderer families, while keeping legacy FX separate from ShaderEffect.</p>
+    </header>
+    <div class="article-body"><p>XNA 4.0 did not treat a shader as only a vertex program plus a pixel program.</p>
+<p>Its main programmable-shader abstraction was the <strong>Effect Framework</strong>. Developers wrote an HLSL <code>.fx</code> file containing parameters, techniques, passes, shaders, annotations and state assignments. The XNA Content Pipeline compiled that source into a Direct3D 9 Effect Framework binary, usually stored inside an XNB asset.</p>
+<p>CNA supports that model as a compatibility path:</p>
+<pre><code class="language-text">HLSL .fx
+    │
+    ▼
+XNA-compatible FX compiler
+    │
+    ▼
+Effect Framework binary
+    │
+    ├── standalone .fxb
+    └── Effect payload inside XNB
+            │
+            ▼
+           CNA
+            │
+            ▼
+    renderer-specific execution</code></pre>
+<p>An XNA or FNA game can therefore retain its original custom effects instead of rewriting them all before the first correct frame can be rendered.</p>
+<p>This path is deliberately separate from CNA&#39;s newer <code>ShaderEffect</code> API.</p>
+<hr>
+<h2 id="three-different-kinds-of-effect">Three different kinds of effect</h2>
+<p>The word <strong>effect</strong> refers to three related but different systems in CNA.</p>
+<h3 id="stock-effects">Stock effects</h3>
+<p>The XNA-compatible stock types include:</p>
+<pre><code class="language-text">BasicEffect
+AlphaTestEffect
+DualTextureEffect
+EnvironmentMapEffect
+SkinnedEffect</code></pre>
+<p>CNA also provides modern framework effects such as:</p>
+<pre><code class="language-text">PbrEffect
+SkinnedPbrEffect</code></pre>
+<p>These are portable framework APIs. Applications configure their properties, but do not supply an arbitrary Effect Framework program.</p>
+<h3 id="compiled-xna-effects">Compiled XNA effects</h3>
+<p>This is the compatibility path described in this article.</p>
+<p>The game supplies XNA/FNA Direct3D 9 Effect Framework bytecode and uses the familiar object model:</p>
+<pre><code class="language-text">Effect
+EffectParameter
+EffectTechnique
+EffectPass
+EffectAnnotation</code></pre>
+<p>CNA reconstructs the reflected object graph and executes the compiled shaders, pass state and sampler state.</p>
+<h3 id="shadereffect">ShaderEffect</h3>
+<p><code>CNAEXT::ShaderEffect</code> is for application-owned, backend-oriented shader packages such as GLSL, SPIR-V or WGSL source pairs.</p>
+<p>It does not reinterpret those formats as XNA Effect Framework bytecode and does not add XNA techniques, annotations or pass-state semantics.</p>
+<p>The two custom-shader capabilities are independent:</p>
+<pre><code class="language-cpp">device.SupportsCapability(CNA::GraphicsCapability::CompiledEffects);
+device.SupportsCapability(CNA::GraphicsCapability::CustomEffects);</code></pre>
+<p>A renderer may support either one, both or neither. Stock effects require neither capability.</p>
+<hr>
+<h2 id="what-cna-accepts">What CNA accepts</h2>
+<p>The runtime contract is intentionally narrow and explicit.</p>
+<div class="table-wrap"><table><thead><tr><th>Input</th><th>Accepted</th><th>Route</th></tr></thead><tbody><tr><td>XNA/FNA Direct3D 9 Effect Framework binary (<code>.fxb</code>)</td><td>Yes</td><td><code>Effect(GraphicsDevice&amp;, byte[])</code></td></tr><tr><td>XNA 4-wrapped Effect payload in XNB</td><td>Yes</td><td><code>ContentManager</code> and <code>EffectReader</code></td></tr><tr><td>HLSL <code>.fx</code> source</td><td>Build time only</td><td>CNA Content Pipeline plus an external compiler</td></tr><tr><td>MonoGame <code>MGFX</code> / <code>.mgfxo</code></td><td>No</td><td>Different container and runtime contract</td></tr><tr><td>GLSL, SPIR-V or WGSL packages</td><td>Not through <code>Effect</code></td><td>Use <code>CNAEXT::ShaderEffect</code></td></tr></tbody></table></div>
+<p>The accepted binary is the legacy Effect Framework format used by XNA and FNA, including XNA 4&#39;s outer wrapper. It can contain the original Direct3D 9-era Shader Model programs as well as the Effect object graph around them.</p>
+<p>The runtime constructor never treats arbitrary text as HLSL source and never guesses whether an unknown blob might be MGFX.</p>
+<hr>
+<h2 id="loading-compiled-bytes">Loading compiled bytes</h2>
+<p>A standalone compiled effect can be created directly:</p>
+<pre><code class="language-cpp">#include &quot;Microsoft/Xna/Framework/Graphics/Effect.hpp&quot;
+
+std::vector&lt;SharpRuntime::bytecs&gt; bytes =
+    ReadAllBytes(&quot;Bloom.fxb&quot;);
+
+Effect effect(device, bytes);</code></pre>
+<p>The constructor validates the input, creates the renderer-specific runtime, reconstructs reflection data and initially selects the first technique.</p>
+<p>Applications should query the exact capability before choosing this path:</p>
+<pre><code class="language-cpp">if (!device.SupportsCapability(
+        CNA::GraphicsCapability::CompiledEffects))
+{
+    // Select another renderer, use a stock effect or report the requirement.
+}</code></pre>
+<p>An unsupported renderer throws <code>NotSupportedException</code>. Invalid or truncated bytecode produces an argument-related error instead, so a platform mismatch is distinguishable from corrupt content.</p>
+<hr>
+<h2 id="loading-an-effect-from-xnb">Loading an Effect from XNB</h2>
+<p>CNA registers the canonical:</p>
+<pre><code class="language-text">Microsoft.Xna.Framework.Content.EffectReader</code></pre>
+<p>An original XNA asset can therefore be loaded through <code>ContentManager</code>:</p>
+<pre><code class="language-cpp">auto effect =
+    content.Load&lt;std::shared_ptr&lt;Effect&gt;&gt;(
+        &quot;Effects/Bloom&quot;);</code></pre>
+<p>The reader:</p>
+<ul><li>enforces the content allocation limit before allocating;</li><li>requires an exact payload read;</li><li>assigns the asset name;</li><li>wraps construction failures in <code>ContentLoadException</code> while preserving the underlying diagnostic.</li></ul>
+<p>An XNB-loaded effect and a directly loaded <code>.fxb</code> use the same runtime and expose the same behavior.</p>
+<hr>
+<h2 id="reflection-is-part-of-compatibility">Reflection is part of compatibility</h2>
+<p>An XNA effect is not only shader bytecode. Games can inspect its object graph at runtime.</p>
+<p>For example:</p>
+<pre><code class="language-cpp">for (int i = 0;
+     i &lt; effect.getParametersProperty().getCountProperty();
+     ++i)
+{
+    const EffectParameter&amp; parameter =
+        effect.getParametersProperty()[i];
+
+    parameter.getNameProperty();
+    parameter.getSemanticProperty();
+    parameter.getParameterClassProperty();
+    parameter.getParameterTypeProperty();
+    parameter.getRowCountProperty();
+    parameter.getColumnCountProperty();
+    parameter.getAnnotationsProperty();
+    parameter.getElementsProperty();
+    parameter.getStructureMembersProperty();
+}</code></pre>
+<p>CNA preserves:</p>
+<pre><code class="language-text">parameter order and names
+semantics
+scalar, vector, matrix, object and structure classes
+numeric and texture types
+row and column counts
+arrays and nested structures
+annotations
+techniques and passes</code></pre>
+<p>Name lookup returns <code>nullptr</code> for a parameter that the effect does not declare. Sampler and shader objects are not exposed as public parameters, matching XNA and FNA; a texture reaches a sampler through the reflected texture parameter referenced by that sampler.</p>
+<p>Numeric storage keeps the Effect Framework&#39;s float4 register padding internally while getters and setters expose the logical XNA shape. A <code>float3</code> array therefore remains a <code>float3</code> array instead of leaking its register padding into game code.</p>
+<hr>
+<h2 id="setting-parameters">Setting parameters</h2>
+<p>The API follows the familiar XNA model:</p>
+<pre><code class="language-cpp">effect.getParametersProperty()[&quot;WorldViewProj&quot;]
+    -&gt;SetValue(worldViewProjection);
+
+effect.getParametersProperty()[&quot;Threshold&quot;]
+    -&gt;SetValue(0.25f);
+
+effect.getParametersProperty()[&quot;Weights&quot;]
+    -&gt;SetValue(std::vector&lt;float&gt;{0.2f, 0.8f});
+
+effect.getParametersProperty()[&quot;Texture&quot;]
+    -&gt;SetValue(&amp;texture);</code></pre>
+<p>Setters validate the reflected type and count. Array-element and structure-member views update their parent&#39;s storage rather than disconnected copies.</p>
+<p>Mutable top-level parameters are dirty-tracked:</p>
+<pre><code class="language-text">SetValue(...)
+    │
+    ▼
+parameter becomes dirty
+    │
+    ▼
+next pass application uploads it</code></pre>
+<p>If nothing changed, CNA does not upload the same values again.</p>
+<p>String parameters follow XNA 4.0 semantics. A string value is CPU-side reflection data, belongs to its <code>Effect</code> instance and is copied independently by <code>Clone()</code>.</p>
+<hr>
+<h2 id="techniques-and-exact-pass-selection">Techniques and exact pass selection</h2>
+<p>Compiled effects retain their real technique/pass structure:</p>
+<pre><code class="language-cpp">effect.setCurrentTechniqueProperty(
+    effect.getTechniquesProperty()[&quot;Bloom&quot;]);
+
+for (auto&amp; pass :
+     effect.getCurrentTechniqueProperty()
+           -&gt;getPassesProperty())
+{
+    pass.Apply();
+
+    device.DrawPrimitives(
+        PrimitiveType::TriangleList,
+        0,
+        2);
+}</code></pre>
+<p><code>EffectPass::Apply()</code> applies the exact selected pass. It never collapses every request to pass zero.</p>
+<p>For the base compiled <code>Effect</code>, <code>Effect::Apply()</code> means pass zero of <code>CurrentTechnique</code>. Subclasses still receive the <code>OnApply()</code> hook before the pass is applied.</p>
+<p>Applying a pass performs more than shader selection. In order, CNA validates ownership, calls <code>OnApply()</code>, uploads dirty values and textures, selects the native technique and pass, translates its state assignments and selects the effect for subsequent draws.</p>
+<hr>
+<h2 id="pass-state-is-real-device-state">Pass state is real device state</h2>
+<p>An Effect Framework pass may assign:</p>
+<pre><code class="language-text">blend state
+depth and stencil state
+rasterizer state
+texture bindings
+sampler filtering
+texture addressing
+anisotropy
+mipmap limits and LOD bias</code></pre>
+<p>CNA translates those assignments into its normal XNA-style device state. After <code>pass.Apply()</code>, the corresponding <code>GraphicsDevice</code> state objects and collections reflect the pass.</p>
+<p>State groups that the pass does not assign remain untouched:</p>
+<pre><code class="language-text">before pass             after pass that changes blending only
+
+BlendState A            BlendState changed by the effect
+DepthStencilState B     DepthStencilState remains B
+RasterizerState C       RasterizerState remains C</code></pre>
+<p>Unknown render-state or sampler-state tokens are rejected by name. CNA does not silently ignore them or publish a half-translated state group.</p>
+<p><code>Border</code> and <code>MirrorOnce</code> addressing are also refused because XNA 4.0&#39;s <code>SamplerState</code> cannot represent them.</p>
+<hr>
+<h2 id="spritebatch-and-normal-3d-draws">SpriteBatch and normal 3D draws</h2>
+<p>Compiled effects are not restricted to one drawing helper.</p>
+<p>They work with ordinary buffered, user, indexed and non-indexed draws, including non-zero offsets. Multi-stream and instanced routes are exercised where the selected renderer advertises those underlying capabilities.</p>
+<p>They also work with <code>SpriteBatch</code>:</p>
+<pre><code class="language-cpp">spriteBatch.Begin(
+    SpriteSortMode::Immediate,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
+    &amp;effect);
+
+spriteBatch.Draw(texture, destination, Color::White);
+spriteBatch.End();</code></pre>
+<p>Every pass runs at XNA&#39;s batch granularity. SpriteBatch reconnects the sprite texture to slot zero after applying the pass, matching FNA behavior, and preserves source rectangles and sprite flips.</p>
+<p>The shared tests also cover compiled effects sampling render targets, switching between compiled and stock effects, inheriting a stock vertex stage from a pixel-only pass and alternating between effects and clones.</p>
+<p>A renderer is not promoted to compiled-effect support merely because it can parse reflection metadata. The effect&#39;s own parameter must survive the real draw route and appear in the read-back pixel.</p>
+<hr>
+<h2 id="renderer-support-today">Renderer support today</h2>
+<p>CNA currently exposes exactly ten renderer identities over eight implementation families.</p>
+<p>Compiled FX is implemented by six families:</p>
+<div class="table-wrap"><table><thead><tr><th>Renderer identity</th><th><code>CompiledEffects</code></th><th>Build option</th></tr></thead><tbody><tr><td><code>OPENGLES3</code></td><td>True when included</td><td><code>CNA_EASYGL_COMPILED_EFFECTS</code></td></tr><tr><td><code>OPENGL33</code></td><td>True when included</td><td><code>CNA_EASYGL_COMPILED_EFFECTS</code></td></tr><tr><td><code>WEBGL2</code></td><td>True when included</td><td><code>CNA_EASYGL_COMPILED_EFFECTS</code></td></tr><tr><td><code>WEBGPU</code></td><td>True when included</td><td><code>CNA_WEBGPU_COMPILED_EFFECTS</code></td></tr><tr><td><code>HEADLESS</code></td><td>False</td><td>None</td></tr><tr><td><code>SOFTWARE</code></td><td>True when included</td><td><code>CNA_SOFTWARE_COMPILED_EFFECTS</code></td></tr><tr><td><code>STUB</code></td><td>False</td><td>None</td></tr><tr><td><code>DIRECTX9</code></td><td>True when included</td><td><code>CNA_DIRECTX9_COMPILED_EFFECTS</code></td></tr><tr><td><code>SDL_GPU</code></td><td>True when included</td><td><code>CNA_SDL_GPU_COMPILED_EFFECTS</code></td></tr><tr><td><code>FNA3D</code></td><td>True</td><td>Always included</td></tr></tbody></table></div>
+<p>The five optional flags are off by default because they add MojoShader to renderer builds that do not otherwise need it. With a flag off, the renderer continues to work normally, reports <code>CompiledEffects == false</code> and explicitly refuses compiled Effect construction.</p>
+<p>The capability describes the binary that is actually running, not what another build of the same renderer could support.</p>
+<hr>
+<h2 id="how-the-six-implementations-execute-fx">How the six implementations execute FX</h2>
+<p>The public <code>Effect</code> API stays the same, but the last part of the route differs by renderer.</p>
+<h3 id="fna3d">FNA3D</h3>
+<p>FNA3D owns the mature MojoShader Effect Framework integration used by FNA:</p>
+<pre><code class="language-text">XNA Effect Framework binary
+        │
+        ▼
+    MojoShader
+        │
+        ▼
+      FNA3D
+        │
+        ▼
+selected FNA3D driver</code></pre>
+<p>This is the natural reference path and is always present in a CNA <code>FNA3D</code> build.</p>
+<h3 id="easygl-opengl-es-3-opengl-3-3-and-webgl-2">EasyGL: OpenGL ES 3, OpenGL 3.3 and WebGL 2</h3>
+<p>The three public GL identities share CNA&#39;s EasyGL implementation and MojoShader&#39;s OpenGL adapter.</p>
+<p><code>OPENGL33</code> uses the <code>glsl120</code> translation profile. <code>OPENGLES3</code> and <code>WEBGL2</code> use <code>glsles3</code>.</p>
+<p>The explicit choice matters. CNA does not let a driver silently choose a different MojoShader profile whose assumptions do not fit XNA passes that assign only one shader stage and inherit the other.</p>
+<h3 id="sdlgpu">SDL_GPU</h3>
+<p>The <code>SDL_GPU</code> route uses MojoShader&#39;s SDL GPU adapter and its SPIR-V output. SDL may then execute through Vulkan, Direct3D 12 or Metal depending on the host and available SDL GPU driver.</p>
+<p>Those are internal SDL choices, not additional CNA renderer identities.</p>
+<h3 id="webgpu">WebGPU</h3>
+<p>The native WebGPU path consumes CNA&#39;s MojoShader SPIR-V integration. In the browser, CNA translates that SPIR-V into WGSL before creating the WebGPU shader module:</p>
+<pre><code class="language-text">XNA FX bytecode
+      │
+      ▼
+  MojoShader
+      │
+      ▼
+    SPIR-V
+      │
+      └── browser build ─► WGSL
+                              │
+                              ▼
+                           WebGPU</code></pre>
+<p>The adapter also maps the old combined-sampler model onto WebGPU&#39;s separate images and samplers.</p>
+<h3 id="software">Software</h3>
+<p><code>SOFTWARE</code> is no longer a blanket exception to arbitrary FX.</p>
+<p>Its optional compiled-effect runtime executes the supported legacy Shader Model programs on the CPU and participates in the same public reflection, state, SpriteBatch and pixel-output contracts as the GPU renderers.</p>
+<p>This is functional compatibility, not a performance claim. The renderer remains a bounded CPU implementation.</p>
+<h3 id="directx-9">DirectX 9</h3>
+<p>An XNA 4 Effect already contains Direct3D 9-era shader tokens. <code>DIRECTX9</code> can therefore create native vertex and pixel shaders from those programs directly:</p>
+<pre><code class="language-text">XNA Effect
+    │
+    ▼
+D3D9 shader tokens
+    │
+    ├── IDirect3DVertexShader9
+    └── IDirect3DPixelShader9</code></pre>
+<p>MojoShader still supplies the Effect container runtime and reflection. CNA supplies the parameter, technique, pass, state, sampler and draw integration around it.</p>
+<hr>
+<h2 id="vulkan-directx-11-directx-12-and-metal-are-not-cna-renderer-identities">Vulkan, DirectX 11, DirectX 12 and Metal are not CNA renderer identities</h2>
+<p>Earlier versions of this article described separate CNA implementations for Vulkan, DirectX 11, DirectX 12 and Metal.</p>
+<p>Those identities have been retired.</p>
+<p>The current architecture is:</p>
+<pre><code class="language-text">SDL_GPU
+    ├── Vulkan selected internally by SDL
+    ├── Direct3D 12 selected internally by SDL
+    └── Metal selected internally by SDL
+
+FNA3D
+    ├── SDL_GPU selected internally by FNA3D
+    ├── Direct3D 11 selected internally by FNA3D
+    └── OpenGL selected internally by FNA3D</code></pre>
+<p>An effect can still ultimately run on those graphics APIs. The important correction is that applications select <code>SDL_GPU</code> or <code>FNA3D</code>, query that renderer&#39;s capability and do not select a retired CNA identity.</p>
+<hr>
+<h2 id="no-silent-stock-shader-fallback">No silent stock-shader fallback</h2>
+<p>Suppose a renderer can parse <code>Bloom.fxb</code> but cannot execute its shader on a particular draw route.</p>
+<p>The wrong behavior would be:</p>
+<pre><code class="language-text">pretend success
+draw with BasicEffect or the normal SpriteBatch shader</code></pre>
+<p>The frame might still contain plausible geometry, turning a compatibility defect into an apparent art problem.</p>
+<p>CNA instead follows two rules:</p>
+<ol><li>A renderer without a complete runtime reports <code>CompiledEffects == false</code> and refuses construction.</li><li>A supported renderer refuses a specific unrepresentable shader, sampler or draw route by name rather than silently substituting another shader.</li></ol>
+<p>The capability becomes true only after the shared conformance suite proves real output.</p>
+<hr>
+<h2 id="current-boundaries">Current boundaries</h2>
+<p>Compiled FX does not manufacture capabilities that the selected renderer lacks.</p>
+<p>Important current boundaries include:</p>
+<ul><li>vertex-stage texture sampling is unavailable across CNA&#39;s renderer contract;</li><li>volume-texture sampling remains renderer and profile dependent;</li><li>cube sampling is supported across the compiled-effect implementations;</li><li><code>MipMapLevelOfDetailBias</code> has no OpenGL ES representation, although the pass assignment is still visible in CNA&#39;s state object;</li><li>the SPIR-V path explicitly refuses the Shader Model 1.4 <code>BEM</code> instruction it cannot implement;</li><li>an EasyGL context recreation invalidates the underlying MojoShader context, so the application must recreate compiled <code>Effect</code> instances from their bytecode;</li><li>a renderer&#39;s ordinary multi-stream and instancing limits also apply to its compiled-effect draws.</li></ul>
+<p>These are explicit errors or documented representational limits. They are not replaced by nearby behavior.</p>
+<p>Sampler support is tested through rendered pixels, not only by reading state objects back. The tests distinguish <code>Wrap</code>, <code>Clamp</code> and <code>Mirror</code>, exercise filtering away from texel boundaries and select different-colored mip levels to verify mip limits and LOD behavior.</p>
+<hr>
+<h2 id="building-fx-source">Building <code>.fx</code> source</h2>
+<p>CNA&#39;s Content Pipeline accepts both <code>.fxb</code> and <code>.fx</code> inputs, but the routes differ at their first step.</p>
+<pre><code class="language-text">already compiled .fxb ───────────────┐
+                                     │
+.fx source                           │
+    │                                │
+    ▼                                │
+external fxc-compatible compiler     │
+    │                                │
+    └────────► compiled bytecode ◄────┘
+                         │
+                         ▼
+               XNB Effect asset</code></pre>
+<p>CNA deliberately does not embed an HLSL Effect compiler. Source compilation is an authoring-time operation.</p>
+<p>The command-line tool can be pointed at an external compiler:</p>
+<pre><code class="language-bash">cna-content build Content -o bin --format xnb \
+    --fx-compiler &quot;/path/to/fxc.exe&quot;</code></pre>
+<p>On a non-Windows build machine it can launch that compiler through Wine:</p>
+<pre><code class="language-bash">cna-content build Content -o bin --format xnb \
+    --fx-compiler &quot;/path/to/fxc.exe&quot; \
+    --fx-compiler-launcher wine</code></pre>
+<p>The compiler and launcher can also be selected through the <code>CNA_FXC</code> and <code>CNA_FXC_LAUNCHER</code> environment variables or the <code>CNA_FXC_EXECUTABLE</code> and <code>CNA_FXC_LAUNCHER</code> CMake settings.</p>
+<p>The pipeline records the compiler identity, processor parameters and the complete <code>#include</code> dependency tree in its fingerprint. Changing the compiler, <code>profile</code>, <code>defines</code>, <code>debug</code> setting or an included <code>.fxh</code> file rebuilds the effect.</p>
+<p>Both <code>.fx</code> and <code>.fxb</code> currently produce an Effect only for <code>--format xnb</code>. CNB reserves an Effect identifier but deliberately has no native schema for Direct3D 9 Effect Framework content.</p>
+<p>Runtime code therefore receives compiled <code>.fxb</code> or XNB payloads, never <code>.fx</code> source.</p>
+<hr>
+<h2 id="cloning-and-lifetime">Cloning and lifetime</h2>
+<p>Compiled effects can be cloned:</p>
+<pre><code class="language-cpp">std::unique_ptr&lt;Effect&gt; copy(effect.Clone());</code></pre>
+<p>The clone remains on the same graphics device but owns independent mutable state:</p>
+<pre><code class="language-text">parameter and string values
+texture references
+current technique
+native Effect runtime state</code></pre>
+<p>Either object may be disposed first. Only immutable compiled shader artifacts may be shared internally.</p>
+<p>CNA also defines device-reset and teardown behavior. A selected effect is removed when disposed, using a disposed effect raises <code>ObjectDisposedException</code>, disposal is idempotent and an existing effect survives an ordinary <code>GraphicsDevice::Reset()</code>.</p>
+<p>Construction belongs at content-load time rather than in the frame loop. If a game needs many instances of the same effect, <code>Clone()</code> reuses the already translated immutable artifacts and is substantially cheaper than constructing each instance from bytecode again.</p>
+<hr>
+<h2 id="malformed-input-and-fuzzing">Malformed input and fuzzing</h2>
+<p>Effect bytecode is a native binary format and must be treated as untrusted structured data.</p>
+<p>CNA bounds a compiled Effect at 64 MiB and checks sizes, counts, offsets, arrays, nested structures and shader objects before building the public graph.</p>
+<p>The parser and both major FNA3D translation routes were exercised with coverage-guided fuzzing under AddressSanitizer. The recorded campaigns exceeded three million executions on the OpenGL/GLSL route and two and a half million on the SDL GPU/SPIR-V route. Forty-one distinct crash classes found during the work became parser fixes and regression inputs.</p>
+<p>That is strong measured hardening, not a mathematical proof that arbitrary hostile bytecode is safe. Shipping game-owned effects and accepting user-supplied shader binaries are different trust decisions.</p>
+<hr>
+<h2 id="how-cna-tests-fx-compatibility">How CNA tests FX compatibility</h2>
+<p>Every renderer claiming <code>CompiledEffects</code> runs the same renderer-neutral conformance contract.</p>
+<p>It covers:</p>
+<pre><code class="language-text">format rejection and truncation boundaries
+reflection, arrays, structures and annotations
+all public parameter getters and setters
+technique and exact-pass selection
+render, depth, rasterizer and sampler state
+texture binding and dimension checks
+cloning, disposal and device lifetime
+buffered, user, indexed and non-indexed draws
+multi-stream and instancing where supported
+SpriteBatch, multiple passes and inherited stages
+render-target sampling and orientation
+switching between compiled, cloned and stock effects</code></pre>
+<p>The drawing sections read pixels back. A route that binds the wrong pass, loses a parameter, uses the wrong vertex stream or falls back to a stock shader produces the wrong color and fails.</p>
+<p>FNA supplies an independent behavioral reference. The fixture set also includes binaries produced by Microsoft&#39;s historical June 2010 <code>fxc</code>, the same generation used by the XNA 4 toolchain.</p>
+<p>Recent compatibility work has gone beyond basic Shader Model 2/3 examples. Shared tests cover legacy Shader Model 1 through 3 instructions and found real translation differences in predicated <code>TEXKILL</code>, <code>vPos</code>, <code>vFace</code>, bump-environment instructions, pixel-center correction, GLSL ES precision and vertex-color clamping. CNA either repaired those routes or kept a precise refusal for the remaining unsupported case.</p>
+<hr>
+<h2 id="choosing-the-right-path">Choosing the right path</h2>
+<p>For an existing XNA or FNA game:</p>
+<pre><code class="language-text">already owns .fxb or XNB Effects
+        │
+        ▼
+query CompiledEffects and retain the Effect API</code></pre>
+<p>For a new CNA application with its own backend shader packages:</p>
+<pre><code class="language-text">does not need XNA techniques, annotations or pass state
+        │
+        ▼
+query CustomEffects and use ShaderEffect</code></pre>
+<p>For ordinary framework materials:</p>
+<pre><code class="language-text">no custom shader required
+        │
+        ▼
+use BasicEffect, PbrEffect or another stock effect</code></pre>
+<p>Compiled <code>Effect</code> is primarily a compatibility technology. <code>ShaderEffect</code> is the application-owned custom-shader technology. Stock effects are the portable framework-provided path.</p>
+<hr>
+<h2 id="current-architecture">Current architecture</h2>
+<pre><code class="language-text">                         CNA Graphics
+                              │
+          ┌───────────────────┼────────────────────┐
+          │                   │                    │
+          ▼                   ▼                    ▼
+    Stock Effects       XNA Compiled FX       ShaderEffect
+          │                   │                    │
+    BasicEffect              .fxb           ShaderPackageEXT
+    SkinnedEffect            XNB Effect      GLSL/SPIR-V/WGSL
+    PbrEffect                  │                    │
+          │                   │                    │
+          └───────────────────┼────────────────────┘
+                              ▼
+                        Renderer contract
+                              │
+             ┌────────────────┼────────────────┐
+             │                │                │
+             ├── EasyGL       ├── WebGPU       ├── Software
+             ├── SDL_GPU      ├── DirectX 9    └── FNA3D</code></pre>
+<p>Not every renderer supports every branch. Capability queries state which path is real in the selected build.</p>
+<hr>
+<h2 id="source-code-and-documentation">Source code and documentation</h2>
+<p>The CNA repository is available at:</p>
+<p><a href="https://github.com/libcna/cna">https://github.com/libcna/cna</a></p>
+<p>The primary guides are:</p>
+<pre><code class="language-text">docs/fx-compiled-effects.md
+docs/shader-effect-vs-fx-bytecode.md
+docs/fx-bytecode-fuzzing.md
+docs/content-pipeline.md
+docs/renderer-registry.md</code></pre>
+<p>The active renderer implementations are under:</p>
+<pre><code class="language-text">modules/renderers/fna3d/
+modules/renderers/easygl/
+modules/renderers/sdl-gpu/
+modules/renderers/webgpu/
+modules/renderers/software/
+modules/renderers/directx9/</code></pre>
+<p>Shared MojoShader integration lives in:</p>
+<pre><code class="language-text">modules/renderers/common/mojoshader/</code></pre>
+<p>The renderer-neutral conformance suite is centered on:</p>
+<pre><code class="language-text">tests/support/CNA/TestSupport/CompiledEffectConformance.hpp
+tests/support/CNA/TestSupport/CompiledEffectFixtures.hpp</code></pre>
+<p>Development tools include:</p>
+<pre><code class="language-text">tools/graphics/mojoshader_effect_probe.cpp
+tools/graphics/mojoshader_gl_probe.cpp
+tools/graphics/mojoshader_sdlgpu_probe.cpp
+tools/graphics/compiled_effect_fuzzer.cpp
+tools/graphics/compiled_effect_benchmark.cpp</code></pre>
+<hr>
+<h2 id="conclusion">Conclusion</h2>
+<p>FX support in CNA is no longer limited to recognizing an old shader file.</p>
+<p>CNA loads genuine XNA/FNA Effect Framework binaries, reconstructs their public reflection model and executes their techniques, passes, shaders, states and samplers through FNA3D, EasyGL, SDL GPU, WebGPU, Software and DirectX 9.</p>
+<p>At the same time, the project keeps three contracts distinct:</p>
+<pre><code class="language-text">Stock Effects
+    portable framework-provided materials
+
+Compiled Effect
+    compatibility with XNA/FNA .fxb and XNB Effects
+
+ShaderEffect
+    modern application-owned shader packages</code></pre>
+<p>That separation lets an old XNA game retain its original Effect architecture without forcing a new CNA application to design its shaders around a Direct3D 9-era format.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/directx/">#DirectX</a><a href="/tag/opengl/">#OpenGL</a><a href="/tag/webgpu/">#WebGPU</a><a href="/tag/graphics/">#Graphics</a><a href="/tag/xnb/">#XNB</a><a href="/tag/sdl-gpu/">#SDL GPU</a><a href="/tag/software-rendering/">#Software Rendering</a><a href="/tag/fna/">#FNA</a><a href="/tag/xna/">#XNA</a><a href="/tag/fx/">#FX</a><a href="/tag/effect/">#Effect</a><a href="/tag/hlsl/">#HLSL</a><a href="/tag/fxb/">#FXB</a><a href="/tag/mojoshader/">#MojoShader</a><a href="/tag/shadereffect/">#ShaderEffect</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

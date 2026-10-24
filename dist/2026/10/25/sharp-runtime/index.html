@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sharp Runtime | CNA&#39;s Blog</title>
+  <meta name="description" content="Sharp Runtime is a C++23 implementation of a practical subset of the .NET System.* libraries.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/10/25/sharp-runtime/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Sharp Runtime">
+  <meta property="og:description" content="Sharp Runtime is a C++23 implementation of a practical subset of the .NET System.* libraries.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/10/25/sharp-runtime/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-10-25T13:25:19Z">October 25, 2026</time></span><span>Updated <time datetime="2026-09-19T16:15:07Z">September 19, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Sharp Runtime</h1>
+      <p class="article-description">Sharp Runtime is a C++23 implementation of a practical subset of the .NET System.* libraries.</p>
+    </header>
+    <div class="article-body"><p><strong>Sharp Runtime</strong> is a C++23 implementation of a practical subset of the .NET <code>System.*</code> libraries.</p>
+<p>It exists primarily to make it easier to port C# frameworks, libraries, games, and tools to native C++ while preserving familiar .NET concepts and APIs.</p>
+<p>Sharp Runtime is an important foundation library in the CNA ecosystem, but it is also an independent project.</p>
+<p>Most importantly:</p>
+<p><strong>Sharp Runtime is not a CLR and it is not an attempt to reimplement the entire .NET platform.</strong></p>
+<p>There is no JIT compiler, garbage collector, IL execution engine, or general-purpose .NET runtime.</p>
+<p>Instead, Sharp Runtime implements useful <code>System.*</code> functionality directly in C++23.</p>
+<p><strong>GitHub:</strong> <a href="https://github.com/libcna/sharp-runtime">https://github.com/libcna/sharp-runtime</a></p>
+<p><strong>Website:</strong> <a href="https://sharpruntime.com">https://sharpruntime.com</a></p>
+<h2 id="why-does-sharp-runtime-exist">Why does Sharp Runtime exist?</h2>
+<p>CNA itself is a C++ reimplementation of XNA 4.0.</p>
+<p>But XNA was originally written for C#, and C# applications depend on much more than just <code>Microsoft.Xna.Framework</code>.</p>
+<p>They also use types such as:</p>
+<pre><code class="language-text">System.String
+System.DateTime
+System.TimeSpan
+System.Exception
+System.IO.Stream
+System.Collections.Generic.List&lt;T&gt;
+System.Threading.Tasks.Task
+System.Net.*
+System.Text.*</code></pre>
+<p>When translating C# code into C++, these dependencies quickly become a problem.</p>
+<p>One option would be to rewrite every use of .NET APIs into unrelated C++ equivalents.</p>
+<p>For example:</p>
+<pre><code class="language-text">System.String         → std::string
+System.DateTime       → custom date library
+System.IO.Stream      → custom stream abstraction
+Task&lt;T&gt;               → custom async system
+List&lt;T&gt;               → std::vector</code></pre>
+<p>Sometimes that is appropriate.</p>
+<p>But for a large port, constantly redesigning every API can make the resulting C++ code very different from the original C# source.</p>
+<p>Sharp Runtime provides another option:</p>
+<p><strong>keep much of the original .NET programming model while implementing it natively in C++.</strong></p>
+<h2 id="a-bridge-between-c-and-c">A bridge between C# and C++</h2>
+<p>Conceptually, Sharp Runtime sits here:</p>
+<pre><code class="language-text">Original C# project
+        ↓
+C++ port
+        ↓
+Sharp Runtime
+        ↓
+C++ standard library / native OS</code></pre>
+<p>A translated class can often retain recognizable APIs and structure rather than being completely redesigned around the C++ standard library.</p>
+<p>That makes Sharp Runtime particularly useful for projects where fidelity to an existing C# codebase matters.</p>
+<h2 id="what-does-sharp-runtime-contain">What does Sharp Runtime contain?</h2>
+<p>Sharp Runtime already covers a broad range of .NET-style functionality.</p>
+<p>The current project includes areas such as:</p>
+<ul><li>core value types and strings</li><li>dates and times</li><li>exceptions</li><li>delegates</li><li>spans</li><li>collections</li><li>concurrent and asynchronous collections</li><li>text processing</li><li>regular expressions</li><li>globalization</li><li>JSON</li><li>XML and LINQ to XML</li><li>streams and files</li><li>compression and ZIP archives</li><li>hashing</li><li>sockets and networking</li><li>HTTP</li><li>MIME</li><li>WebSockets</li><li>threading</li><li>tasks and continuations</li><li>channels</li><li>timers</li><li>synchronization primitives</li><li>numerics</li><li>HMAC and PBKDF2</li><li>secure random-number generation</li></ul>
+<p>The project is currently divided into <strong>41 independently selectable CMake components</strong>, rather than forcing every application to link the entire library.</p>
+<h2 id="it-follows-net-where-practical">It follows .NET where practical</h2>
+<p>The public API intentionally follows .NET naming and behavior when that maps reasonably to C++.</p>
+<p>For example, a port can use namespaces resembling:</p>
+<pre><code class="language-cpp">System::IO
+System::Text
+System::Net
+System::Collections
+System::Threading</code></pre>
+<p>This is useful when translating an existing codebase because the relationship to the original source remains visible.</p>
+<p>But Sharp Runtime is still a C++ library.</p>
+<p>Internally it uses C++ concepts such as:</p>
+<ul><li>RAII</li><li>deterministic destruction</li><li>standard-library ownership</li><li>templates</li><li>native C++ exceptions</li><li>fixed-width types</li></ul>
+<p>It does not try to make C++ behave exactly like managed C# at all costs.</p>
+<h2 id="no-garbage-collector">No garbage collector</h2>
+<p>This is one of the largest differences from .NET.</p>
+<p>C# normally relies on garbage collection.</p>
+<p>Sharp Runtime does not implement one.</p>
+<p>Object lifetime follows C++ rules and uses mechanisms such as RAII and standard smart pointers where appropriate.</p>
+<p>That means Sharp Runtime can preserve many .NET-style APIs without requiring the entire application to run inside a managed runtime.</p>
+<p>The final program remains a native C++ application.</p>
+<h2 id="no-clr-or-il-execution">No CLR or IL execution</h2>
+<p>Sharp Runtime also does not execute .NET assemblies.</p>
+<p>The architecture is <strong>not</strong>:</p>
+<pre><code class="language-text">C# assembly
+   ↓
+Sharp Runtime
+   ↓
+execute IL</code></pre>
+<p>Instead, the source itself is ported to C++:</p>
+<pre><code class="language-text">C# source
+   ↓
+C++ translation
+   ↓
+Sharp Runtime APIs
+   ↓
+native executable</code></pre>
+<p>There is no Common Intermediate Language interpreter, JIT compiler, or CLR execution environment involved.</p>
+<h2 id="sharp-runtime-and-cna">Sharp Runtime and CNA</h2>
+<p>CNA and Sharp Runtime solve different problems.</p>
+<p>CNA provides the XNA framework:</p>
+<pre><code class="language-text">Microsoft.Xna.Framework.*</code></pre>
+<p>Sharp Runtime provides much of the supporting .NET-style environment:</p>
+<pre><code class="language-text">System.*</code></pre>
+<p>Together, they make it much easier to translate software that originally looked like:</p>
+<pre><code class="language-text">C#
+ ├── System.*
+ └── Microsoft.Xna.Framework.*</code></pre>
+<p>into:</p>
+<pre><code class="language-text">C++23
+ ├── Sharp Runtime
+ └── CNA</code></pre>
+<p>This is why the two projects are often checked out side by side.</p>
+<pre><code class="language-text">project/
+├── cna/
+├── sharp-runtime/
+└── my-game/</code></pre>
+<p>CNA does not need to become a complete implementation of the .NET Base Class Library because Sharp Runtime can provide that responsibility separately.</p>
+<h2 id="useful-beyond-cna">Useful beyond CNA</h2>
+<p>Sharp Runtime is not limited to XNA applications.</p>
+<p>Any project translating C# software into C++ can potentially use it.</p>
+<p>For example, another library in the CNA organization is <strong>cna-extended</strong>, a C++ port of MonoGame.Extended.</p>
+<p>That project can preserve much more of the structure of the original C# library because both CNA and Sharp Runtime provide familiar equivalents of the APIs it originally depended on.</p>
+<p>The same approach can potentially be applied to other C# libraries where a native C++ port is desirable.</p>
+<h2 id="select-only-what-you-need">Select only what you need</h2>
+<p>Sharp Runtime used to be easier to think of as one large compatibility library.</p>
+<p>Its architecture is now much more modular.</p>
+<p>Applications can request individual components through CMake.</p>
+<p>For example, a program that only needs JSON support can request:</p>
+<pre><code class="language-cmake">set(SHARP_RUNTIME_COMPONENTS
+    Text.Json
+)</code></pre>
+<p>CMake then resolves the required dependency closure.</p>
+<p>It does not automatically pull in unrelated areas such as networking, XML, threading, or every other Sharp Runtime feature.</p>
+<p>Alternatively, applications that really need the complete runtime can request:</p>
+<pre><code class="language-text">SharpRuntime::All</code></pre>
+<p>This component system keeps the library useful for both small and very large consumers.</p>
+<h2 id="components-have-enforced-boundaries">Components have enforced boundaries</h2>
+<p>The modular structure is not only documentation.</p>
+<p>Sharp Runtime has tooling that checks the dependency graph between modules.</p>
+<p>The current graph contains <strong>41 physical modules and 96 direct production dependency edges</strong>.</p>
+<p>Validation checks include:</p>
+<ul><li>undeclared dependencies</li><li>invalid includes</li><li>dependency cycles</li><li>duplicate public paths</li><li>selective builds</li><li>accidental component leakage</li></ul>
+<p>The intention is to prevent the library from gradually becoming one giant interconnected module where every feature depends on everything else.</p>
+<h2 id="a-large-test-suite">A large test suite</h2>
+<p>Compatibility libraries need extensive behavioral tests.</p>
+<p>The current documented Linux baseline contains <strong>17,840 passing tests across 38 test executables</strong>, with no failures or skips.</p>
+<p>The complete production graph is also built warning-free with GCC and separately checked with Clang using <code>-Werror</code>.</p>
+<p>This is particularly important for Sharp Runtime because an API can have the correct C++ signature while still behaving differently from the corresponding .NET API.</p>
+<p>The goal is not merely to reproduce names.</p>
+<p>Behavior matters too.</p>
+<h2 id="cross-platform-by-design">Cross-platform by design</h2>
+<p>Sharp Runtime is primarily developed and fully tested on Linux today, but it is designed to compile across additional environments.</p>
+<p>The repository already contains evidence for:</p>
+<ul><li>Linux/GCC</li><li>Linux/Clang</li><li>Windows/MinGW</li><li>Emscripten</li><li>macOS/Apple Clang</li></ul>
+<p>Some functionality naturally varies by platform.</p>
+<p>When an operation genuinely cannot be provided, the preferred behavior is to report that explicitly — for example through <code>PlatformNotSupportedException</code> — rather than silently pretending that it worked.</p>
+<h2 id="intentional-limits">Intentional limits</h2>
+<p>Sharp Runtime deliberately does <strong>not</strong> try to implement every part of .NET.</p>
+<p>Among the major exclusions are:</p>
+<ul><li>CLR execution</li><li>JIT compilation</li><li>garbage collection</li><li>general runtime reflection</li><li>P/Invoke</li><li>full serialization infrastructure</li><li>late-bound <code>DynamicInvoke</code></li><li>X.509 certificate infrastructure</li><li>TLS / <code>SslStream</code></li><li>symmetric and asymmetric encryption</li></ul>
+<p>Some cryptographic primitives such as hashing, HMAC, PBKDF2, and secure random generation remain in scope.</p>
+<p>These boundaries keep the project focused on APIs that make sense for native C++ ports.</p>
+<h2 id="sharp-runtime-is-still-evolving">Sharp Runtime is still evolving</h2>
+<p>The current published version is <strong>0.1.0-beta.1</strong>.</p>
+<p>The project is therefore already in beta, but its public API can still change before a future stable release.</p>
+<p>Like CNA, Sharp Runtime is a large compatibility project.</p>
+<p>There are many details where C# and C++ have fundamentally different language and runtime semantics, and those differences have to be handled deliberately rather than hidden.</p>
+<h2 id="why-not-just-use-the-c-standard-library">Why not just use the C++ standard library?</h2>
+<p>For a new C++ application, that may often be the right choice.</p>
+<p>If I were writing completely new code, I would not automatically replace:</p>
+<pre><code class="language-cpp">std::vector
+std::string
+std::filesystem
+std::chrono</code></pre>
+<p>with .NET-shaped equivalents.</p>
+<p>Sharp Runtime serves a different purpose.</p>
+<p>It becomes valuable when the problem is:</p>
+<blockquote><p>I already have a large C# codebase. How can I move it to C++ without redesigning every dependency at the same time?</p></blockquote>
+<p>For that problem, retaining recognizable <code>System.*</code> concepts can dramatically simplify the port.</p>
+<h2 id="the-role-of-sharp-runtime">The role of Sharp Runtime</h2>
+<p>The CNA ecosystem can therefore be viewed as two complementary compatibility layers:</p>
+<pre><code class="language-text">Original C# / XNA software
+
+        System.*
+           ↓
+     Sharp Runtime
+
+Microsoft.Xna.Framework.*
+           ↓
+           CNA
+
+            ↓
+
+      Native C++23</code></pre>
+<p>Sharp Runtime handles much of the general .NET-style foundation.</p>
+<p>CNA handles the XNA-specific framework.</p>
+<p>Neither one runs the original CLR.</p>
+<p>Together, they make it possible to preserve much more of the structure and behavior of software originally written for the C# and XNA ecosystem while producing a native C++ application.</p>
+<p>That is the purpose of Sharp Runtime:</p>
+<p><strong>not to recreate all of .NET, but to provide enough of its familiar runtime libraries to make serious C#-to-C++ ports practical.</strong></p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/c/">#C#</a><a href="/tag/sharp-runtime/">#Sharp Runtime</a><a href="/tag/net/">#.NET</a><a href="/tag/system/">#System</a><a href="/tag/porting/">#Porting</a><a href="/tag/cna/">#CNA</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

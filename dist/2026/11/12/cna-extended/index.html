@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNA Extended | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA Extended is a C++23 port of MonoGame.Extended designed to run on top of CNA.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/11/12/cna-extended/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNA Extended">
+  <meta property="og:description" content="CNA Extended is a C++23 port of MonoGame.Extended designed to run on top of CNA.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/11/12/cna-extended/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-11-12T15:50:02Z">November 12, 2026</time></span><span>Updated <time datetime="2026-09-13T15:55:19Z">September 13, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">CNA Extended</h1>
+      <p class="article-description">CNA Extended is a C++23 port of MonoGame.Extended designed to run on top of CNA.</p>
+    </header>
+    <div class="article-body"><p><strong>CNA Extended</strong> is a C++23 port of <a href="https://github.com/craftworkgames/MonoGame.Extended">MonoGame.Extended</a> designed to run on top of CNA.</p>
+<p>Its goal is to bring many of the higher-level game-development utilities from the MonoGame.Extended ecosystem to native C++ while preserving their original design and behavior as closely as practical.</p>
+<p><strong>GitHub:</strong> <a href="https://github.com/libcna/cna-extended">github.com/libcna/cna-extended</a></p>
+<h2 id="cna-extended-is-not-cnaext">CNA Extended is not CNAEXT</h2>
+<p>The names are unfortunately similar, but these are two completely different things.</p>
+<p><strong>CNAEXT</strong> is the optional modern graphics API inside CNA itself. It adds features such as PBR, HDR, post-processing, advanced lighting, particles, compute shaders, GPU culling, and other modern rendering functionality.</p>
+<p><strong>CNA Extended</strong>, or <code>cna-extended</code>, is a separate library built on top of CNA.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">CNAEXT
+    ↓
+modern graphics extensions inside CNA
+
+CNA Extended
+    ↓
+game-development utilities above CNA</code></pre>
+<p>CNA Extended does not replace CNA and is not part of the XNA 4.0 compatibility layer.</p>
+<p>It is an additional library for applications that want more ready-made game-development functionality.</p>
+<h2 id="where-does-it-come-from">Where does it come from?</h2>
+<p>CNA Extended is based on <strong>MonoGame.Extended</strong>.</p>
+<p>MonoGame.Extended provides utilities on top of MonoGame for areas such as:</p>
+<ul><li>collision detection</li><li>tilemaps</li><li>tweening</li><li>particles</li><li>sprite sheets</li><li>bitmap fonts</li><li>screens</li><li>viewport management</li><li>input helpers</li><li>entity-component systems</li></ul>
+<p>CNA Extended translates the runtime-useful parts of that library to C++23.</p>
+<p>The objective is intentionally conservative:</p>
+<p><strong>port MonoGame.Extended faithfully rather than redesigning it into a different library.</strong></p>
+<p>Where differences between C# and C++ require changes, the implementation adapts to C++ while trying to preserve the original concepts and behavior.</p>
+<h2 id="the-stack">The stack</h2>
+<p>A CNA Extended application can conceptually look like this:</p>
+<pre><code class="language-text">Game
+ ↓
+CNA Extended
+ ↓
+CNA
+ ↓
+Renderer / Platform / Audio
+ ↓
+Operating system</code></pre>
+<p>Sharp Runtime is also an important part of the implementation:</p>
+<pre><code class="language-text">CNA Extended
+ ├── CNA
+ │    └── Microsoft.Xna.Framework-style API
+ │
+ └── Sharp Runtime
+      └── System.*-style C++ infrastructure</code></pre>
+<p>This matters because MonoGame.Extended was originally written in C#.</p>
+<p>Many of its APIs rely on .NET concepts that would otherwise need to be redesigned during the C++ port.</p>
+<p>Sharp Runtime provides equivalents for many of those concepts.</p>
+<h2 id="2d-collision-detection">2D collision detection</h2>
+<p>One major area being ported is MonoGame.Extended&#39;s 2D collision system.</p>
+<p>CNA Extended includes geometry and collision concepts such as:</p>
+<ul><li>bounding boxes</li><li>circles</li><li>capsules</li><li>polygons</li><li>oriented bounding boxes</li><li>lines</li><li>rays</li><li>collision shapes</li></ul>
+<p>The planned and partially implemented collision system includes both broad-phase and narrow-phase functionality.</p>
+<p>Broad-phase structures include concepts such as:</p>
+<pre><code class="language-text">QuadTree
+SpatialHash</code></pre>
+<p>while the collision world handles the actual relationships between collision actors and shapes.</p>
+<p>This provides a higher-level collision system without turning CNA itself into a physics engine.</p>
+<h2 id="tweening-and-timers">Tweening and timers</h2>
+<p>CNA Extended also ports utility systems for animation over time.</p>
+<p>Tweening can be used for gradual transitions such as:</p>
+<pre><code class="language-text">position
+opacity
+scale
+rotation
+UI values</code></pre>
+<p>Instead of manually implementing every transition inside <code>Update()</code>, applications can describe the value transition and let the tweening system advance it.</p>
+<p>Timers provide similar reusable infrastructure for time-based game behavior.</p>
+<h2 id="viewport-adapters">Viewport adapters</h2>
+<p>Another MonoGame.Extended feature being brought over is the viewport-adapter system.</p>
+<p>Viewport adapters help separate:</p>
+<pre><code class="language-text">game&#39;s logical resolution</code></pre>
+<p>from:</p>
+<pre><code class="language-text">actual window / display resolution</code></pre>
+<p>For example, a game might logically render at:</p>
+<pre><code class="language-text">320 × 180</code></pre>
+<p>while running inside:</p>
+<pre><code class="language-text">1920 × 1080</code></pre>
+<p>A viewport adapter can handle the relationship between those coordinate spaces.</p>
+<p>This is particularly useful for 2D games, fixed-resolution games, pixel-art projects, and applications that need predictable coordinates across different display sizes.</p>
+<h2 id="sprite-and-graphics-utilities">Sprite and graphics utilities</h2>
+<p>CNA Extended adds higher-level helpers around CNA&#39;s XNA-compatible 2D graphics API.</p>
+<p>This area includes work around:</p>
+<ul><li><code>SpriteBatch</code> extensions</li><li>sprites</li><li>sprite sheets</li><li>texture atlases</li><li>nine-patch graphics</li><li>animation controllers</li><li>drawing helpers</li><li>custom effects</li></ul>
+<p>The purpose is not to replace <code>SpriteBatch</code>.</p>
+<p>Instead, CNA Extended builds more convenient game-oriented concepts on top of it.</p>
+<h2 id="bitmap-fonts">Bitmap fonts</h2>
+<p>Bitmap-font support is another part of the project.</p>
+<p>CNA Extended can work with BMFont-style <code>.fnt</code> data rather than requiring every text workflow to go through XNA&#39;s original compiled content system.</p>
+<p>This fits a broader design decision in CNA Extended: where the original MonoGame.Extended runtime used content produced by its .NET content pipeline, the C++ port often prefers direct loading of the underlying source format.</p>
+<h2 id="sprite-animation">Sprite animation</h2>
+<p>The animation module focuses on frame-based sprite animation.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">Texture atlas
+    ↓
+Sprite frames
+    ↓
+Animation
+    ↓
+Animation controller</code></pre>
+<p>This is useful for ordinary 2D character, effect, and interface animation without requiring a game to build its own frame-management system.</p>
+<h2 id="particles">Particles</h2>
+<p>CNA Extended also ports MonoGame.Extended&#39;s particle system, which itself has roots in the Mercury Particle Engine.</p>
+<p>Particle systems can be used for effects such as:</p>
+<ul><li>smoke</li><li>sparks</li><li>fire</li><li>explosions</li><li>rain</li><li>magic effects</li><li>debris</li></ul>
+<p>Again, this functionality lives above CNA rather than expanding the responsibilities of the core framework.</p>
+<h2 id="entity-component-system">Entity Component System</h2>
+<p>CNA Extended includes work on an <strong>Artemis-style Entity Component System</strong>.</p>
+<p>The main concepts include:</p>
+<pre><code class="language-text">World
+Entity
+Component
+Aspect
+Systems</code></pre>
+<p>An ECS provides another way to organize game objects.</p>
+<p>Instead of building a large inheritance hierarchy:</p>
+<pre><code class="language-text">GameObject
+ ├── Enemy
+ ├── Player
+ ├── Vehicle
+ └── Projectile</code></pre>
+<p>behavior can be composed from components and systems.</p>
+<p>CNA itself does not require applications to use an ECS.</p>
+<p>CNA Extended simply provides one for projects that want it.</p>
+<h2 id="tilemaps">Tilemaps</h2>
+<p>Tilemap support is another major area.</p>
+<p>The project targets several popular map formats:</p>
+<ul><li><strong>Tiled</strong> — TMX and JSON</li><li><strong>LDtk</strong></li><li><strong>Ogmo Editor</strong></li></ul>
+<p>The goal includes both loading the map data and rendering it through CNA.</p>
+<p>This makes CNA Extended particularly useful for 2D games, where tile-based level editors are often central to the development workflow.</p>
+<h2 id="direct-source-format-loading">Direct source-format loading</h2>
+<p>One important difference from the original MonoGame.Extended architecture is the content workflow.</p>
+<p>CNA Extended deliberately does <strong>not</strong> plan to port <code>MonoGame.Extended.Content.Pipeline</code>.</p>
+<p>That pipeline belongs to the MonoGame/.NET MGCB build environment and does not have a natural equivalent in the native C++ runtime.</p>
+<p>The <code>.xnb</code> readers that exist only to consume output from that pipeline are therefore also excluded.</p>
+<p>Instead, CNA Extended prefers direct source formats where practical:</p>
+<pre><code class="language-text">Tiled TMX / JSON
+LDtk JSON
+Ogmo JSON
+TexturePacker JSON
+BMFont .fnt</code></pre>
+<p>This avoids recreating a .NET content-pipeline toolchain solely for CNA Extended.</p>
+<h2 id="why-is-this-separate-from-cna">Why is this separate from CNA?</h2>
+<p>It would be possible to put many of these systems directly into CNA.</p>
+<p>I do not think that would be the right architecture.</p>
+<p>CNA&#39;s primary responsibility is the XNA 4.0 programming model.</p>
+<p>Things such as:</p>
+<pre><code class="language-text">ECS
+tilemap engines
+particle frameworks
+tweening systems
+sprite animation controllers</code></pre>
+<p>are useful, but they are higher-level game-development choices.</p>
+<p>Not every CNA application needs them.</p>
+<p>Keeping CNA Extended separate allows the core framework to remain focused while applications that want these systems can opt into them.</p>
+<p>The relationship is similar to the original ecosystem:</p>
+<pre><code class="language-text">XNA / MonoGame
+       ↓
+MonoGame.Extended</code></pre>
+<p>becoming:</p>
+<pre><code class="language-text">CNA
+ ↓
+CNA Extended</code></pre>
+<h2 id="the-cna-extended-namespace">The CNA::Extended namespace</h2>
+<p>CNA Extended does not pretend that its additions are official XNA APIs.</p>
+<p>Its public C++ API lives under namespaces such as:</p>
+<pre><code class="language-cpp">CNA::Extended
+CNA::Extended::Graphics
+CNA::Extended::Tilemaps
+CNA::Extended::Particles
+CNA::Extended::ECS</code></pre>
+<p>This clearly separates it from:</p>
+<pre><code class="language-cpp">Microsoft::Xna::Framework</code></pre>
+<p>which CNA uses for XNA-compatible functionality.</p>
+<p>That boundary is important.</p>
+<p>An application using only <code>Microsoft::Xna::Framework</code> can remain focused on XNA compatibility.</p>
+<p>An application that deliberately wants extra functionality can use <code>CNA::Extended</code>.</p>
+<h2 id="still-under-development">Still under development</h2>
+<p>CNA Extended is currently an <strong>early-stage project</strong>.</p>
+<p>Its repository already contains work across a surprisingly broad part of MonoGame.Extended, including foundations for:</p>
+<ul><li>math and shapes</li><li>collections</li><li>2D collisions</li><li>input listeners</li><li>timers</li><li>tweening</li><li>viewport adapters</li><li>vector drawing</li><li>screens</li><li>graphics extensions</li><li>bitmap fonts</li><li>sprite animation</li><li>particles</li><li>ECS</li><li>Tiled</li><li>LDtk</li><li>Ogmo</li></ul>
+<p>But it should not yet be treated as a finished replacement for the complete MonoGame.Extended library.</p>
+<p>The project is being developed incrementally, with the upstream implementation serving as the primary reference.</p>
+<h2 id="why-cna-extended-matters">Why CNA Extended matters</h2>
+<p>CNA intentionally stays relatively close to the philosophy of XNA: provide the framework, then let games decide what higher-level architecture they want.</p>
+<p>But writing every game subsystem from scratch is not always useful.</p>
+<p>CNA Extended can provide another layer:</p>
+<pre><code class="language-text">CNA
+    ↓
+low-level game framework
+
+CNA Extended
+    ↓
+reusable game-development systems
+
+Game
+    ↓
+project-specific gameplay</code></pre>
+<p>That can make CNA more practical for larger 2D and game-oriented projects without making the core framework itself increasingly engine-like.</p>
+<p>CNA remains the foundation.</p>
+<p>CNA Extended provides optional tools above it.</p>
+<p>That is the purpose of the project:</p>
+<p><strong>bring the useful runtime parts of MonoGame.Extended into the native C++ CNA ecosystem while keeping them separate from the XNA-compatible core.</strong></p>
+<hr>
+<p><strong>CNA Extended:</strong> <a href="https://github.com/libcna/cna-extended">github.com/libcna/cna-extended</a> <strong>CNA:</strong> <a href="https://github.com/libcna/cna">github.com/libcna/cna</a> <strong>Sharp Runtime:</strong> <a href="https://github.com/libcna/sharp-runtime">github.com/libcna/sharp-runtime</a> <strong>MonoGame.Extended:</strong> <a href="https://github.com/craftworkgames/MonoGame.Extended">github.com/craftworkgames/MonoGame.Extended</a></p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/tag/c/">#C#</a><a href="/tag/cna-ecosystem/">#CNA Ecosystem</a><a href="/tag/cna-extended/">#CNA Extended</a><a href="/tag/monogame-extended/">#MonoGame.Extended</a><a href="/tag/tilemaps/">#Tilemaps</a><a href="/tag/ecs/">#ECS</a><a href="/tag/particles/">#Particles</a><a href="/tag/2d/">#2D</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

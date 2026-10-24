@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operating Systems supported by CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA targets Windows, Linux, macOS, Android, iOS/iPadOS and the Web, with explicitly different levels of build, runtime and hardware evidence.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/12/06/operating-systems-supported-by-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Operating Systems supported by CNA">
+  <meta property="og:description" content="CNA targets Windows, Linux, macOS, Android, iOS/iPadOS and the Web, with explicitly different levels of build, runtime and hardware evidence.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/12/06/operating-systems-supported-by-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-12-06T17:53:02Z">December 6, 2026</time></span><span>Updated <time datetime="2026-10-17T13:41:12Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Operating Systems supported by CNA</h1>
+      <p class="article-description">CNA targets Windows, Linux, macOS, Android, iOS/iPadOS and the Web, with explicitly different levels of build, runtime and hardware evidence.</p>
+    </header>
+    <div class="article-body"><p>CNA targets six major operating-system or execution families:</p>
+<pre><code class="language-text">Windows
+Linux
+macOS
+Android
+iOS / iPadOS
+Web / WebAssembly</code></pre>
+<p>They do not all have the same level of verification.</p>
+<p>In CNA, the word <strong>supported</strong> therefore needs a qualifier. A target may be:</p>
+<pre><code class="language-text">recognized by the source and build system
+        │
+        ▼
+successfully cross-compiled
+        │
+        ▼
+final-linked as a real application
+        │
+        ▼
+executed in an emulator, simulator or browser
+        │
+        ▼
+executed on the native operating system
+        │
+        ▼
+qualified on physical hardware with broad tests</code></pre>
+<p>Those are different claims.</p>
+<p>The current high-level status is:</p>
+<div class="table-wrap"><table><thead><tr><th>Target</th><th>Current evidence</th></tr></thead><tbody><tr><td>Linux <code>x86_64</code></td><td>Primary development environment; complete suites and the broadest renderer/platform matrix run here</td></tr><tr><td>Windows</td><td>MinGW-w64 builds execute under Wine; DirectX 9 runs through DXVK and <code>SDL_GPU</code>&#39;s Direct3D 12 path through vkd3d-proton; current real-Windows hardware qualification remains open</td></tr><tr><td>macOS</td><td>Native Apple-silicon CI builds and runs portable platform/storage suites plus an application bundle smoke; <code>SDL_GPU</code>/Metal requalification is narrower and still in progress</td></tr><tr><td>Android</td><td>NDK <code>x86_64</code> build and emulator execution with <code>OPENGLES3</code>; no physical-device qualification and no qualified <code>SDL_GPU</code> path</td></tr><tr><td>iOS / iPadOS</td><td>Experimental; device and simulator applications final-link, and the <code>SOFTWARE</code> simulator app runs one frame; no physical-device run</td></tr><tr><td>Web / WebAssembly</td><td><code>WEBGL2</code> and <code>WEBGPU</code> execute in Chrome; the dedicated multi-renderer CI separately proves both can coexist in one Wasm bundle</td></tr></tbody></table></div>
+<p>This matrix is more useful than a single yes/no support label.</p>
+<hr>
+<h2 id="three-independent-meanings-of-platform">Three independent meanings of platform</h2>
+<p>Operating-system support in CNA is easier to understand when three independent axes are kept separate.</p>
+<h3 id="1-build-target">1. Build target</h3>
+<p>This answers:</p>
+<blockquote><p>Which operating system or execution environment is this binary being compiled for?</p></blockquote>
+<p>Examples are Windows, Linux, Android and Web.</p>
+<h3 id="2-platform-implementation">2. Platform implementation</h3>
+<p>This answers:</p>
+<blockquote><p>Who owns windows, events, input, timing and host-system services?</p></blockquote>
+<p>The selectable implementations are:</p>
+<pre><code class="language-text">SDL3
+HEADLESS
+TERMINAL</code></pre>
+<h3 id="3-graphics-renderer">3. Graphics renderer</h3>
+<p>This answers:</p>
+<blockquote><p>How are pixels produced?</p></blockquote>
+<p>Examples include:</p>
+<pre><code class="language-text">OPENGLES3
+WEBGL2
+WEBGPU
+SDL_GPU
+DIRECTX9
+SOFTWARE
+HEADLESS</code></pre>
+<p>These axes are related, but they are not interchangeable.</p>
+<p>For example:</p>
+<pre><code class="language-text">Windows target
+    + SDL3 platform
+    + SDL_GPU renderer</code></pre>
+<p>is one configuration, while:</p>
+<pre><code class="language-text">Linux target
+    + HEADLESS platform
+    + HEADLESS renderer</code></pre>
+<p>is another.</p>
+<p>The audio backend is a fourth independent selection: <code>SDL3</code>, <code>NULL</code> or Linux <code>ALSA</code>.</p>
+<hr>
+<h2 id="sdl3-is-the-windowed-platform-layer">SDL3 is the windowed platform layer</h2>
+<p>SDL3 is CNA&#39;s only implementation that opens a graphical window.</p>
+<p>It reaches each native environment through SDL&#39;s own video drivers:</p>
+<pre><code class="language-text">Windows       windows
+Linux         x11 or wayland
+macOS         cocoa
+iOS           uikit
+Android       android
+Web           emscripten/browser canvas</code></pre>
+<p>CNA&#39;s former direct <code>WIN32</code>, <code>X11</code> and <code>WAYLAND</code> platform implementations were retired on 6 October 2026. SDL2 platform and audio support were retired two days earlier.</p>
+<p>That does <strong>not</strong> mean CNA stopped supporting Win32 windows, X11 or Wayland.</p>
+<p>It means those host systems are reached through SDL3 instead of through separate CNA-owned platform backends:</p>
+<pre><code class="language-text">CNA Game
+   │
+   ▼
+CNA Platform API
+   │
+   ▼
+SDL3
+   │
+   ├── Win32
+   ├── X11
+   ├── Wayland
+   ├── Cocoa / UIKit
+   ├── Android
+   └── Browser canvas</code></pre>
+<p>Renderers that need a native handle still receive it through the platform-neutral <code>NativeWindowHandle</code> contract. Depending on the active SDL driver, that can carry an <code>HWND</code>, X11 <code>Display*</code> plus window ID, Wayland display/surface, <code>NSWindow*</code> or <code>ANativeWindow*</code>.</p>
+<hr>
+<h2 id="headless-and-terminal">Headless and Terminal</h2>
+<p>Not every CNA program needs a graphical desktop.</p>
+<p><code>HEADLESS</code> is available for servers, automated tests and applications that deliberately own no native window. A fully SDL-free configuration can combine:</p>
+<pre><code class="language-text">CNA_PLATFORM=HEADLESS
+CNA_GRAPHICS_RENDERER=HEADLESS
+CNA_AUDIO_PLATFORM=NULL</code></pre>
+<p><code>TERMINAL</code> is a POSIX-only platform implementation. With the <code>SOFTWARE</code> renderer it can present completed CPU frames in a terminal and receive keyboard/resize events through a real pseudo-TTY contract.</p>
+<p>These are platform implementations, not additional operating systems.</p>
+<hr>
+<h2 id="platform-identification">Platform identification</h2>
+<p>CNA exposes compile-time target identification through:</p>
+<pre><code class="language-cpp">CNA::TargetPlatform</code></pre>
+<p>The current values are:</p>
+<pre><code class="language-cpp">enum class TargetPlatform
+{
+    Desktop,
+    Android,
+    iOS,
+    Web
+};</code></pre>
+<p>Desktop operating systems are distinguished with:</p>
+<pre><code class="language-cpp">CNA::DesktopOS</code></pre>
+<p>whose values are:</p>
+<pre><code class="language-cpp">Windows
+Linux
+MacOSX
+Other</code></pre>
+<p>The resulting classification is:</p>
+<pre><code class="language-text">Desktop
+├── Windows
+├── Linux
+├── macOS
+└── Other
+
+Android
+iOS / iPadOS
+Web</code></pre>
+<p>Helpers include:</p>
+<pre><code class="language-cpp">CNA::getCurrentPlatform();
+CNA::getCurrentDesktopOS();
+CNA::getCurrentPlatformName();
+CNA::isMobilePlatform();
+CNA::isApplePlatform();</code></pre>
+<p>The <code>CNA_TARGET_APPLE</code>, <code>CNA_TARGET_MACOS</code> and <code>CNA_TARGET_IOS</code> macros distinguish Apple targets in preprocessor code. Their <code>CNA_TARGET_</code> prefix is intentionally different from <code>CNA_PLATFORM_</code>, which names the selected platform implementation.</p>
+<hr>
+<h2 id="default-renderer-by-target">Default renderer by target</h2>
+<p>When a build does not select a renderer explicitly, CNA currently chooses:</p>
+<div class="table-wrap"><table><thead><tr><th>Target</th><th>Default renderer</th></tr></thead><tbody><tr><td>Windows</td><td><code>SDL_GPU</code></td></tr><tr><td>macOS</td><td><code>SDL_GPU</code></td></tr><tr><td>iOS / iPadOS</td><td><code>SDL_GPU</code></td></tr><tr><td>Web / Emscripten</td><td><code>WEBGL2</code></td></tr><tr><td>Linux</td><td><code>OPENGLES3</code></td></tr><tr><td>Android</td><td><code>OPENGLES3</code></td></tr></tbody></table></div>
+<p>This is a build default, not a blanket maturity claim.</p>
+<p>For example, <code>SDL_GPU</code> is the designated default on iOS, but the currently gating simulator smoke uses <code>SOFTWARE</code>; the <code>SDL_GPU</code> iOS legs remain experimental and non-gating.</p>
+<hr>
+<h2 id="linux">Linux</h2>
+<p>Linux <code>x86_64</code> is CNA&#39;s primary development and qualification environment.</p>
+<p>It is where the broadest full CTest configurations run, using GCC or Clang and real or software-backed graphics drivers. Current Linux validation includes configurations for:</p>
+<pre><code class="language-text">OPENGLES3 / OPENGL33
+SDL_GPU over Vulkan
+WEBGPU through wgpu-native
+SOFTWARE
+FNA3D
+HEADLESS
+STUB</code></pre>
+<p>Linux also supplies the strongest platform-implementation matrix.</p>
+<p>SDL3 is exercised through both of its main Linux window-system drivers:</p>
+<pre><code class="language-text">SDL3 + X11    on a private Xvfb display
+SDL3 + Wayland on a private headless Weston compositor</code></pre>
+<p>The tests verify window behavior, native handles, selections, event translation and teardown. Separate configurations exercise Headless without <code>DISPLAY</code> or <code>WAYLAND_DISPLAY</code>, and Terminal through a pseudo-TTY.</p>
+<p>This is strong Linux evidence, but it still does not mean every distribution, compositor, GPU and proprietary driver combination has been tested.</p>
+<hr>
+<h2 id="windows">Windows</h2>
+<p>Windows is a first-class build target, but its current evidence is split between cross-execution and native workflow definitions.</p>
+<p>CNA uses the SDL3 <code>windows</code> video driver for windows, events and input. The default renderer is <code>SDL_GPU</code>, for which SDL selects Direct3D 12 on Windows. CNA also retains an explicit <code>DIRECTX9</code> renderer for XNA 4.0 pixel authenticity.</p>
+<p>The routinely recorded Windows-oriented path from Linux is:</p>
+<pre><code class="language-text">MinGW-w64 build
+      │
+      ▼
+     Wine
+      │
+      ├── DIRECTX9 ─► DXVK ─► Vulkan
+      │
+      └── SDL_GPU / D3D12 ─► vkd3d-proton ─► Vulkan</code></pre>
+<p>This executes real Windows binaries and real graphics calls. The DirectX 9 suite has completed under DXVK, including the exact XNA pixel-oracle corpus.</p>
+<p>But Wine and translation layers are not equivalent to current qualification on a physical Windows machine.</p>
+<p>A manual MSVC GitHub Actions workflow defines native-Windows legs for the DirectX 9 suite and an <code>SDL_GPU</code> Direct3D 12 smoke set. At the latest project reconciliation, that workflow existed but had not yet supplied the missing real-hardware qualification evidence.</p>
+<p>The accurate Windows claim is therefore:</p>
+<pre><code class="language-text">implemented
+cross-built
+executed under Wine
+pixel-tested through DXVK / vkd3d-proton
+native hardware qualification still open</code></pre>
+<hr>
+<h2 id="macos">macOS</h2>
+<p>macOS is no longer merely an architectural placeholder.</p>
+<p>CNA recognizes it as:</p>
+<pre><code class="language-text">TargetPlatform::Desktop
+DesktopOS::MacOSX</code></pre>
+<p>The native Apple workflow runs on Apple silicon. It builds CNA with the <code>SOFTWARE</code> renderer, executes the portable platform and storage suites, creates a self-contained <code>.app</code> bundle and launches a smoke application.</p>
+<p>The default renderer on macOS is <code>SDL_GPU</code>; SDL owns the Metal backend underneath it. CNA&#39;s former public <code>METAL</code> renderer identity has been retired.</p>
+<p>An <code>SDL_GPU</code>/Metal smoke job now exists to cover device creation, a swapchain, drawing and readback on macOS. That is narrower than the full Linux <code>SDL_GPU</code> qualification, and the latest reconciled project status still treats the post-retirement Apple renderer requalification as open.</p>
+<p>The current evidence boundary is:</p>
+<pre><code class="language-text">macOS arm64 native build       verified
+portable platform suites      verified
+application bundle launch     verified
+Intel macOS CI                not verified
+full current SDL_GPU matrix   not yet re-qualified</code></pre>
+<p>So it is now wrong to say that CNA has never run on macOS. It is also too broad to call every macOS graphics, audio, input and storage path fully qualified.</p>
+<hr>
+<h2 id="android">Android</h2>
+<p>Android is represented as:</p>
+<pre><code class="language-text">TargetPlatform::Android</code></pre>
+<p>The platform layer is SDL3 and the default/validated renderer is <code>OPENGLES3</code>, implemented by CNA&#39;s EasyGL family over OpenGL ES 3.0.</p>
+<p>Recorded evidence includes:</p>
+<pre><code class="language-text">Android NDK cross-build
+x86_64 android-24 target
+emulator execution
+real sample rendering
+portrait handling
+Android Back input</code></pre>
+<p>The current limitations are equally important:</p>
+<pre><code class="language-text">no physical Android device qualification
+no Android CI job
+no qualified SDL_GPU Android build or run
+no claim over every vendor GPU/driver/sensor combination</code></pre>
+<p>An emulator is useful evidence for build, lifecycle and graphics integration. It cannot prove compatibility with the entire Android hardware ecosystem.</p>
+<hr>
+<h2 id="ios-and-ipados">iOS and iPadOS</h2>
+<p>iPhone and iPad builds use:</p>
+<pre><code class="language-text">TargetPlatform::iOS
+CNA_PLATFORM=SDL3</code></pre>
+<p>iOS support is experimental, but it is no longer source-only.</p>
+<p>CNA has:</p>
+<pre><code class="language-text">an iOS CMake toolchain
+device and simulator sysroots
+static SDL3 integration
+generated application bundles and Info.plist
+UIKit-compatible SDL entrypoint handling
+mobile lifecycle and orientation wiring
+a final-linked one-frame smoke application</code></pre>
+<p>CI final-links the application for an arm64 device target and for the simulator. The simulator build using <code>SOFTWARE</code> is installed and launched, constructs a real <code>Game</code> and completes one frame.</p>
+<p>What is not yet proven:</p>
+<pre><code class="language-text">execution on a physical iPhone or iPad
+device pixel correctness
+real touch and sensor behavior
+audio and storage on a physical device
+production signing or App Store packaging
+performance on real mobile hardware
+qualified SDL_GPU / Metal execution on iOS</code></pre>
+<p><code>SDL_GPU</code> is the designated default renderer and is accepted by the iOS build, but its device and simulator legs remain experimental and non-gating. The gating platform smoke uses <code>SOFTWARE</code> precisely so a platform result is not confused with an unqualified GPU backend.</p>
+<p>tvOS, watchOS and visionOS are not current CNA targets and are rejected rather than silently treated as iOS.</p>
+<hr>
+<h2 id="web-and-webassembly">Web and WebAssembly</h2>
+<p>The browser target is represented as:</p>
+<pre><code class="language-text">TargetPlatform::Web</code></pre>
+<p>CNA builds C++ through Emscripten into WebAssembly and JavaScript glue:</p>
+<pre><code class="language-text">CNA application
+      │
+      ▼
+  Emscripten
+      │
+      ▼
+WebAssembly + JavaScript
+      │
+      ▼
+    Browser</code></pre>
+<p>The current browser renderer identities are:</p>
+<pre><code class="language-text">WEBGL2
+WEBGPU</code></pre>
+<p><code>WEBGL2</code> is EasyGL using an exact WebGL 2 / GLSL ES 3.00 contract. There is no implicit WebGL 1 fallback.</p>
+<p><code>WEBGPU</code> uses Emscripten&#39;s emdawnwebgpu integration. Both 2D and 3D stock-effect paths have executed in headless Chrome.</p>
+<p>The WebGL 2 path has broader browser evidence, including:</p>
+<pre><code class="language-text">real Chrome execution
+threaded background content loading
+XNB model/resource loading
+touch and keyboard input
+gameplay rendering
+real WebGL context loss and restoration</code></pre>
+<p>The Emscripten multi-renderer workflow has a deliberately narrower purpose. It proves that <code>WEBGL2</code> and <code>WEBGPU</code> link into one Wasm bundle, register both identities and expose the JavaScript renderer-selection surface. That job does <strong>not</strong> launch a browser; dedicated scripts and recorded qualification runs provide the runtime evidence.</p>
+<p>CNA&#39;s retired WebGL 1, Canvas, SVG, DOM and PixiJS renderer experiments are not current browser backends.</p>
+<p>Browser support still depends on browser/GPU capabilities, cross-origin isolation for threaded builds, asynchronous lifecycle rules, sandboxed storage and audio-start restrictions.</p>
+<hr>
+<h2 id="mobile-and-browser-lifecycle">Mobile and browser lifecycle</h2>
+<p>Portable source does not mean identical host behavior.</p>
+<p>Android, iOS and browsers can suspend, resize, recreate or invalidate resources under operating-system control. CNA adapts these events to the <code>Game</code> model, but applications still need to respect the lifecycle contract.</p>
+<p>Examples include:</p>
+<pre><code class="language-text">Android pause / resume and window recreation
+iOS background / foreground and orientation
+browser-controlled main loop
+WebGL context loss / restoration
+mobile touch and sensor availability
+sandboxed storage
+audio activation restrictions</code></pre>
+<p>This is why a successful cross-compile is only the first level of platform support.</p>
+<hr>
+<h2 id="graphics-renderers-remain-a-separate-topic">Graphics renderers remain a separate topic</h2>
+<p>CNA exposes ten public renderer identities over eight implementation families:</p>
+<pre><code class="language-text">OPENGLES3
+OPENGL33
+WEBGL2
+WEBGPU
+HEADLESS
+SOFTWARE
+STUB
+DIRECTX9
+SDL_GPU
+FNA3D</code></pre>
+<p>The three GL identities share the internal EasyGL implementation. <code>SDL_GPU</code>&#39;s Vulkan, Direct3D 12 and Metal drivers belong to SDL and do not create additional CNA renderer identities.</p>
+<p>Forty-one older identities have been retired. Renderer count is no longer a project goal.</p>
+<p>An operating system supporting CNA therefore does not imply that every renderer is available or equally tested there. The authoritative source for that question is CNA&#39;s renderer registry and feature matrix.</p>
+<hr>
+<h2 id="what-application-code-sees">What application code sees</h2>
+<p>Most game code remains written against the XNA-compatible framework surface:</p>
+<pre><code class="language-cpp">Game
+GraphicsDevice
+ContentManager
+Keyboard
+Mouse
+GamePad
+Texture2D
+Model
+SoundEffect</code></pre>
+<p>A typical game keeps the same high-level structure:</p>
+<pre><code class="language-cpp">class MyGame final : public Game
+{
+protected:
+    void LoadContent() override
+    {
+        player = Content.Load&lt;Texture2D&gt;(&quot;Textures/player&quot;);
+    }
+
+    void Update(const GameTime&amp; gameTime) override
+    {
+        // Game logic.
+    }
+
+    void Draw(const GameTime&amp; gameTime) override
+    {
+        // Rendering.
+    }
+};</code></pre>
+<p>The framework absorbs window-system, lifecycle, input and renderer differences where its contracts allow it to do so.</p>
+<p>Platform-specific capabilities still need to be queried rather than assumed. A desktop mouse, mobile touch screen, browser sandbox and headless server cannot honestly expose identical host services.</p>
+<hr>
+<h2 id="source-code-and-current-documentation">Source code and current documentation</h2>
+<p>The CNA repository is:</p>
+<p><a href="https://github.com/libcna/cna">https://github.com/libcna/cna</a></p>
+<p>Target identification is defined in:</p>
+<pre><code class="language-text">modules/core/include/CNA/TargetPlatform.hpp
+modules/core/include/CNA/DesktopOS.hpp
+modules/core/src/DesktopOS.cpp</code></pre>
+<p>The platform implementation lives under:</p>
+<pre><code class="language-text">modules/platform/</code></pre>
+<p>The most useful current documents are:</p>
+<pre><code class="language-text">handoff.md
+docs/platform-abstraction.md
+docs/renderer-registry.md
+docs/graphics-renderer-feature-matrix.md
+docs/apple-platforms.md
+docs/android-graphics-limitations.md
+docs/web-emscripten-graphics-limitations.md</code></pre>
+<p>Relevant CI definitions include:</p>
+<pre><code class="language-text">.github/workflows/general-tests-ci.yml
+.github/workflows/platform-ci.yml
+.github/workflows/apple-ci.yml
+.github/workflows/d3d-windows-ci.yml
+.github/workflows/emscripten-multi-renderer-ci.yml</code></pre>
+<p>These sources should be preferred over an undated statement that a platform is simply “supported”.</p>
+<hr>
+<h2 id="conclusion">Conclusion</h2>
+<p>CNA currently targets:</p>
+<pre><code class="language-text">Windows
+Linux
+macOS
+Android
+iOS / iPadOS
+Web / WebAssembly</code></pre>
+<p>The most accurate short summary is:</p>
+<pre><code class="language-text">Linux
+    primary and broadly qualified
+
+Windows
+    implemented and executed through Wine translation stacks
+    native hardware qualification still open
+
+macOS
+    native Apple-silicon build, tests and bundle smoke
+    current SDL_GPU qualification narrower than Linux
+
+Android
+    NDK + x86_64 emulator with OPENGLES3
+    no physical-device matrix
+
+iOS / iPadOS
+    final-linked device build + SOFTWARE simulator smoke
+    experimental, no physical-device run
+
+Web
+    WEBGL2 and WEBGPU execute in Chrome
+    browser/GPU matrix remains bounded</code></pre>
+<p>CNA is cross-platform, but it does not pretend that every line in that list has equal evidence.</p>
+<p>That distinction is the real meaning of operating-system support in CNA.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/portability/">#Portability</a><a href="/tag/windows/">#Windows</a><a href="/tag/linux/">#Linux</a><a href="/tag/macos/">#macOS</a><a href="/tag/android/">#Android</a><a href="/tag/ios/">#iOS</a><a href="/tag/ipados/">#iPadOS</a><a href="/tag/webassembly/">#WebAssembly</a><a href="/tag/emscripten/">#Emscripten</a><a href="/tag/sdl3/">#SDL3</a><a href="/tag/cross-platform/">#Cross-platform</a><a href="/tag/operating-systems/">#Operating Systems</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

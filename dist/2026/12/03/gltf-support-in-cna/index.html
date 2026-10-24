@@ -1,0 +1,1011 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>glTF support in CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="glTF 2.0 is one of the most important modern interchange formats for real-time 3D content.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/12/03/gltf-support-in-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="glTF support in CNA">
+  <meta property="og:description" content="glTF 2.0 is one of the most important modern interchange formats for real-time 3D content.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/12/03/gltf-support-in-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-12-03T17:37:52Z">December 3, 2026</time></span><span>Updated <time datetime="2026-09-13T17:52:35Z">September 13, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">glTF support in CNA</h1>
+      <p class="article-description">glTF 2.0 is one of the most important modern interchange formats for real-time 3D content.</p>
+    </header>
+    <div class="article-body"><p><strong>glTF 2.0</strong> is one of the most important modern interchange formats for real-time 3D content.</p>
+<p>A glTF asset can describe much more than a triangle mesh. It can contain a complete scene with:</p>
+<ul><li>meshes;</li><li>materials;</li><li>textures;</li><li>node hierarchies;</li><li>skeletal skins;</li><li>animations;</li><li>morph targets;</li><li>cameras;</li><li>lights;</li><li>multiple scenes;</li><li>sampler state;</li><li>PBR material parameters;</li><li>and standardized extensions.</li></ul>
+<p>CNA has extensive native support for <strong>glTF 2.0</strong>, including both textual <code>.gltf</code> files and binary <code>.glb</code> files.</p>
+<p>And glTF support in CNA is not limited to one offline converter.</p>
+<p>The same import architecture participates in several paths:</p>
+<pre><code class="language-text">                    glTF / GLB
+                        │
+          ┌─────────────┼──────────────┐
+          │             │              │
+          ▼             ▼              ▼
+   direct runtime     CNJ path       Content Pipeline
+       loading        conversion          │
+          │             │                 ▼
+          │             ▼                CNB
+          │            CNJ                │
+          │             │                 │
+          └─────────────┴─────────────────┘
+                        │
+                        ▼
+                       Model</code></pre>
+<p>This makes glTF both a convenient authoring/interchange format and a first-class input into CNA&#39;s own content ecosystem.</p>
+<hr>
+<h2 id="what-is-gltf">What is glTF?</h2>
+<p>glTF stands for <strong>GL Transmission Format</strong>.</p>
+<p>It is an open specification maintained by the Khronos Group and is designed specifically for efficient transmission and runtime use of 3D scenes.</p>
+<p>The two forms most developers encounter are:</p>
+<pre><code class="language-text">model.gltf</code></pre>
+<p>and:</p>
+<pre><code class="language-text">model.glb</code></pre>
+<p>A <code>.gltf</code> file is JSON and may reference external binary buffers and images:</p>
+<pre><code class="language-text">Robot.gltf
+Robot.bin
+Robot_BaseColor.png
+Robot_Normal.png
+Robot_MetallicRoughness.png</code></pre>
+<p>A <code>.glb</code> file can package the JSON and binary data into one binary container:</p>
+<pre><code class="language-text">Robot.glb</code></pre>
+<p>For game development, <code>.glb</code> is often particularly convenient because a complex model can be distributed as a single file.</p>
+<hr>
+<h2 id="direct-gltf-loading">Direct glTF loading</h2>
+<p>CNA can load glTF models directly through <code>ContentManager</code>.</p>
+<p>For example:</p>
+<pre><code class="language-cpp">auto model = Content.Load&lt;Model&gt;(&quot;Models/Robot&quot;);</code></pre>
+<p>If the resolved source is:</p>
+<pre><code class="language-text">Models/Robot.glb</code></pre>
+<p>or:</p>
+<pre><code class="language-text">Models/Robot.gltf</code></pre>
+<p>CNA can import it directly at runtime.</p>
+<p>The important part is that no intermediate CNJ file is required:</p>
+<pre><code class="language-text">Robot.glb
+    │
+    ▼
+ContentManager
+    │
+    ▼
+glTF importer
+    │
+    ▼
+CNA Model</code></pre>
+<p>This is a CNA extension to the XNA content model.</p>
+<p>XNA 4.0 itself did not provide runtime glTF loading, but CNA can expose the result through the familiar XNA-style <code>Model</code> object.</p>
+<hr>
+<h2 id="the-shared-gltf-importer">The shared glTF importer</h2>
+<p>CNA deliberately avoids implementing separate glTF interpretations for every tool.</p>
+<p>The core implementation lives around:</p>
+<pre><code class="language-text">CNA::Internal::GltfImport</code></pre>
+<p>with the main shared importer implemented in:</p>
+<pre><code class="language-text">modules/content/include/CNA/Internal/GltfImport/
+modules/content/src/GltfImport/</code></pre>
+<p>The central component is:</p>
+<pre><code class="language-text">GltfImportCore</code></pre>
+<p>The runtime loader, the CNJ converter and the Content Pipeline reuse this common interpretation.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">                     GltfImportCore
+                          │
+         ┌────────────────┼────────────────┐
+         │                │                │
+         ▼                ▼                ▼
+ ContentManager     gltf_to_cnj      Content Pipeline
+         │                │                │
+         ▼                ▼                ▼
+       Model             CNJ              CNB</code></pre>
+<p>This matters.</p>
+<p>If every path had a separate glTF parser, CNA could easily reach a state where:</p>
+<pre><code class="language-text">direct loading
+      ≠
+glTF -&gt; CNJ
+      ≠
+glTF -&gt; CNB</code></pre>
+<p>The shared importer is intended to keep those paths semantically aligned.</p>
+<hr>
+<h2 id="cgltf">cgltf</h2>
+<p>CNA uses a vendored copy of <strong>cgltf 1.15</strong> as the low-level glTF parser.</p>
+<p>cgltf handles the structural parsing of glTF and GLB data.</p>
+<p>CNA then performs the higher-level work necessary to translate glTF semantics into CNA/XNA concepts.</p>
+<p>That distinction is important:</p>
+<pre><code class="language-text">cgltf
+    parses glTF structures
+
+CNA glTF importer
+    decides how those structures become CNA content</code></pre>
+<p>For example, parsing that a material contains <code>baseColorFactor</code> is only the first step.</p>
+<p>CNA still has to decide:</p>
+<ul><li>which effect represents the material;</li><li>how textures are uploaded;</li><li>which vertex layout is required;</li><li>how sampler state is preserved;</li><li>how glTF transforms map into XNA matrices;</li><li>how animations become CNA animation data;</li><li>how unsupported information is reported.</li></ul>
+<p>That is CNA&#39;s responsibility.</p>
+<hr>
+<h2 id="scene-hierarchy">Scene hierarchy</h2>
+<p>glTF is a scene format, not merely a collection of independent meshes.</p>
+<p>A scene can look like:</p>
+<pre><code class="language-text">Scene
+│
+├── House
+│   ├── Door
+│   ├── Window
+│   └── Roof
+│
+├── Tree
+│   ├── Trunk
+│   └── Leaves
+│
+└── Character
+    ├── Body
+    └── Skeleton</code></pre>
+<p>CNA imports the node hierarchy and preserves the relationship between mesh placement and scene nodes.</p>
+<p>Node transforms can come from:</p>
+<pre><code class="language-text">translation
+rotation
+scale</code></pre>
+<p>or directly from a matrix.</p>
+<p>Parent-child transforms are composed according to glTF rules before the data reaches the CNA model representation.</p>
+<p>This is particularly important for real-world assets exported from Blender and other 3D applications.</p>
+<p>A model that contains the correct vertices but ignores the node hierarchy may technically &quot;load&quot; while appearing completely wrong.</p>
+<hr>
+<h2 id="meshes-and-primitives">Meshes and primitives</h2>
+<p>A glTF mesh can contain multiple primitives.</p>
+<p>Those primitives may have different:</p>
+<ul><li>materials;</li><li>topologies;</li><li>vertex layouts;</li><li>textures;</li><li>morph targets.</li></ul>
+<p>CNA handles glTF primitive topology rather than assuming that every file consists only of indexed triangle lists.</p>
+<p>The glTF ecosystem includes:</p>
+<pre><code class="language-text">POINTS
+LINES
+LINE_LOOP
+LINE_STRIP
+TRIANGLES
+TRIANGLE_STRIP
+TRIANGLE_FAN</code></pre>
+<p>Where necessary, CNA converts a representation into a form suitable for its graphics architecture.</p>
+<p>Non-indexed glTF primitives are also supported.</p>
+<p>When a source primitive has no index accessor, CNA materializes a sequential index buffer rather than maintaining an entirely separate runtime path:</p>
+<pre><code class="language-text">0, 1, 2, 3, ...</code></pre>
+<p>This helps keep later model processing consistent.</p>
+<hr>
+<h2 id="accessors-and-buffer-layouts">Accessors and buffer layouts</h2>
+<p>Real glTF assets do not always use tightly packed arrays of floats.</p>
+<p>CNA&#39;s importer therefore handles cases such as:</p>
+<ul><li>byte offsets;</li><li>buffer-view offsets;</li><li>padded strides;</li><li>interleaved attributes;</li><li>normalized integer attributes;</li><li>sparse accessors;</li><li>8-bit indices;</li><li>16-bit indices;</li><li>32-bit indices;</li><li>quantized attributes.</li></ul>
+<p>This is an important part of practical glTF compatibility.</p>
+<p>A loader that only handles:</p>
+<pre><code class="language-text">float POSITION
+float NORMAL
+float TEXCOORD_0
+uint16 indices</code></pre>
+<p>can open simple demonstration files but will fail on a large part of the real glTF ecosystem.</p>
+<hr>
+<h2 id="vertex-attributes">Vertex attributes</h2>
+<p>CNA imports the major vertex semantics needed by real-time models, including:</p>
+<pre><code class="language-text">POSITION
+NORMAL
+TANGENT
+TEXCOORD_0
+TEXCOORD_1
+COLOR_0
+JOINTS_0
+WEIGHTS_0</code></pre>
+<p>The importer then maps the available semantics into CNA&#39;s supported vertex layouts.</p>
+<p>Where data cannot be represented exactly, CNA attempts to report the loss rather than silently pretending that nothing happened.</p>
+<p>For example, CNA&#39;s current layouts cannot carry an unlimited number of colour or UV channels.</p>
+<p>This distinction between:</p>
+<pre><code class="language-text">supported exactly
+approximated
+dropped with a diagnostic
+unsupported</code></pre>
+<p>is a major part of CNA&#39;s glTF design.</p>
+<hr>
+<h2 id="normals-and-tangents">Normals and tangents</h2>
+<p>Not every glTF model contains normals or tangents.</p>
+<p>CNA includes handling for missing data where generating it is meaningful.</p>
+<p>This is particularly relevant for PBR models because normal mapping requires a tangent basis.</p>
+<p>The importer also accounts for mirrored transforms and tangent handedness.</p>
+<p>These details are easy to underestimate.</p>
+<p>A model can appear mostly correct while having:</p>
+<pre><code class="language-text">inverted normal maps
+incorrect mirrored lighting
+broken tangent space
+inside-out transforms</code></pre>
+<p>if the importer does not preserve these conventions correctly.</p>
+<hr>
+<h2 id="pbr-materials">PBR materials</h2>
+<p>glTF 2.0&#39;s core material model is based on <strong>metallic-roughness PBR</strong>.</p>
+<p>CNA maps that model onto its own PBR rendering infrastructure.</p>
+<p>A glTF material may contribute:</p>
+<pre><code class="language-text">baseColorFactor
+baseColorTexture
+
+metallicFactor
+roughnessFactor
+metallicRoughnessTexture
+
+normalTexture
+occlusionTexture
+emissiveTexture
+emissiveFactor</code></pre>
+<p>CNA carries this data into <code>PbrEffect</code>, <code>SkinnedPbrEffect</code> and the renderer-facing draw parameters.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">glTF material
+      │
+      ▼
+GltfImportCore
+      │
+      ▼
+PbrEffect / SkinnedPbrEffect
+      │
+      ▼
+GpuDrawParams
+      │
+      ▼
+selected CNA renderer</code></pre>
+<p>The importer does not directly contain an OpenGL, Vulkan or DirectX implementation of the material.</p>
+<p>That remains the job of the selected renderer.</p>
+<hr>
+<h2 id="pbr-is-renderer-independent-at-the-model-level">PBR is renderer independent at the model level</h2>
+<p>This separation is particularly important in CNA because CNA supports many renderers.</p>
+<p>The same imported glTF model should not fundamentally become:</p>
+<pre><code class="language-text">OpenGL glTF Model</code></pre>
+<p>or:</p>
+<pre><code class="language-text">DirectX glTF Model</code></pre>
+<p>The model instead carries CNA&#39;s renderer-independent representation.</p>
+<p>At draw time:</p>
+<pre><code class="language-text">Model
+  │
+  ▼
+PbrEffect
+  │
+  ▼
+CNA Graphics API
+  │
+  ├── EasyGL
+  ├── Vulkan
+  ├── DirectX
+  ├── SDL GPU
+  ├── Software
+  └── other renderers</code></pre>
+<p>Renderer coverage still differs.</p>
+<p>The glTF work in CNA therefore follows an important rule:</p>
+<blockquote><p>If a renderer cannot correctly implement a glTF semantic, it should explicitly refuse that draw rather than accept it and silently render something different.</p></blockquote>
+<p>A visible failure is much safer than a renderer returning success while producing the wrong material.</p>
+<hr>
+<h2 id="textures-and-samplers">Textures and samplers</h2>
+<p>glTF textures contain more information than simply an image filename.</p>
+<p>Sampler state can describe:</p>
+<ul><li>wrapping;</li><li>minification filtering;</li><li>magnification filtering;</li><li>mipmap filtering.</li></ul>
+<p>CNA imports glTF sampler information and carries per-texture state through the model.</p>
+<p>This is important because two textures using the same image may legally use different samplers.</p>
+<p>The glTF importer also understands that different texture roles have different colour-space semantics.</p>
+<p>For example:</p>
+<pre><code class="language-text">base colour        sRGB-like colour data
+emissive           colour data
+
+normal             linear data
+metallic/roughness linear data
+occlusion          linear data</code></pre>
+<p>Treating all textures identically produces incorrect PBR results.</p>
+<hr>
+<h2 id="texture-transforms">Texture transforms</h2>
+<p>CNA implements:</p>
+<pre><code class="language-text">KHR_texture_transform</code></pre>
+<p>This extension allows an individual texture reference to apply transformations such as:</p>
+<pre><code class="language-text">offset
+rotation
+scale
+texCoord selection</code></pre>
+<p>The important word is <strong>individual</strong>.</p>
+<p>A base-colour map and a normal map can share the same underlying UV stream but still have different texture transforms.</p>
+<p>CNA carries independent transform information for the PBR maps rather than trying to permanently bake one transform into the model&#39;s vertex coordinates.</p>
+<hr>
+<h2 id="alpha-modes">Alpha modes</h2>
+<p>glTF defines:</p>
+<pre><code class="language-text">OPAQUE
+MASK
+BLEND</code></pre>
+<p>CNA imports these semantics.</p>
+<p><code>MASK</code> includes an alpha cutoff and is handled in the shader/effect path.</p>
+<p><code>BLEND</code> is different because transparent rendering also requires application-level ordering and blend state.</p>
+<p>CNA therefore preserves the material information but does not pretend that importing a file can magically solve every transparent-scene sorting problem.</p>
+<p>The application or higher-level viewer still has responsibilities such as issuing transparent geometry in an appropriate order.</p>
+<hr>
+<h2 id="double-sided-materials">Double-sided materials</h2>
+<p>glTF materials can declare:</p>
+<pre><code class="language-text">doubleSided: true</code></pre>
+<p>CNA preserves this information.</p>
+<p>A consumer can then select the appropriate rasterizer state instead of always enabling or disabling culling globally.</p>
+<p>Mirrored placements are also considered because mirroring changes winding orientation.</p>
+<p>This is another example of glTF support extending beyond:</p>
+<blockquote><p>Can CNA read the vertex positions?</p></blockquote>
+<p>Correct presentation requires preserving the state around those vertices as well.</p>
+<hr>
+<h2 id="vertex-colours">Vertex colours</h2>
+<p>CNA supports the primary glTF:</p>
+<pre><code class="language-text">COLOR_0</code></pre>
+<p>vertex-colour stream.</p>
+<p>For a metallic-roughness material, the colour participates in the glTF base-colour product:</p>
+<pre><code class="language-text">baseColorFactor
+× baseColorTexture
+× COLOR_0</code></pre>
+<p>The alpha component participates as well.</p>
+<p>This semantics has been tested across CNA&#39;s PBR renderer infrastructure.</p>
+<p>Renderers that cannot preserve it are expected to reject the unsupported combination rather than quietly replacing the vertex colour with white.</p>
+<hr>
+<h2 id="skinning">Skinning</h2>
+<p>CNA supports glTF skeletal skinning.</p>
+<p>glTF represents skinning using concepts including:</p>
+<pre><code class="language-text">skins[]
+joints[]
+inverseBindMatrices
+JOINTS_0
+WEIGHTS_0</code></pre>
+<p>CNA translates those structures into its animation and model representation.</p>
+<p>This includes correctly handling cases where glTF&#39;s joint array is not already ordered parent-before-child.</p>
+<p>CNA may need to reorder the internal skeleton while remapping joint indices so that hierarchy traversal remains correct.</p>
+<p>That is a subtle but essential requirement.</p>
+<p>A naïve loader can appear to work on simple skeletons and then fail badly on perfectly valid files exported by another tool.</p>
+<hr>
+<h2 id="multiple-skins">Multiple skins</h2>
+<p>glTF can contain multiple independent skins in one file.</p>
+<p>CNA&#39;s original XNA-style convention of storing one <code>SkinningData</code> object in <code>Model::Tag</code> cannot represent this alone.</p>
+<p>CNA therefore adds an extended mapping for multiple skins while preserving compatibility with the traditional single-skin convention.</p>
+<p>The first skin can continue to work with established XNA-style code, while CNAEXT exposes the additional skin information when a model needs it.</p>
+<hr>
+<h2 id="animations">Animations</h2>
+<p>CNA imports glTF animation channels.</p>
+<p>The supported glTF animation targets include the important model transforms:</p>
+<pre><code class="language-text">translation
+rotation
+scale
+weights</code></pre>
+<p>and animation interpolation includes:</p>
+<pre><code class="language-text">LINEAR
+STEP
+CUBICSPLINE</code></pre>
+<p>CNA supports both skeletal animation and animation of ordinary scene nodes.</p>
+<p>That distinction matters.</p>
+<p>Not every animation in a glTF file belongs to a skeleton.</p>
+<p>For example:</p>
+<pre><code class="language-text">rotating fan
+opening door
+moving platform
+animated camera
+clock hand</code></pre>
+<p>may simply animate normal scene nodes.</p>
+<p>CNA retains this rigid-node animation information rather than treating every clip as skeletal animation.</p>
+<hr>
+<h2 id="morph-targets">Morph targets</h2>
+<p>CNA also supports glTF morph targets.</p>
+<p>A morph target can modify attributes such as:</p>
+<pre><code class="language-text">POSITION
+NORMAL
+TANGENT</code></pre>
+<p>and a model can animate its morph weights.</p>
+<p>This makes glTF usable for assets involving:</p>
+<ul><li>facial expressions;</li><li>corrective shapes;</li><li>object deformation;</li><li>blend-shape animation.</li></ul>
+<p>The current CNA implementation performs morph updates on the CPU and updates the affected vertex data.</p>
+<p>That provides correct functionality without requiring every CNA renderer to implement a separate GPU morph-target system.</p>
+<p>The trade-off is that highly dynamic or very large morphing models may eventually benefit from a more renderer-specific GPU path.</p>
+<hr>
+<h2 id="cameras">Cameras</h2>
+<p>CNA imports glTF cameras.</p>
+<p>Both major camera types are represented:</p>
+<pre><code class="language-text">perspective
+orthographic</code></pre>
+<p>The imported camera is associated with the scene node that instances it, because the camera&#39;s placement comes from that node hierarchy.</p>
+<p>CNA exposes imported camera information through the Model&#39;s CNA extensions.</p>
+<p>This was added partly because a real viewer should not need to independently reverse-engineer private importer state merely to reproduce the camera framing authored in the file.</p>
+<p>An imported camera can therefore carry information such as:</p>
+<pre><code class="language-text">projection type
+field of view
+near plane
+far plane
+aspect information
+world transform</code></pre>
+<p>while the live node hierarchy can be used when the camera itself is animated.</p>
+<hr>
+<h2 id="lights">Lights</h2>
+<p>CNA recognizes:</p>
+<pre><code class="language-text">KHR_lights_punctual</code></pre>
+<p>but this is an area where glTF&#39;s lighting model and the traditional XNA stock-effect model do not match perfectly.</p>
+<p>glTF supports:</p>
+<pre><code class="language-text">directional lights
+point lights
+spot lights</code></pre>
+<p>while the XNA-style lighting model available through CNA stock effects is much more limited.</p>
+<p>CNA therefore maps what it can and <strong>reports the approximation</strong>.</p>
+<p>For example, point and spot lights cannot simply become fully equivalent physical glTF lights when the destination effect exposes only directional-light concepts.</p>
+<p>The goal is not to hide this mismatch.</p>
+<p>It is to make the conversion explicit and diagnosable.</p>
+<hr>
+<h2 id="material-variants">Material variants</h2>
+<p>CNA implements:</p>
+<pre><code class="language-text">KHR_materials_variants</code></pre>
+<p>This allows one model to contain alternate material configurations.</p>
+<p>A product model might provide:</p>
+<pre><code class="language-text">Red
+Blue
+Black
+Chrome</code></pre>
+<p>variants without duplicating the entire mesh.</p>
+<p>CNA preserves the source-order variant table and the sparse mapping from variants to individual primitives.</p>
+<p>The selection is exposed through a CNAEXT API on <code>Model</code>.</p>
+<p>Changing a variant can swap the full material-dependent state, including:</p>
+<ul><li>effect;</li><li>textures;</li><li>sampler state;</li><li>compatible vertex layout;</li><li>associated material parameters.</li></ul>
+<p>The geometry itself does not have to be duplicated.</p>
+<hr>
+<h2 id="draco-compression">Draco compression</h2>
+<p>CNA supports:</p>
+<pre><code class="language-text">KHR_draco_mesh_compression</code></pre>
+<p>when CNA is built with its Draco dependency available.</p>
+<p>A Draco-compressed glTF can therefore be decoded by the same shared importer used by runtime loading and the offline conversion tools.</p>
+<p>Support is build-dependent deliberately.</p>
+<p>CNA does not claim support for required Draco compression in a build that does not actually contain the decoder.</p>
+<p>Otherwise a file could be accepted even though its geometry could never be reconstructed.</p>
+<hr>
+<h2 id="other-gltf-extensions">Other glTF extensions</h2>
+<p>The current importer has an explicit registry describing what CNA does with known glTF extensions.</p>
+<p>Some examples are:</p>
+<div class="table-wrap"><table><thead><tr><th>Extension</th><th>CNA status</th></tr></thead><tbody><tr><td>KHR<em>texture</em>transform</td><td>implemented</td></tr><tr><td>KHR<em>mesh</em>quantization</td><td>implemented</td></tr><tr><td>KHR<em>materials</em>emissive_strength</td><td>implemented with a named limitation</td></tr><tr><td>KHR<em>lights</em>punctual</td><td>approximated and reported</td></tr><tr><td>KHR<em>draco</em>mesh_compression</td><td>implemented when Draco is available</td></tr><tr><td>KHR<em>materials</em>unlit</td><td>implemented with a named limitation</td></tr><tr><td>KHR<em>materials</em>variants</td><td>implemented</td></tr><tr><td>KHR<em>materials</em>ior</td><td>implemented</td></tr><tr><td>KHR<em>materials</em>specular</td><td>partially renderer-limited</td></tr><tr><td>KHR<em>materials</em>transmission</td><td>approximated</td></tr><tr><td>KHR<em>materials</em>pbrSpecularGlossiness</td><td>converted approximately</td></tr><tr><td>KHR<em>texture</em>basisu</td><td>unsupported</td></tr><tr><td>EXT<em>texture</em>webp</td><td>unsupported</td></tr><tr><td>EXT<em>meshopt</em>compression</td><td>unsupported</td></tr><tr><td>EXT<em>mesh</em>gpu_instancing</td><td>unsupported</td></tr><tr><td>KHR<em>materials</em>clearcoat</td><td>parsed but currently ignored</td></tr><tr><td>KHR<em>materials</em>sheen</td><td>parsed but currently ignored</td></tr><tr><td>KHR<em>materials</em>volume</td><td>parsed but currently ignored</td></tr></tbody></table></div>
+<p>CNA deliberately distinguishes between:</p>
+<pre><code class="language-text">implemented
+implemented with a limitation
+approximated
+parsed but ignored
+unsupported
+not desired</code></pre>
+<p>rather than reducing everything to a misleading Boolean:</p>
+<pre><code class="language-text">supports glTF = true</code></pre>
+<hr>
+<h2 id="extensionsrequired-matters">extensionsRequired matters</h2>
+<p>glTF distinguishes between:</p>
+<pre><code class="language-text">extensionsUsed</code></pre>
+<p>and:</p>
+<pre><code class="language-text">extensionsRequired</code></pre>
+<p>CNA respects that difference.</p>
+<p>If an optional extension is used and CNA can safely fall back while reporting what was lost, loading may continue.</p>
+<p>But when a file says an unsupported extension is <strong>required</strong>, CNA can reject the file by name.</p>
+<p>That is preferable to loading it and producing a model that does not mean what the author specified.</p>
+<p>For example:</p>
+<pre><code class="language-text">KHR_materials_transmission</code></pre>
+<p>can be approximated using alpha for some optional content.</p>
+<p>But physical transmission involves concepts such as refraction that ordinary alpha blending does not reproduce.</p>
+<p>A file explicitly requiring the extension is therefore making a stronger request than CNA&#39;s approximation can promise.</p>
+<hr>
+<h2 id="import-diagnostics">Import diagnostics</h2>
+<p>One of the most useful parts of CNA&#39;s modern glTF support is that limitations are not supposed to disappear silently.</p>
+<p>A glTF-loaded <code>Model</code> can expose a structured import report through CNAEXT:</p>
+<pre><code class="language-cpp">model.getGltfImportReportEXTProperty()</code></pre>
+<p>The report contains structured diagnostics.</p>
+<p>A diagnostic can describe categories such as:</p>
+<pre><code class="language-text">information
+generated data
+invalid source data
+approximation
+dropped data
+unsupported feature</code></pre>
+<p>and uses a stable diagnostic code.</p>
+<p>This means a tool can do more than print:</p>
+<pre><code class="language-text">Warning: something was ignored.</code></pre>
+<p>It can programmatically inspect what happened.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">glTF file
+    │
+    ▼
+GltfImportCore
+    │
+    ├── Model
+    │
+    └── GltfImportReportEXT
+            │
+            ├── generated normal information
+            ├── material approximation
+            ├── unsupported extension
+            ├── dropped attribute
+            └── other diagnostics</code></pre>
+<p>The same report can survive the offline glTF → CNJ path as well.</p>
+<p>That allows direct and offline loading to communicate the same losses to the application.</p>
+<hr>
+<h2 id="gltf-to-cnj">glTF to CNJ</h2>
+<p>CNA provides the tool:</p>
+<pre><code class="language-text">cna_tool_gltf_to_cnj</code></pre>
+<p>It converts a glTF 2.0 asset into CNA&#39;s readable CNJ representation.</p>
+<p>For example:</p>
+<pre><code class="language-text">Robot.glb
+   │
+   ▼
+cna_tool_gltf_to_cnj
+   │
+   ├── Robot.cnj
+   ├── vertex/index sidecars
+   ├── skeleton data
+   ├── morph data
+   └── animation assets</code></pre>
+<p>This is useful when a project wants to import from glTF once and then work with a stable CNA-owned representation.</p>
+<p>CNJ also makes the imported structure easier to inspect and debug.</p>
+<p>The converter itself does not initialize a window or graphics renderer.</p>
+<p>It is an offline content tool operating on CPU-side asset data.</p>
+<hr>
+<h2 id="gltf-to-cnb">glTF to CNB</h2>
+<p>CNA also provides:</p>
+<pre><code class="language-text">cna_tool_gltf_to_cnb</code></pre>
+<p>for direct compilation into CNA&#39;s binary content format.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">Robot.glb
+   │
+   ▼
+GltfImportCore
+   │
+   ▼
+CNB compiler
+   │
+   ▼
+Robot.cnb</code></pre>
+<p>This avoids requiring a developer to manually preserve the intermediate CNJ files when they are not useful to the project.</p>
+<p>The important architectural point is that this is not a second glTF parser.</p>
+<p>It reuses CNA&#39;s shared glTF interpretation.</p>
+<hr>
+<h2 id="gltf-in-the-cna-content-pipeline">glTF in the CNA Content Pipeline</h2>
+<p>glTF is also a normal source format for the native CNA Content Pipeline.</p>
+<p>The pipeline route is approximately:</p>
+<pre><code class="language-text">.gltf / .glb
+      │
+      ▼
+CNA.GltfImporter
+      │
+      ▼
+ImportedModelDocument
+      │
+      ▼
+CNA.ModelProcessor
+      │
+      ▼
+ProcessedModelBundle
+      │
+      ▼
+CNA.ModelContentWriter
+      │
+      ▼
+.cnb</code></pre>
+<p>So a content source directory can contain:</p>
+<pre><code class="language-text">ContentSource/
+└── Models/
+    └── Robot.glb</code></pre>
+<p>and CNA can compile it into runtime content:</p>
+<pre><code class="language-text">Content/
+└── Models/
+    └── Robot.cnb</code></pre>
+<p>The game can then continue to use:</p>
+<pre><code class="language-cpp">auto robot = Content.Load&lt;Model&gt;(&quot;Models/Robot&quot;);</code></pre>
+<p>without needing to know whether the original authoring file was glTF, CNJ or something else supported by the pipeline.</p>
+<hr>
+<h2 id="why-keep-direct-loading-if-cnb-exists">Why keep direct loading if CNB exists?</h2>
+<p>Because the two workflows solve different problems.</p>
+<p>Direct runtime loading is convenient for:</p>
+<ul><li>development;</li><li>editors;</li><li>model viewers;</li><li>asset inspection;</li><li>modding;</li><li>tools;</li><li>rapidly changing assets.</li></ul>
+<p>Compiled CNB is useful for:</p>
+<ul><li>controlled builds;</li><li>deterministic deployment;</li><li>packaged games;</li><li>incremental content pipelines;</li><li>avoiding repeated source-format work at runtime.</li></ul>
+<p>CNA therefore does not force one workflow onto every project.</p>
+<hr>
+<h2 id="what-is-cna-gltf-viewer">What is cna-gltf-viewer ?</h2>
+<p>CNA has a separate project called:</p>
+<p><strong>cna-gltf-viewer</strong></p>
+<p>GitHub:</p>
+<p><a href="https://github.com/libcna/cna-gltf-viewer">https://github.com/libcna/cna-gltf-viewer</a></p>
+<p>It is a desktop C++ application specifically designed to load and display glTF 2.0 assets through CNA.</p>
+<p>It is useful for two related purposes:</p>
+<pre><code class="language-text">1. a developer-facing glTF model viewer
+
+2. an integration/conformance tool for CNA&#39;s glTF implementation</code></pre>
+<p>This second role is particularly important.</p>
+<p><code>cna-gltf-viewer</code> is not just a pretty demo showing that a cube can rotate.</p>
+<p>It exercises the actual CNA content and rendering paths used by real applications.</p>
+<hr>
+<h2 id="two-viewer-loading-paths">Two viewer loading paths</h2>
+<p>The viewer has two major modes.</p>
+<p>Its default mode converts the source through CNA&#39;s real offline converter:</p>
+<pre><code class="language-text">model.glb
+    │
+    ▼
+cna_tool_gltf_to_cnj
+    │
+    ▼
+temporary CNJ content
+    │
+    ▼
+ContentManager
+    │
+    ▼
+Model
+    │
+    ▼
+CNA renderer</code></pre>
+<p>The viewer also supports:</p>
+<pre><code class="language-text">--direct</code></pre>
+<p>which takes the other path:</p>
+<pre><code class="language-text">model.glb
+    │
+    ▼
+ContentManager
+    │
+    ▼
+runtime glTF loader
+    │
+    ▼
+Model</code></pre>
+<p>This is extremely useful for testing.</p>
+<p>The same source asset can be viewed through both implementations and differences become visible.</p>
+<p>If:</p>
+<pre><code class="language-text">direct glTF</code></pre>
+<p>and:</p>
+<pre><code class="language-text">glTF -&gt; CNJ -&gt; Model</code></pre>
+<p>produce different results, something is wrong in the content path.</p>
+<hr>
+<h2 id="using-the-viewer">Using the viewer</h2>
+<p>A basic invocation is:</p>
+<pre><code class="language-bash">cna_gltf_viewer path/to/model.glb</code></pre>
+<p>or:</p>
+<pre><code class="language-bash">cna_gltf_viewer path/to/model.gltf</code></pre>
+<p>For direct loading:</p>
+<pre><code class="language-bash">cna_gltf_viewer path/to/model.glb --direct</code></pre>
+<p>When started without a model path, the current viewer can open its own file browser for <code>.gltf</code> and <code>.glb</code> files.</p>
+<p>The normal camera controls include:</p>
+<pre><code class="language-text">Left mouse drag    orbit
+Mouse wheel        zoom
+R                  reset camera
+O                  open another asset
+Esc                exit</code></pre>
+<p>This makes it useful as a quick visual inspection tool when developing CNA applications or preparing assets.</p>
+<hr>
+<h2 id="automatic-model-framing">Automatic model framing</h2>
+<p>The viewer has a bounds-based orbit camera.</p>
+<p>Rather than requiring every model to be manually positioned for inspection, it uses the imported model&#39;s bounds to determine a suitable target and camera distance.</p>
+<p>This is one reason whole-model bounds became useful as an actual CNA model capability rather than private logic duplicated inside the viewer.</p>
+<p>A 10-centimetre object and a 100-metre scene should both be inspectable without manually rewriting the camera for each asset.</p>
+<hr>
+<h2 id="imported-cameras-in-the-viewer">Imported cameras in the viewer</h2>
+<p>The orbit camera remains the normal default even if the glTF asset contains cameras.</p>
+<p>An imported camera can be explicitly selected.</p>
+<p>For example:</p>
+<pre><code class="language-text">--camera MainCamera</code></pre>
+<p>The viewer can then use the camera authored in the glTF scene.</p>
+<p>This is particularly useful for validating scenes where composition matters.</p>
+<p>It also helps test animated camera nodes because their placement is part of the same scene hierarchy as other animated objects.</p>
+<hr>
+<h2 id="animation-in-the-viewer">Animation in the viewer</h2>
+<p>The viewer can select and loop imported animations.</p>
+<p>For example:</p>
+<pre><code class="language-text">--clip Run</code></pre>
+<p>It supports both:</p>
+<ul><li>skeletal animation;</li><li>rigid-node animation.</li></ul>
+<p>For deterministic testing, an animation can also be frozen at a specific looping time:</p>
+<pre><code class="language-text">--clip Run --animation-time 0.5</code></pre>
+<p>This may look like a small command-line feature, but it solves an important testing problem.</p>
+<p>Without fixed time:</p>
+<pre><code class="language-text">process A captures at 0.487 seconds
+process B captures at 0.514 seconds</code></pre>
+<p>and two otherwise identical renders produce different images.</p>
+<p>With a fixed animation time, visual regression testing becomes reproducible.</p>
+<hr>
+<h2 id="viewer-lighting-policy">Viewer lighting policy</h2>
+<p>A glTF file does not necessarily contain a light.</p>
+<p>If a light-less scene were simply rendered with a lit effect and zero lighting, a perfectly valid model could appear black.</p>
+<p>The viewer therefore applies presentation policy on top of the imported data.</p>
+<p>For a scene with no authored light, it can enable CNA&#39;s default lighting.</p>
+<p>Authored unlit materials remain unlit.</p>
+<p>This is an important architectural distinction:</p>
+<pre><code class="language-text">Importer:
+    what did the glTF file say?
+
+Viewer:
+    how should an asset with no presentation environment
+    be made useful to a human inspecting it?</code></pre>
+<p>The importer should not silently invent lights merely because one viewer wants them.</p>
+<p>That belongs at the application layer.</p>
+<hr>
+<h2 id="diagnostics-in-cna-gltf-viewer">Diagnostics in cna-gltf-viewer</h2>
+<p>The viewer was also the first major consumer of CNA&#39;s structured glTF import diagnostics.</p>
+<p>Warnings and approximations are visible while inspecting the asset and can also be printed to standard output.</p>
+<p>So the viewer can help answer questions such as:</p>
+<pre><code class="language-text">Why does this asset look different?
+
+Did CNA approximate an extension?
+
+Was an attribute dropped?
+
+Was a texture source unsupported?
+
+Did CNA generate missing data?
+
+Did the file request something the selected renderer cannot carry?</code></pre>
+<p>This makes it useful as an asset-debugging tool rather than merely an image viewer.</p>
+<hr>
+<h2 id="deterministic-captures">Deterministic captures</h2>
+<p><code>cna-gltf-viewer</code> can capture rendered output to PNG.</p>
+<p>For example:</p>
+<pre><code class="language-text">--capture output.png</code></pre>
+<p>The viewer also provides:</p>
+<pre><code class="language-text">--reference-capture</code></pre>
+<p>for CNA&#39;s conformance work.</p>
+<p>Reference capture uses a controlled presentation configuration, including a clean 512 × 512 frame without the normal diagnostics overlay.</p>
+<p>The viewer can print the exact orbit-camera parameters used for that frame so another renderer can reproduce the same presentation.</p>
+<p>This is how CNA can meaningfully compare:</p>
+<pre><code class="language-text">CNA output</code></pre>
+<p>against:</p>
+<pre><code class="language-text">an independent glTF reference renderer</code></pre>
+<p>instead of comparing images taken from different cameras.</p>
+<hr>
+<h2 id="why-the-viewer-matters-for-testing-cna">Why the viewer matters for testing CNA</h2>
+<p>Unit tests can prove many things:</p>
+<pre><code class="language-text">the accessor contains these numbers
+the matrix equals this matrix
+the material factor is 0.8
+the vertex buffer has this stride</code></pre>
+<p>But none of those facts proves that the final pixels are correct.</p>
+<p>A bug can exist later:</p>
+<pre><code class="language-text">correct importer
+    │
+correct Model
+    │
+correct effect parameters
+    │
+wrong renderer dispatch
+    │
+wrong image</code></pre>
+<p>The glTF campaign in CNA explicitly encountered this class of problem.</p>
+<p>That is why <code>cna-gltf-viewer</code> became part of the highest visual conformance layer.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">L0-L6
+    structural and numerical evidence
+
+L7
+    actual production-viewer pixels</code></pre>
+<p>For L7 tests, CNA can launch the production viewer in independent processes, capture the same model and require deterministic output.</p>
+<p>The captures can also be compared with a pinned Khronos glTF reference renderer.</p>
+<p>This closes a gap that source inspection and numerical unit tests cannot close.</p>
+<hr>
+<h2 id="the-khronos-reference-comparison">The Khronos reference comparison</h2>
+<p>CNA&#39;s glTF validation infrastructure includes a pinned version of the Khronos sample renderer for reference comparisons.</p>
+<p>The process is broadly:</p>
+<pre><code class="language-text">                 same glTF asset
+                     │
+          ┌──────────┴──────────┐
+          │                     │
+          ▼                     ▼
+ cna-gltf-viewer       Khronos reference renderer
+          │                     │
+          ▼                     ▼
+       PNG A                  PNG B
+          │                     │
+          └──────────┬──────────┘
+                     ▼
+                  compare</code></pre>
+<p>The camera and presentation parameters are controlled so that the comparison is meaningful.</p>
+<p>This does not mean CNA must produce mathematically identical pixels to every other renderer.</p>
+<p>Different implementations, precision and PBR details can introduce legitimate variation.</p>
+<p>But a reference comparison is extremely valuable for detecting large semantic errors such as:</p>
+<pre><code class="language-text">wrong transform
+wrong UV channel
+inverted normal map
+missing material factor
+wrong alpha
+missing animation
+wrong camera</code></pre>
+<hr>
+<h2 id="multiple-cna-renderers">Multiple CNA renderers</h2>
+<p>The viewer is also valuable because it is a <strong>CNA application</strong> rather than a viewer tied directly to one graphics API.</p>
+<p>The same application can be built against different CNA renderers.</p>
+<p>That makes a comparison such as this possible:</p>
+<pre><code class="language-text">               same viewer
+                   │
+                   ▼
+               same Model
+                   │
+                   ▼
+               same PBR data
+                   │
+      ┌────────────┼─────────────┐
+      │            │             │
+      ▼            ▼             ▼
+   EasyGL       Vulkan      DirectX11</code></pre>
+<p>If one renderer produces a different result from the others, the problem can be isolated much more effectively.</p>
+<p>The CNA glTF work has used production-viewer capture paths for multiple renderers, including software and GPU-backed implementations.</p>
+<hr>
+<h2 id="the-viewer-is-deliberately-separate-from-cna">The viewer is deliberately separate from CNA</h2>
+<p><code>cna-gltf-viewer</code> lives in its own repository rather than inside CNA core.</p>
+<p>That separation is useful.</p>
+<p>CNA provides:</p>
+<pre><code class="language-text">glTF import
+Models
+effects
+graphics APIs
+diagnostics
+content conversion
+renderers</code></pre>
+<p>The viewer is an application built on those features.</p>
+<p>This proves that the functionality is actually consumable outside CNA&#39;s own internal unit tests.</p>
+<p>It also keeps application-specific decisions such as:</p>
+<pre><code class="language-text">default orbit camera
+file browser
+fallback lighting
+UI diagnostics
+capture workflow</code></pre>
+<p>out of the core framework.</p>
+<hr>
+<h2 id="gltf-support-is-not-the-same-as-perfect-support-for-every-extension">glTF support is not the same as perfect support for every extension</h2>
+<p>glTF is a large and evolving ecosystem.</p>
+<p>It is therefore important not to describe CNA&#39;s support merely as:</p>
+<blockquote><p>CNA supports glTF 2.0.</p></blockquote>
+<p>without qualification.</p>
+<p>CNA has strong core glTF 2.0 import support, but some extensions are:</p>
+<ul><li>approximated;</li><li>renderer-limited;</li><li>unsupported;</li><li>or deliberately not planned.</li></ul>
+<p>Examples include:</p>
+<pre><code class="language-text">EXT_mesh_gpu_instancing
+EXT_meshopt_compression
+KHR_texture_basisu
+KHR_materials_clearcoat
+KHR_materials_sheen</code></pre>
+<p>The important architectural point is that these limitations are tracked explicitly.</p>
+<p>A missing feature should not silently transform into a different visual result and still be reported as success.</p>
+<hr>
+<h2 id="gltf-as-part-of-the-larger-cna-content-architecture">glTF as part of the larger CNA content architecture</h2>
+<p>The resulting content architecture now looks approximately like this:</p>
+<pre><code class="language-text">                         AUTHORING
+
+         Blender / Maya / other 3D software
+                         │
+                         ▼
+                    glTF / GLB
+                         │
+       ┌─────────────────┼───────────────────┐
+       │                 │                   │
+       ▼                 ▼                   ▼
+ direct runtime     glTF -&gt; CNJ        Content Pipeline
+       │                 │                   │
+       │                 ▼                   ▼
+       │                CNJ                 CNB
+       │                 │                   │
+       └─────────────────┼───────────────────┘
+                         ▼
+                        Model
+                         │
+                         ▼
+               CNA Graphics abstraction
+                         │
+             ┌───────────┼────────────┐
+             ▼           ▼            ▼
+          EasyGL       Vulkan      DirectX ...</code></pre>
+<p>This is an important example of CNA&#39;s general philosophy.</p>
+<p>CNA does not need to invent its own replacement for every industry format.</p>
+<p>glTF is already a strong open format for exchanging 3D content.</p>
+<p>CNA can embrace it at the boundary while still converting the data into CNA-owned runtime abstractions internally.</p>
+<hr>
+<h2 id="source-code">Source code</h2>
+<p>The main CNA repository is:</p>
+<p><a href="https://github.com/libcna/cna">https://github.com/libcna/cna</a></p>
+<p>Important glTF areas include:</p>
+<pre><code class="language-text">modules/content/include/CNA/Internal/GltfImport/
+modules/content/src/GltfImport/
+
+modules/content/tests/CNA/Internal/GltfImport/
+modules/content/tests/Microsoft/Xna/Framework/Content/</code></pre>
+<p>The main shared importer is centered around:</p>
+<pre><code class="language-text">GltfImportCore</code></pre>
+<p>glTF-related graphics API additions include areas such as:</p>
+<pre><code class="language-text">modules/graphics/include/Microsoft/Xna/Framework/Graphics/
+modules/graphics-ext/include/CNA/Graphics/</code></pre>
+<p>including:</p>
+<pre><code class="language-text">GltfImportReportEXT
+GltfMaterialBridge</code></pre>
+<p>The offline tools include:</p>
+<pre><code class="language-text">tools/gltf_to_cnj/
+tools/gltf_to_cnb/</code></pre>
+<p>producing:</p>
+<pre><code class="language-text">cna_tool_gltf_to_cnj
+cna_tool_gltf_to_cnb</code></pre>
+<p>Important documentation includes:</p>
+<pre><code class="language-text">docs/gltf-conformance.md
+docs/gltf-conventions.md
+docs/gltf-limitations.md
+docs/gltf-api-change-review.md
+docs/gltf-renderer-pbr-fallbacks.md
+docs/gltf-renderer-stride-conformance.md
+docs/gltf-performance.md
+plans/plan_gltf.md</code></pre>
+<p>The separate viewer is:</p>
+<p><a href="https://github.com/libcna/cna-gltf-viewer">https://github.com/libcna/cna-gltf-viewer</a></p>
+<p>and CNA also contains the tooling used to validate its output:</p>
+<pre><code class="language-text">scripts/gltf-l7-corpus.py
+scripts/gltf-reference-renderer-compare.py
+scripts/gltf-viewer-retake.py
+tools/gltf_reference/</code></pre>
+<hr>
+<h2 id="conclusion">Conclusion</h2>
+<p>glTF support in CNA has grown far beyond a simple mesh importer.</p>
+<p>CNA can use <code>.gltf</code> and <code>.glb</code> assets through:</p>
+<pre><code class="language-text">direct ContentManager loading
+glTF -&gt; CNJ conversion
+glTF -&gt; CNB compilation
+the CNA Content Pipeline</code></pre>
+<p>The importer handles substantial real-world 3D content, including:</p>
+<pre><code class="language-text">scene graphs
+meshes
+PBR materials
+textures
+samplers
+skinning
+animations
+morph targets
+cameras
+lights
+material variants
+Draco compression
+multiple glTF extensions</code></pre>
+<p>and exposes structured diagnostics when the source format contains semantics CNA cannot reproduce exactly.</p>
+<p><code>cna-gltf-viewer</code> then provides the other half of the story.</p>
+<p>It is both a useful standalone model viewer and a real CNA application used to verify that imported glTF data survives all the way to the final pixels.</p>
+<p>That distinction matters.</p>
+<p>Reading a glTF file is relatively easy.</p>
+<p>Reading it correctly, translating its semantics into an XNA-inspired C++ framework, preserving those semantics across many different graphics renderers and proving the result visually is a much larger problem.</p>
+<p>That is the problem CNA&#39;s glTF subsystem is designed to solve.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/graphics/">#Graphics</a><a href="/tag/3d/">#3D</a><a href="/tag/content-pipeline/">#Content Pipeline</a><a href="/tag/gltf/">#glTF</a><a href="/tag/contentmanager/">#ContentManager</a><a href="/tag/cnj/">#CNJ</a><a href="/tag/cnb/">#CNB</a><a href="/tag/glb/">#GLB</a><a href="/tag/pbr/">#PBR</a><a href="/tag/cna-gltf-viewer/">#cna-gltf-viewer</a><a href="/tag/models/">#Models</a><a href="/tag/animation/">#Animation</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

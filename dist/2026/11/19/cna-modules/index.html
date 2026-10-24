@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNA Modules | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA is a large framework, but it is not built as one giant C++ library.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/11/19/cna-modules/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNA Modules">
+  <meta property="og:description" content="CNA is a large framework, but it is not built as one giant C++ library.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/11/19/cna-modules/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-11-19T16:16:21Z">November 19, 2026</time></span><span>Updated <time datetime="2026-10-17T13:15:00Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">CNA Modules</h1>
+      <p class="article-description">CNA is a large framework, but it is not built as one giant C++ library.</p>
+    </header>
+    <div class="article-body"><p>CNA is a large framework, but it is not built as one giant C++ library.</p>
+<p>The current architecture divides the framework into <strong>22 physical modules</strong>, together with a separate tree of renderer implementation families.</p>
+<p>Each module owns a specific part of CNA, has its own source and public headers, and normally builds as an independent CMake target.</p>
+<p>The current high-level structure is:</p>
+<pre><code class="language-text">modules/
+├── core/
+├── diagnostics/
+├── inspector/
+├── math/
+├── design/
+├── platform/
+├── runtime/
+├── graphics/
+├── input/
+├── audio/
+├── media/
+├── content/
+├── content-pipeline/
+├── storage/
+├── devices/
+├── devices-ext/
+├── graphics-ext/
+├── gamer-services/
+├── net/
+├── phone/
+├── video-ffmpeg/
+├── c-api/
+└── renderers/</code></pre>
+<p>The 22-module count refers to the physical framework modules outside <code>renderers/</code>.</p>
+<p>The renderer tree forms another modular layer of its own, currently containing <strong>8 implementation families that provide 10 public renderer identities</strong>.</p>
+<p>Some modules are optional or conditional. For example, the C API must be explicitly enabled, FFmpeg is an optional video backend, Gamer Services has its own switch, networking requires Gamer Services, and Design is deliberately an opt-in tooling module.</p>
+<p><strong>GitHub:</strong> <a href="https://github.com/libcna/cna">github.com/libcna/cna</a></p>
+<h2 id="what-is-a-cna-module">What is a CNA module?</h2>
+<p>A normal CNA module follows a physical layout such as:</p>
+<pre><code class="language-text">modules/&lt;module&gt;/
+├── CMakeLists.txt
+├── include/
+├── src/
+├── tests/
+└── examples/</code></pre>
+<p>Not every module needs every directory, but the ownership boundary is explicit.</p>
+<p>A module normally has its own CMake target and public include surface.</p>
+<p>For example:</p>
+<pre><code class="language-text">cna_math          → CNA::Math
+cna_design        → CNA::Design
+cna_platform      → CNA::Platform
+cna_graphics_core → CNA::GraphicsCore
+cna_content       → CNA::Content</code></pre>
+<p>Normal applications do not need to manually assemble the framework from all of these pieces.</p>
+<p>The traditional <code>CNA</code> target remains the main umbrella:</p>
+<pre><code class="language-cmake">target_link_libraries(MyGame PRIVATE CNA)</code></pre>
+<p>It composes the normal runtime framework and selected renderer into one convenient application-facing target.</p>
+<p>The individual module targets are useful internally, for tools, tests and applications that deliberately want a smaller dependency closure.</p>
+<h2 id="why-modularize-cna">Why modularize CNA?</h2>
+<p>A framework of CNA&#39;s size becomes increasingly difficult to maintain if every subsystem is physically part of one library.</p>
+<p>A mathematics library should not need SDL.</p>
+<p>A command-line content compiler should not require a graphical window.</p>
+<p>A running game that loads already compiled assets should not need FreeType merely because FreeType is useful when building a <code>.spritefont</code>.</p>
+<p>Networking should not pull ENet into an application that never uses networking.</p>
+<p>XNA design-time type converters should not need to become part of every game executable.</p>
+<p>And code that only needs <code>Vector3</code> should not drag an entire graphics renderer into its dependency closure.</p>
+<p>The module system gives those boundaries a physical form.</p>
+<h2 id="core">Core</h2>
+<p><code>CNA::Core</code> contains small pieces shared across the rest of CNA.</p>
+<p>Examples include:</p>
+<ul><li>CNA exceptions</li><li>logging</li><li>release and version information</li><li>target-platform information</li><li>renderer identity and selection</li><li>renderer maturity and category information</li><li>common path utilities</li><li>framework-root types such as <code>PlayerIndex</code></li></ul>
+<p>Core also provides a very small header-only surface:</p>
+<pre><code class="language-text">CNA::CoreHeaders</code></pre>
+<p>This is useful when another module only needs common header-level types or definitions and does not need the implementation library itself.</p>
+<p>That helps keep dependency closures small.</p>
+<h2 id="diagnostics">Diagnostics</h2>
+<p><code>CNA::Diagnostics</code> provides optional runtime statistics and profiling.</p>
+<p>Its <code>CNA_DIAGNOSTICS</code> setting selects <code>OFF</code>, <code>STATS</code> or <code>FULL</code>, depending on whether an application needs no instrumentation, counters or detailed profiling.</p>
+<p>The module provides the observation foundation used by Inspector.</p>
+<h2 id="inspector">Inspector</h2>
+<p><code>CNA::Inspector</code> is an optional development tool for inspecting a running CNA application from a separate process.</p>
+<p>It includes an in-process agent and the standalone <code>cna-inspector</code> browser bridge.</p>
+<p>It requires <code>CNA_BUILD_INSPECTOR=ON</code> and explicit linking with <code>CNA::Inspector</code>. It stays outside the normal <code>CNA</code> umbrella.</p>
+<h2 id="math">Math</h2>
+<p><code>CNA::Math</code> contains the familiar XNA mathematical foundation.</p>
+<p>This includes:</p>
+<ul><li><code>Vector2</code></li><li><code>Vector3</code></li><li><code>Vector4</code></li><li><code>Matrix</code></li><li><code>Quaternion</code></li><li><code>Color</code></li><li><code>Point</code></li><li><code>Rectangle</code></li><li><code>Plane</code></li><li><code>Ray</code></li><li><code>BoundingBox</code></li><li><code>BoundingSphere</code></li><li><code>BoundingFrustum</code></li><li>curves</li><li><code>MathHelper</code></li><li>packed-vector interfaces</li></ul>
+<p>Math is intentionally one of CNA&#39;s smallest dependency islands.</p>
+<p>It depends primarily on the required Sharp Runtime foundation and CNA&#39;s minimal core header surface.</p>
+<p>It does <strong>not</strong> require a renderer, SDL, audio, content or the game runtime.</p>
+<p>That makes <code>CNA::Math</code> useful independently from most of the framework.</p>
+<h2 id="design">Design</h2>
+<p><code>CNA::Design</code> implements the <code>Microsoft.Xna.Framework.Design</code> namespace.</p>
+<p>It contains design-time type-conversion infrastructure for XNA value types, including converters for:</p>
+<ul><li><code>Vector2</code></li><li><code>Vector3</code></li><li><code>Vector4</code></li><li><code>Matrix</code></li><li><code>Quaternion</code></li><li><code>Color</code></li><li><code>Point</code></li><li><code>Rectangle</code></li><li><code>Plane</code></li><li><code>Ray</code></li><li><code>BoundingBox</code></li><li><code>BoundingSphere</code></li></ul>
+<p>The module also contains the common <code>MathTypeConverter</code> infrastructure and registration code needed to integrate these types with the ComponentModel-style functionality provided by Sharp Runtime.</p>
+<p>Design is deliberately small.</p>
+<p>Its main CNA dependency is <code>CNA::Math</code>, together with the required Sharp Runtime ComponentModel functionality.</p>
+<p>It does not need Runtime, graphics renderers, SDL, media or networking.</p>
+<p>Importantly, <strong><code>CNA::Design</code> is intentionally opt-in</strong>.</p>
+<p>The normal <code>CNA</code> application umbrella does not automatically pull design-time converter implementation code and registration into every game.</p>
+<p>A tool or application that needs <code>Microsoft.Xna.Framework.Design</code> can link it explicitly.</p>
+<h2 id="platform">Platform</h2>
+<p><code>CNA::Platform</code> is CNA&#39;s boundary to the host operating environment.</p>
+<p>It defines abstractions for areas such as:</p>
+<ul><li>windows</li><li>events</li><li>timing</li><li>displays</li><li>native window handles</li><li>keyboard</li><li>mouse</li><li>gamepads</li><li>joysticks</li><li>haptics</li><li>text input</li><li>sensors</li><li>cameras</li><li>clipboard and system services</li><li>OpenGL contexts</li><li>CPU surface presentation</li></ul>
+<p>Current implementations include:</p>
+<ul><li><strong>SDL3</strong></li><li><strong>Headless</strong></li><li><strong>POSIX Terminal</strong></li></ul>
+<p>SDL3 remains the default and CNA&#39;s only windowed backend. It reaches Win32, X11, Wayland, Cocoa, Android and the browser through SDL&#39;s own platform drivers.</p>
+<p>CNA&#39;s direct Win32, X11 and Wayland implementations were retired on 6 October 2026 because maintaining parallel window-system implementations no longer justified their cost.</p>
+<p>The Platform API therefore represents CNA concepts rather than SDL concepts.</p>
+<h2 id="graphics">Graphics</h2>
+<p><code>CNA::GraphicsCore</code> contains CNA&#39;s XNA-facing graphics system and the common renderer contract.</p>
+<p>This is where types such as these belong:</p>
+<pre><code class="language-text">GraphicsDevice
+Texture2D
+TextureCube
+VertexBuffer
+IndexBuffer
+RenderTarget2D
+SpriteBatch
+Effect
+BasicEffect
+Model
+BlendState
+SamplerState
+RasterizerState
+DepthStencilState</code></pre>
+<p>It also contains shared renderer infrastructure such as:</p>
+<ul><li><code>IGraphicsRenderer</code></li><li>renderer descriptors</li><li>renderer capabilities</li><li>the generated renderer registry</li><li>format-capability tracking</li><li>renderer resource interfaces</li><li>image loading</li><li>graphics-resource management</li></ul>
+<p>Graphics does not itself mean OpenGL, WebGPU, SDL_GPU, Direct3D or another native API.</p>
+<p>Those implementations live separately under <code>modules/renderers/</code>.</p>
+<p>The Graphics module also owns the core <code>PbrEffect</code>, <code>SkinnedPbrEffect</code> and custom <code>ShaderEffect</code> APIs.</p>
+<h2 id="renderers">Renderers</h2>
+<p>The renderer tree is effectively another modular architecture inside CNA.</p>
+<p>CNA currently exposes <strong>10 public renderer identities implemented through 8 renderer families</strong>.</p>
+<p>The implementation-family tree currently includes:</p>
+<pre><code class="language-text">modules/renderers/
+├── directx9/
+├── easygl/
+├── fna3d/
+├── headless/
+├── sdl-gpu/
+├── software/
+├── stub/
+└── webgpu/</code></pre>
+<p>There is also internal shared renderer infrastructure under <code>renderers/common/</code>. It includes the MojoShader-to-CNA support used by families that execute compiled XNA effects, but it is not another public renderer family.</p>
+<p>Three public identities share the EasyGL family:</p>
+<ul><li>OpenGL ES 3</li><li>OpenGL 3.3</li><li>WebGL 2</li></ul>
+<p>The other seven identities each map to one family: WebGPU, Direct3D 9, SDL_GPU, FNA3D, Software, Headless and Stub.</p>
+<p>Each renderer family owns its native implementation and renderer-specific dependencies.</p>
+<p>Direct3D 9 implementation code stays in its family.</p>
+<p>OpenGL-specific implementation details stay in EasyGL.</p>
+<p>Native and browser WebGPU code stays in WebGPU.</p>
+<p>SDL_GPU owns CNA&#39;s modern native path while SDL selects Vulkan, Direct3D 12 or Metal underneath it.</p>
+<p>CPU rendering stays in Software, while Headless and Stub provide non-rasterizing implementations for their distinct testing and placeholder roles.</p>
+<p>The direct Vulkan, Direct3D 11, Metal and SDL Renderer families were retired on 13 October 2026 rather than aliased to surviving renderers. Their public identity values remain reserved, but their implementation directories are no longer part of the module tree.</p>
+<p>This separation is a major reason CNA can support substantially different rendering technologies without filling <code>GraphicsDevice</code> with native graphics API code.</p>
+<h2 id="input">Input</h2>
+<p><code>CNA::Input</code> contains the XNA input APIs together with CNA&#39;s additional input functionality.</p>
+<p>It covers areas such as:</p>
+<ul><li>keyboard</li><li>mouse</li><li>gamepads</li><li>touch</li><li>gestures</li><li>text input</li><li>joysticks</li><li>haptics</li><li>input-device discovery</li><li>sensor-related input surfaces</li></ul>
+<p>The actual operating-system communication is delegated to the Platform API.</p>
+<p>The Input module understands concepts such as <code>KeyboardState</code>, <code>MouseState</code> and <code>GamePadState</code>.</p>
+<p><code>CNA::Platform</code> knows how the selected SDL3, Headless or Terminal implementation obtains the underlying information.</p>
+<h2 id="audio">Audio</h2>
+<p><code>CNA::Audio</code> contains XNA&#39;s audio system.</p>
+<p>This includes:</p>
+<ul><li><code>SoundEffect</code></li><li><code>SoundEffectInstance</code></li><li><code>DynamicSoundEffectInstance</code></li><li><code>AudioListener</code></li><li><code>AudioEmitter</code></li><li>microphones</li><li>audio categories</li><li>XACT-style <code>AudioEngine</code></li><li><code>SoundBank</code></li><li><code>WaveBank</code></li><li><code>Cue</code></li></ul>
+<p>It also owns the internal mixer and the audio-related <code>FrameworkDispatcher</code> behavior.</p>
+<p>Audio selection is independent of graphics and platform selection.</p>
+<p>CNA does not conceptually require one library to provide the window system, graphics and audio at the same time.</p>
+<h2 id="media">Media</h2>
+<p><code>CNA::Media</code> implements the higher-level XNA media APIs.</p>
+<p>It includes:</p>
+<ul><li><code>Song</code></li><li><code>MediaPlayer</code></li><li><code>MediaQueue</code></li><li>albums</li><li>artists</li><li>genres</li><li>playlists</li><li>pictures</li><li><code>MediaLibrary</code></li><li><code>Video</code></li><li><code>VideoPlayer</code></li></ul>
+<p>Media interacts with Audio and Graphics because media playback can ultimately produce audio streams and graphical textures.</p>
+<p>The native video decoder is kept separate.</p>
+<h2 id="video-ffmpeg">Video FFmpeg</h2>
+<p><code>CNA::VideoFfmpeg</code> is an optional implementation module.</p>
+<p>It owns the FFmpeg dependencies used for runtime video decoding when FFmpeg is available and enabled.</p>
+<p>This separation is important.</p>
+<p>The stable XNA-facing <code>Video</code> and <code>VideoPlayer</code> API lives in <code>CNA::Media</code>.</p>
+<p>FFmpeg does not.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">CNA::Media
+   ↓
+video decoder interface
+   ↓
+CNA::VideoFfmpeg      optional
+   ↓
+FFmpeg</code></pre>
+<p>A CNA build without the FFmpeg backend can therefore retain the public Media API while reporting unavailable video functionality appropriately.</p>
+<p>The external decoder does not have to become a universal dependency of CNA.</p>
+<h2 id="content">Content</h2>
+<p><code>CNA::Content</code> contains CNA&#39;s runtime content system.</p>
+<p>This is much larger than <code>ContentManager</code> alone.</p>
+<p>It includes work around:</p>
+<ul><li><code>ContentManager</code></li><li>XNB loading</li><li>XNB type readers</li><li>CNJ</li><li>CNB</li><li>glTF 2.0 importing</li><li>models</li><li>textures</li><li>sprite fonts</li><li>sound content</li><li>content manifests</li><li>compression and validation</li></ul>
+<p>This is the side of the content system that a running application uses to load assets.</p>
+<p>It remains physically separate from the tools that build those assets.</p>
+<h2 id="content-pipeline">Content Pipeline</h2>
+<p><code>CNA::ContentPipelineBuild</code> is the build-time side of CNA&#39;s content architecture.</p>
+<p>It contains XNA Content Pipeline-style APIs and CNA tooling for areas such as:</p>
+<ul><li>content importers</li><li>content processors</li><li>SpriteFont building</li><li>model processing</li><li>texture processing and compression</li><li>effect compilation</li><li>XML content</li><li>build-time media processing</li></ul>
+<p>The distinction is important:</p>
+<pre><code class="language-text">Content Pipeline
+     ↓
+builds assets
+
+CNA::Content
+     ↓
+loads assets at runtime</code></pre>
+<p>For example, FreeType may be needed to rasterize a <code>.spritefont</code> while building content.</p>
+<p>A finished game loading the compiled result should not need to link FreeType merely because the asset compiler did.</p>
+<p>The module boundary enforces that distinction.</p>
+<h2 id="storage">Storage</h2>
+<p><code>CNA::Storage</code> implements the XNA storage model.</p>
+<p>It includes:</p>
+<ul><li><code>StorageDevice</code></li><li><code>StorageContainer</code></li><li>related exceptions</li></ul>
+<p>It is deliberately small.</p>
+<p>An interesting architectural choice is that ordinary save-root handling is treated primarily as a portable filesystem concern instead of forcing every persistence operation through the window and input platform abstraction.</p>
+<h2 id="runtime">Runtime</h2>
+<p><code>CNA::Runtime</code> ties the major framework pieces together.</p>
+<p>It contains types such as:</p>
+<ul><li><code>Game</code></li><li><code>GameTime</code></li><li><code>GameWindow</code></li><li><code>GameComponent</code></li><li><code>DrawableGameComponent</code></li><li><code>GameComponentCollection</code></li><li><code>GameServiceContainer</code></li><li><code>GraphicsDeviceManager</code></li><li><code>GraphicsDeviceInformation</code></li><li>launch parameters</li><li>title-container support</li></ul>
+<p>This is where the familiar XNA application lifecycle lives.</p>
+<p>Because <code>Game</code> orchestrates many framework systems, Runtime naturally sits relatively high in the dependency graph:</p>
+<pre><code class="language-text">Runtime
+├── Graphics
+├── Input
+├── Content
+├── Audio
+├── Media
+├── Platform
+├── Core
+└── Math</code></pre>
+<p>Runtime therefore has a much broader dependency closure than small foundational modules such as Math or Design.</p>
+<h2 id="devices">Devices</h2>
+<p><code>CNA::Devices</code> contains the XNA-era <code>Microsoft::Devices</code> APIs.</p>
+<p>This includes sensor functionality such as:</p>
+<ul><li>accelerometer</li><li>gyroscope</li><li>compass</li><li>motion</li><li>vibration</li></ul>
+<p>Some of these APIs are particularly relevant to the Windows Phone side of the original XNA ecosystem.</p>
+<p>The public compatibility model belongs in Devices, while the selected platform implementation supplies whatever real native sensor functionality is available.</p>
+<h2 id="devices-extensions">Devices Extensions</h2>
+<p><code>CNA::DevicesExt</code> contains <strong>CNA-specific device and host functionality beyond XNA 4.0</strong>.</p>
+<p>Examples include:</p>
+<ul><li>camera access</li><li>clipboard</li><li>file dialogs</li><li>message boxes</li><li>display information</li><li>locale information</li><li>power information</li><li>system information</li><li>system tray</li><li>URL launching</li></ul>
+<p>These APIs use the Platform contract underneath them.</p>
+<p>The distinction is:</p>
+<pre><code class="language-text">CNA::Devices
+    ↓
+XNA-era compatible device APIs
+
+CNA::DevicesExt
+    ↓
+CNA-specific modern host functionality</code></pre>
+<p>This keeps CNA-specific extensions physically separate from the compatibility-oriented device layer.</p>
+<h2 id="graphics-extensions">Graphics Extensions</h2>
+<p><code>CNA::GraphicsExt</code> contains focused graphics utilities and effects beyond XNA 4.0.</p>
+<p>It contains:</p>
+<ul><li>ASCII post-processing</li><li>CRT effects</li><li>colour-depth reduction and dithering</li><li>standalone <code>DebugDraw</code></li><li><code>ShaderCodeEXT</code> and <code>ShaderPackageEXT</code> values for portable shader variants</li></ul>
+<p>This code is deliberately separate from <code>CNA::GraphicsCore</code>.</p>
+<p>The core Graphics module answers:</p>
+<blockquote><p>How does the XNA graphics model work?</p></blockquote>
+<p>GraphicsExt answers:</p>
+<blockquote><p>What additional graphics utilities and effects should CNA provide?</p></blockquote>
+<p>The extension umbrella is:</p>
+<pre><code class="language-text">CNA::CnaExt</code></pre>
+<p>It composes the extension modules instead of creating another monolithic implementation.</p>
+<h2 id="gamer-services">Gamer Services</h2>
+<p><code>CNA::GamerServices</code> implements the XNA Gamer Services API where meaningful.</p>
+<p>It contains concepts such as:</p>
+<ul><li>gamers</li><li>achievements</li><li>guide functionality</li><li>leaderboards</li><li>avatars</li><li>gamer profiles</li></ul>
+<p>The original Xbox Live infrastructure obviously cannot simply be recreated inside CNA.</p>
+<p>The module therefore focuses on API compatibility and local behavior that can reasonably exist independently of Microsoft&#39;s historical online infrastructure.</p>
+<p>Gamer Services is controlled independently:</p>
+<pre><code class="language-text">CNA_ENABLE_GAMER_SERVICES=ON|OFF</code></pre>
+<p>The option defaults to the value of <code>CNA_ENABLE_NET</code>, preserving the traditional combined configuration. It can also remain enabled while networking is disabled, which allows applications to use areas such as Guide, profiles, achievements, leaderboards and avatars without pulling in ENet.</p>
+<h2 id="networking">Networking</h2>
+<p><code>CNA::Net</code> implements the XNA networking model.</p>
+<p>It contains types such as:</p>
+<ul><li><code>NetworkSession</code></li><li><code>NetworkGamer</code></li><li><code>LocalNetworkGamer</code></li><li><code>PacketReader</code></li><li><code>PacketWriter</code></li><li>session discovery</li><li>session properties</li></ul>
+<p>Its native System Link transport uses <strong>ENet</strong>.</p>
+<p>Networking can be disabled at configure time:</p>
+<pre><code class="language-text">CNA_ENABLE_NET=OFF</code></pre>
+<p><code>CNA_ENABLE_NET=ON</code> requires Gamer Services because the XNA networking model uses its gamer identities. The reverse is not required: Gamer Services can be built without Net.</p>
+<p>When networking is disabled, the Net module does not enter the build and ENet does not become an unnecessary application dependency.</p>
+<h2 id="phone">Phone</h2>
+<p><code>CNA::Phone</code> contains pieces of the Windows Phone application environment expected by XNA phone software outside the main XNA framework namespaces.</p>
+<p>This includes areas such as:</p>
+<pre><code class="language-text">Microsoft::Phone::Shell
+Microsoft::Phone::Notification</code></pre>
+<p>The module exists because reproducing only <code>Microsoft.Xna.Framework</code> is not enough for some Windows Phone-era XNA applications.</p>
+<p>It remains physically separate from the ordinary desktop Runtime module.</p>
+<h2 id="c-api">C API</h2>
+<p><code>CNA::CApi</code> is CNA&#39;s experimental native C ABI.</p>
+<p>Unlike the normal C++ framework, it is built only when explicitly enabled:</p>
+<pre><code class="language-text">CNA_BUILD_C_API=ON</code></pre>
+<p>On ordinary native platforms it provides the <code>cna_c_api</code> library.</p>
+<p>WebAssembly uses an architecture suited to JavaScript and WebAssembly integration.</p>
+<p>The C API wraps the canonical C++ CNA implementation rather than reimplementing the framework.</p>
+<p>Its purpose is to provide a stable language-neutral boundary over the C++ core.</p>
+<p>It is currently the foundation for CNA work involving seven additional application languages:</p>
+<ul><li>C</li><li>C#</li><li>Java</li><li>TypeScript</li><li>Python</li><li>Rust</li><li>Swift</li></ul>
+<p>Together with native C++, that means CNA currently has language work targeting <strong>8 programming languages</strong> around the same C++ core.</p>
+<p><strong>Related article:</strong> <a href="https://blog.libcna.com">CNA in Multiple Programming Languages</a></p>
+<h2 id="the-umbrella-targets">The umbrella targets</h2>
+<p>Although CNA&#39;s physical implementation is modular, it keeps simple application-facing entry points.</p>
+<p>The main target remains:</p>
+<pre><code class="language-text">CNA</code></pre>
+<p>It combines the normal framework modules with the selected renderer.</p>
+<p>There is also:</p>
+<pre><code class="language-text">CNA::CnaExt</code></pre>
+<p>for the CNA extension modules, and:</p>
+<pre><code class="language-text">CNA::Design</code></pre>
+<p>for the opt-in XNA design-time layer.</p>
+<p>When the experimental C API is enabled, there is also:</p>
+<pre><code class="language-text">CNA::CApi</code></pre>
+<p>for the language-neutral native ABI.</p>
+<p>The important point is that physical modularization does not force normal application developers to manually maintain a long list of internal libraries.</p>
+<p>A game can still simply link:</p>
+<pre><code class="language-cmake">target_link_libraries(MyGame PRIVATE CNA)</code></pre>
+<p>while specialized tools can choose narrower modules.</p>
+<h2 id="not-every-dependency-is-allowed-everywhere">Not every dependency is allowed everywhere</h2>
+<p>One of the most important purposes of modularization is dependency ownership.</p>
+<p>For example:</p>
+<pre><code class="language-text">SDL3
+    → SDL3 platform/audio implementations and SDL-backed renderer families
+
+ENet
+    → Net
+
+FFmpeg runtime decoder
+    → VideoFfmpeg
+
+FreeType
+    → ContentPipelineBuild
+
+renderer SDK / native graphics API
+    → corresponding renderer family</code></pre>
+<p>A dependency should live as close as practical to the functionality that actually needs it.</p>
+<p>For example, choosing SDL3 should not make SDL headers part of CNA&#39;s public Platform API.</p>
+<p>Selecting SDL3 should not make SDL a dependency of Math.</p>
+<p>Using Direct3D should not turn the Platform API into a Direct3D API.</p>
+<p>This prevents one implementation detail from becoming an accidental requirement of the entire framework.</p>
+<h2 id="some-real-cycles-remain">Some real cycles remain</h2>
+<p>A modular architecture does not mean pretending that CNA forms a mathematically perfect acyclic graph.</p>
+<p>Some real relationships exist where XNA semantics naturally create cycles.</p>
+<p>One example is Graphics and Input.</p>
+<p><code>GraphicsDevice</code> participates in updating touch-panel and window-related input state, while input functionality such as <code>MouseCursor</code> can depend on graphics resources such as <code>Texture2D</code>.</p>
+<p>Another relationship exists around Audio and Media because <code>FrameworkDispatcher</code> participates in pumping audio and media state while media playback itself uses the audio system.</p>
+<p>Renderers also naturally have a two-way static-library relationship with GraphicsCore:</p>
+<pre><code class="language-text">GraphicsCore
+   ↓
+creates / drives renderer
+
+Renderer
+   ↓
+uses common graphics types and contracts</code></pre>
+<p>CNA declares these relationships explicitly where they genuinely exist.</p>
+<p>That is very different from hiding everything behind one enormous library and claiming the subsystems are independent.</p>
+<p>Modularity means clear ownership and controlled dependencies, not pretending every subsystem can exist in total isolation.</p>
+<h2 id="physical-ownership-is-enforced">Physical ownership is enforced</h2>
+<p>CNA contains configure-time validation for physical source ownership.</p>
+<p>Production translation units are expected to live underneath a declared module:</p>
+<pre><code class="language-text">modules/&lt;name&gt;/src/
+modules/&lt;name&gt;/tests/
+modules/&lt;name&gt;/examples/</code></pre>
+<p>Renderer code similarly belongs underneath its registered renderer implementation family.</p>
+<p>If production code appears outside the known module structure, the configuration can reject it.</p>
+<p>The old global repository-level:</p>
+<pre><code class="language-text">src/
+include/</code></pre>
+<p>layout is not allowed to silently grow back into another monolithic implementation tree.</p>
+<p>There are documented cases where one module consumes source or infrastructure owned by another implementation family, but those relationships are explicit rather than accidental.</p>
+<p>This turns modularity into an architectural rule instead of merely a directory-naming convention.</p>
+<h2 id="why-this-matters-for-cna-s-future">Why this matters for CNA&#39;s future</h2>
+<p>CNA is already large enough that maintaining it as one inseparable C++ library would become increasingly difficult.</p>
+<p>The module architecture gives each major subsystem clearer ownership:</p>
+<pre><code class="language-text">Core
+    → shared CNA foundation
+
+Diagnostics
+    → optional runtime statistics and profiling
+
+Inspector
+    → optional external inspection tool
+
+Math
+    → mathematics
+
+Design
+    → XNA design-time tooling and converters
+
+Platform
+    → host environment
+
+GraphicsCore
+    → XNA graphics contract
+
+Renderers
+    → graphics implementations
+
+Input
+    → user-input model
+
+Audio
+    → sound
+
+Media
+    → songs, video and media libraries
+
+VideoFfmpeg
+    → optional FFmpeg video implementation
+
+Content
+    → runtime asset loading
+
+ContentPipelineBuild
+    → build-time asset processing
+
+Runtime
+    → Game lifecycle
+
+Storage
+    → persistence
+
+Devices
+    → XNA-compatible device APIs
+
+DevicesExt
+    → CNA-specific host/device services
+
+GraphicsExt
+    → CNAEXT graphics functionality
+
+GamerServices / Net
+    → XNA services and networking
+
+Phone
+    → Windows Phone compatibility
+
+CApi
+    → language-neutral ABI</code></pre>
+<p>This also makes future refactoring safer.</p>
+<p>A renderer can be restructured without turning it into the Platform module.</p>
+<p>The Platform implementation can change without rewriting Math.</p>
+<p>SDL3, Headless or Terminal can evolve independently of the XNA-facing input types.</p>
+<p>The content compiler can gain another build-time dependency without forcing it into every running game.</p>
+<p>The Design module can evolve without becoming part of every normal application.</p>
+<p>And a language binding can depend on the C ABI without becoming another implementation of the C++ framework.</p>
+<h2 id="modules-also-make-replacement-possible">Modules also make replacement possible</h2>
+<p>Modularity is not only about organizing source files.</p>
+<p>It also creates replaceable implementation boundaries.</p>
+<p>The Platform contract can be implemented by SDL3, Headless or Terminal.</p>
+<p>The Graphics contract can be implemented by 10 public renderer identities.</p>
+<p>Video can use the optional FFmpeg implementation without making FFmpeg part of the Media API itself.</p>
+<p>Language bindings can reach CNA through the C ABI without becoming part of the canonical C++ implementation.</p>
+<p>This is an important long-term property.</p>
+<p>A dependency can change without forcing every subsystem above it to change at the same time.</p>
+<h2 id="one-framework-many-modules">One framework, many modules</h2>
+<p>From an application developer&#39;s point of view, CNA can still look like one framework:</p>
+<pre><code class="language-cmake">target_link_libraries(MyGame PRIVATE CNA)</code></pre>
+<p>Underneath that simple target, however, CNA is composed from a much more explicit graph of independently owned systems.</p>
+<p>There are currently <strong>22 physical framework modules</strong>, together with <strong>8 renderer implementation families providing 10 public renderer identities</strong>.</p>
+<p>The purpose is not to make users think about twenty-two libraries every time they start a game.</p>
+<p>It is to prevent CNA itself from becoming one inseparable block containing hundreds of thousands of lines of C++ with every dependency leaking everywhere.</p>
+<p>Small pieces can have small dependency closures.</p>
+<p>Tooling-only functionality can remain tooling-only.</p>
+<p>Optional native dependencies can remain optional.</p>
+<p>Platform implementations can remain replaceable.</p>
+<p>Renderer implementations can remain isolated.</p>
+<p>And the public application-facing framework can remain simple.</p>
+<p><strong>The application can see one framework. The implementation can remain many independently owned pieces.</strong></p>
+<hr>
+<p><strong>CNA:</strong> <a href="https://github.com/libcna/cna">github.com/libcna/cna</a> <strong>CNA organization:</strong> <a href="https://github.com/libcna">github.com/libcna</a></p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/architecture/">#Architecture</a><a href="/tag/cnaext/">#CNAEXT</a><a href="/tag/cna/">#CNA</a><a href="/tag/modules/">#Modules</a><a href="/tag/cmake/">#CMake</a><a href="/tag/modularization/">#Modularization</a><a href="/tag/dependencies/">#Dependencies</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

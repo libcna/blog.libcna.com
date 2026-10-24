@@ -1,0 +1,1655 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How is CNA Tested | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA is a large compatibility and graphics project.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/12/20/how-is-cna-tested/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="How is CNA Tested">
+  <meta property="og:description" content="CNA is a large compatibility and graphics project.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/12/20/how-is-cna-tested/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-12-20T18:39:17Z">December 20, 2026</time></span><span>Updated <time datetime="2026-10-17T13:27:58Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">How is CNA Tested</h1>
+      <p class="article-description">CNA is a large compatibility and graphics project.</p>
+    </header>
+    <div class="article-body"><p>CNA is a large compatibility and graphics project.</p>
+<p>Testing it therefore requires more than checking whether:</p>
+<pre><code class="language-text">the project compiles</code></pre>
+<p>or even whether:</p>
+<pre><code class="language-text">thousands of unit tests pass</code></pre>
+<p>A framework can compile successfully while drawing the wrong pixels.</p>
+<p>A renderer can return success while ignoring a texture.</p>
+<p>A content importer can produce structurally valid data while interpreting a scene incorrectly.</p>
+<p>An API can have every expected method while behaving differently from XNA 4.0.</p>
+<p>For that reason, CNA uses several independent levels of verification.</p>
+<p>The overall philosophy is approximately:</p>
+<pre><code class="language-text">source and API checks
+        │
+        ▼
+unit tests
+        │
+        ▼
+integration tests
+        │
+        ▼
+real renderer execution
+        │
+        ▼
+pixel readback
+        │
+        ▼
+cross-renderer comparison
+        │
+        ▼
+reference / oracle comparison
+        │
+        ▼
+sanitizers and fuzzing
+        │
+        ▼
+real application workloads</code></pre>
+<p>No single layer proves that CNA is correct.</p>
+<p>Together they provide much stronger evidence than one large test counter.</p>
+<hr>
+<h2 id="the-normal-test-command">The normal test command</h2>
+<p>For a normal CNA development build, testing begins with CMake and CTest.</p>
+<p>For example:</p>
+<pre><code class="language-bash">cmake -S . -B build \
+    -DCNA_GRAPHICS_RENDERER=OPENGLES3
+
+cmake --build build
+
+scripts/check_clean_checkout.sh -- \
+    tools/platform/run_gpu_tests_private.sh build --output-on-failure</code></pre>
+<p>The private-display wrapper keeps GPU and window tests away from the developer&#39;s live desktop. The outer checkout check also proves that the validation run did not modify tracked source files. A direct <code>ctest --test-dir build --output-on-failure</code> remains useful when the caller has already supplied an isolated display and appropriate environment.</p>
+<p><code>CnaTests</code> contains the large shared GoogleTest-based test corpus.</p>
+<p>But CTest also registers many additional standalone tests, especially for graphics renderers, tools, integration tests and platform-specific functionality.</p>
+<p>This distinction matters:</p>
+<pre><code class="language-text">CnaTests
+    one large shared test executable
+
+CTest
+    orchestrates CnaTests
+    + renderer-specific executables
+    + integration tests
+    + tools
+    + scripts
+    + platform tests</code></pre>
+<p>So running only the <code>CnaTests</code> binary is not necessarily equivalent to running the full CNA test configuration.</p>
+<hr>
+<h2 id="cna-has-thousands-of-tests">CNA has thousands of tests</h2>
+<p>The exact number changes as regression tests and architecture gates evolve, and because different build configurations register different suites.</p>
+<p>The latest documented full Debug multi-renderer configuration, measured on 17 October 2026, registered <strong>11,433 CTest tests</strong>. Current single-renderer configurations in the same validation pass registered roughly 10,800 to 11,300 tests, depending on the selected renderer and enabled features.</p>
+<p>The 11,433-test run recorded one driver-dependent 2x-MSAA conformance failure and 195 capability or environment skips. Dedicated SDL_GPU, WebGPU and Software configurations from the same pass completed with no failures. Publishing the outcome together with its skips and known external limitation is more useful than quoting only the largest number.</p>
+<p>But CNA intentionally does not treat:</p>
+<pre><code class="language-text">11,433 tests</code></pre>
+<p>or any other exact number as a permanent project-quality metric.</p>
+<p>The count depends on:</p>
+<ul><li>selected renderer;</li><li>enabled modules;</li><li>platform;</li><li>optional dependencies;</li><li>test executables included in that build;</li><li>new regression tests added during development.</li></ul>
+<p>A much more useful question is:</p>
+<blockquote><p>What properties do those tests prove?</p></blockquote>
+<p>That is how CNA&#39;s testing strategy is organized.</p>
+<hr>
+<h2 id="unit-tests">Unit tests</h2>
+<p>The lowest major layer is conventional unit testing.</p>
+<p>These tests cover individual framework components such as:</p>
+<pre><code class="language-text">Vector2
+Vector3
+Vector4
+Matrix
+Quaternion
+
+BoundingBox
+BoundingSphere
+BoundingFrustum
+Ray
+Plane
+
+Color
+Rectangle
+MathHelper
+Curve</code></pre>
+<p>as well as much larger areas including:</p>
+<pre><code class="language-text">Graphics
+Input
+Audio
+Content
+Storage
+Networking
+GamerServices
+Devices
+C API</code></pre>
+<p>A math test can verify something simple and deterministic:</p>
+<pre><code class="language-cpp">Vector3 result = Vector3::Cross(a, b);
+
+EXPECT_EQ(result, expected);</code></pre>
+<p>Other tests validate state transitions, exception behavior, serialization or object lifetime.</p>
+<p>These tests are fast and useful, but they are only the first layer.</p>
+<p>A passing <code>Matrix</code> test tells us nothing about whether SDL_GPU or WebGPU renders a textured triangle correctly.</p>
+<hr>
+<h2 id="api-compatibility-tests">API compatibility tests</h2>
+<p>CNA is a reimplementation of the XNA 4.0 programming model.</p>
+<p>That means testing also has to answer:</p>
+<blockquote><p>Does CNA expose the API that an XNA-style program expects?</p></blockquote>
+<p>The project therefore performs generated API-surface audits against the documented Microsoft XNA 4.0 runtime surface and behavioral checks against FNA and genuine XNA observations. Every documented XNA runtime type and member is represented in the current census, but representation alone is not treated as behavioral compatibility.</p>
+<p>The current CNA source tracks the presence of public types across areas such as:</p>
+<pre><code class="language-text">Framework
+Graphics
+Input
+Audio
+Media
+Content
+Storage
+Net
+GamerServices</code></pre>
+<p>This catches a different category of problem.</p>
+<p>For example:</p>
+<pre><code class="language-text">implementation works</code></pre>
+<p>is not enough if:</p>
+<pre><code class="language-text">the public method has the wrong name
+the enum value is wrong
+the overload is missing
+the constructor has the wrong signature</code></pre>
+<p>A compatibility framework has to test both:</p>
+<pre><code class="language-text">API shape</code></pre>
+<p>and:</p>
+<pre><code class="language-text">runtime behavior</code></pre>
+<hr>
+<h2 id="header-and-compile-contract-tests">Header and compile-contract tests</h2>
+<p>Some API defects can be found before anything runs.</p>
+<p>CNA contains compile-oriented tests that verify things such as:</p>
+<pre><code class="language-text">public headers compile independently
+
+expected symbols exist
+
+enums have the required numeric values
+
+C API structures keep their ABI layout
+
+public declarations do not accidentally expose
+private implementation dependencies</code></pre>
+<p>This is especially important for CNA&#39;s public C API.</p>
+<p>An ABI can be broken even when every source file inside the CNA repository still compiles.</p>
+<p>For example:</p>
+<pre><code class="language-text">struct field reordered</code></pre>
+<p>may look harmless internally while breaking every already-compiled external program using that ABI.</p>
+<p>CNA therefore maintains dedicated ABI and compatibility gates.</p>
+<hr>
+<h2 id="behavioral-compatibility">Behavioral compatibility</h2>
+<p>Having the correct API surface is not enough.</p>
+<p>Consider:</p>
+<pre><code class="language-cpp">RasterizerState::CullCounterClockwise</code></pre>
+<p>The type may exist.</p>
+<p>The value may compile.</p>
+<p>But if the renderer interprets winding in the opposite direction, an XNA game may suddenly lose half of its geometry.</p>
+<p>CNA therefore also performs behavioral compatibility testing.</p>
+<p>This includes areas such as:</p>
+<pre><code class="language-text">culling
+depth
+stencil
+blending
+sampler state
+SpriteBatch behavior
+effect parameters
+render targets
+resource lifetime
+content loading
+input state</code></pre>
+<p>Some of these tests were built specifically after differences between CNA and the original framework were discovered.</p>
+<p>A compatibility bug is not considered solved merely because the source code appears mathematically reasonable.</p>
+<p>The resulting behavior has to be measured.</p>
+<hr>
+<h2 id="testing-against-real-xna-4-0">Testing against real XNA 4.0</h2>
+<p>One of CNA&#39;s strongest compatibility techniques is the use of <strong>reference output produced by the real Microsoft XNA 4.0 runtime</strong>.</p>
+<p>This is especially valuable for graphics.</p>
+<p>For example, CNA&#39;s Direct3D 9 renderer has a dedicated XNA pixel-oracle corpus.</p>
+<p>The idea is simple:</p>
+<pre><code class="language-text">same scene
+   │
+   ├────────► Microsoft XNA 4.0
+   │                │
+   │                ▼
+   │         reference pixels
+   │
+   └────────► CNA DirectX 9
+                    │
+                    ▼
+               CNA pixels
+
+                       │
+                       ▼
+                    compare</code></pre>
+<p>The current DirectX 9 oracle contains <strong>31 scenes</strong>.</p>
+<p>At the current verified state:</p>
+<pre><code class="language-text">0 / 31 scenes diverge</code></pre>
+<p>when compared at:</p>
+<pre><code class="language-text">tolerance = 0</code></pre>
+<p>That means the compared pixels are expected to match exactly.</p>
+<p>This is much stronger evidence than saying:</p>
+<blockquote><p>CNA&#39;s implementation looks similar to XNA&#39;s source-level design.</p></blockquote>
+<p>The actual Microsoft runtime rendered one image.</p>
+<p>CNA rendered another.</p>
+<p>The images were compared.</p>
+<hr>
+<h2 id="why-exact-reference-images-matter">Why exact reference images matter</h2>
+<p>Graphics bugs can be extremely subtle.</p>
+<p>For example:</p>
+<pre><code class="language-text">one blend factor reversed
+one half-pixel convention wrong
+wrong culling orientation
+incorrect depth range
+incorrect alpha test
+wrong texture coordinate
+wrong fog equation</code></pre>
+<p>may produce output that still looks plausible.</p>
+<p>A human reviewer might not notice.</p>
+<p>A pixel oracle does.</p>
+<p>This is why CNA contains compatibility investigations around issues such as:</p>
+<pre><code class="language-text">XNA culling behavior
+XNA depth behavior
+XNA occlusion behavior
+stock Effect behavior</code></pre>
+<p>with captured images and independently measured reference output.</p>
+<hr>
+<h2 id="renderer-specific-tests">Renderer-specific tests</h2>
+<p>CNA exposes ten public renderer identities across eight implementation families.</p>
+<p>Each renderer therefore has its own dedicated tests.</p>
+<p>Examples include suites for:</p>
+<pre><code class="language-text">OPENGLES3
+OPENGL33
+WEBGL2
+WEBGPU
+SDL_GPU
+FNA3D
+DIRECTX9
+SOFTWARE
+HEADLESS
+STUB</code></pre>
+<p><code>OPENGLES3</code>, <code>OPENGL33</code> and <code>WEBGL2</code> share the EasyGL implementation, which is why ten public identities map to eight concrete families. Forty-one older identities have been retired; their historical tests remain useful evidence in Git history, but they are not current selectable renderers.</p>
+<p>The scope depends on what the renderer is supposed to support.</p>
+<p>For a full 3D renderer, tests may cover:</p>
+<pre><code class="language-text">Texture2D
+Texture3D
+TextureCube
+
+VertexBuffer
+IndexBuffer
+
+BasicEffect
+AlphaTestEffect
+DualTextureEffect
+EnvironmentMapEffect
+SkinnedEffect
+
+PbrEffect
+
+RenderTarget2D
+RenderTargetCube
+MRT
+
+MSAA
+OcclusionQuery
+
+BlendState
+RasterizerState
+DepthStencilState
+SamplerState
+
+SpriteBatch
+SpriteFont
+
+custom ShaderEffect
+instancing</code></pre>
+<p>A renderer with a deliberately narrower contract is not expected to pass an unsupported feature by pretending to implement it. <code>SOFTWARE</code> is a bounded CPU renderer, while <code>HEADLESS</code> and <code>STUB</code> make no pixel-fidelity claim.</p>
+<p>Unsupported features are expected to be reported explicitly.</p>
+<hr>
+<h2 id="real-rendering-not-only-mocks">Real rendering, not only mocks</h2>
+<p>Many CNA graphics tests actually create a renderer and render pixels.</p>
+<p>For example:</p>
+<pre><code class="language-text">create graphics device
+        │
+        ▼
+upload vertex data
+        │
+        ▼
+draw triangle
+        │
+        ▼
+read framebuffer
+        │
+        ▼
+inspect pixel</code></pre>
+<p>A test may ask:</p>
+<pre><code class="language-text">Did the center pixel become red?</code></pre>
+<p>or:</p>
+<pre><code class="language-text">Did this side of the triangle remain the clear colour?</code></pre>
+<p>This sounds simple, but it proves a large stack simultaneously:</p>
+<pre><code class="language-text">vertex upload
+shader
+pipeline state
+draw command
+rasterization
+render target
+readback</code></pre>
+<p>If one of those components is silently broken, the pixel normally exposes it.</p>
+<hr>
+<h2 id="pixel-readback-tests">Pixel readback tests</h2>
+<p>Pixel-readback testing is heavily used throughout CNA&#39;s renderer work.</p>
+<p>A typical test might render:</p>
+<pre><code class="language-text">red triangle</code></pre>
+<p>over:</p>
+<pre><code class="language-text">blue background</code></pre>
+<p>and then read several carefully selected pixels.</p>
+<p>Those pixels can prove very specific properties.</p>
+<p>For example:</p>
+<pre><code class="language-text">center is red
+    triangle was drawn
+
+outside is blue
+    geometry did not cover everything
+
+back-facing triangle is blue
+    culling worked
+
+half-transparent pixel has expected value
+    blending worked</code></pre>
+<p>This is often considerably stronger than testing whether:</p>
+<pre><code class="language-cpp">renderer.Draw(...)</code></pre>
+<p>returned without throwing.</p>
+<p>A renderer can successfully accept a command and still implement it incorrectly.</p>
+<hr>
+<h2 id="negative-tests-matter-too">Negative tests matter too</h2>
+<p>CNA also deliberately tests unsupported behavior.</p>
+<p>For example, if a renderer cannot support:</p>
+<pre><code class="language-text">Texture3D</code></pre>
+<p>the correct result may be:</p>
+<pre><code class="language-text">explicit NotSupportedException</code></pre>
+<p>rather than silently allocating some unrelated 2D texture.</p>
+<p>This makes capability boundaries testable.</p>
+<p>A successful failure is sometimes the correct result.</p>
+<p>This is especially important because CNA contains unusual renderers with very different capabilities.</p>
+<hr>
+<h2 id="shared-cross-renderer-tests">Shared cross-renderer tests</h2>
+<p>Renderer-specific tests prove that one backend works.</p>
+<p>They do not prove that different renderers interpret CNA&#39;s API consistently.</p>
+<p>CNA therefore also uses <strong>shared cross-renderer test fixtures</strong>.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">same test scene
+      │
+      ├── EasyGL
+      ├── SDL_GPU
+      ├── WebGPU
+      ├── Software
+      └── FNA3D / DirectX 9
+              │
+              ▼
+         compare behavior</code></pre>
+<p>This can test properties such as:</p>
+<pre><code class="language-text">clear colour
+triangle orientation
+SpriteBatch placement
+texture sampling
+wireframe
+blend behavior</code></pre>
+<p>A shared test has an important advantage.</p>
+<p>If four renderers pass and one does not, the failing implementation becomes easier to isolate.</p>
+<hr>
+<h2 id="golden-image-testing">Golden image testing</h2>
+<p>Some renderer tests use committed <strong>golden images</strong>.</p>
+<p>A known-good renderer produces a reference frame.</p>
+<p>Another renderer produces the same scene.</p>
+<p>The outputs are compared.</p>
+<p>For example:</p>
+<pre><code class="language-text">reference renderer
+       │
+       ▼
+  golden.png
+
+tested renderer
+       │
+       ▼
+  actual.png
+
+       │
+       ▼
+     compare</code></pre>
+<p>Golden images are especially useful for renderers where individual pixel probes would not capture the complete visual contract.</p>
+<p>CNA&#39;s cross-renderer corpus includes deliberately small scenes whose expected output is stable and understandable.</p>
+<hr>
+<h2 id="a-golden-image-should-not-become-unquestionable-truth">A golden image should not become unquestionable truth</h2>
+<p>Golden-image testing has an obvious danger.</p>
+<p>If the reference itself is wrong, every renderer can faithfully reproduce the same bug.</p>
+<p>CNA therefore tries to use independent evidence where practical.</p>
+<p>This can mean comparing against:</p>
+<pre><code class="language-text">real XNA 4.0
+
+another CNA renderer
+
+Khronos glTF Sample Viewer/reference renderer
+
+hand-derived expected values
+
+an independently written oracle</code></pre>
+<p>The more independent the reference is from the implementation under test, the stronger the evidence.</p>
+<hr>
+<h2 id="gltf-has-its-own-conformance-campaign">glTF has its own conformance campaign</h2>
+<p>CNA&#39;s glTF support uses an unusually deep verification system.</p>
+<p>It is not tested only by:</p>
+<pre><code class="language-text">load file
+no exception</code></pre>
+<p>The importer is checked at multiple levels.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">L0
+corpus, provenance and oracle self-checks
+
+L1
+parsed structure
+
+L2
+decoded accessors
+
+L3
+semantic primitives
+
+L4
+world-space geometry
+
+L5
+exact GPU-oriented bytes
+
+L6
+runtime behavior
+
+L7
+final rendered pixels</code></pre>
+<p>Different bugs become visible at different layers.</p>
+<p>The current L7 inventory has 148 explicit EasyGL dispositions: 140 committed PNG expectations and eight deliberate safe rejections. A fixture is therefore never silently omitted merely because it cannot be rendered.</p>
+<hr>
+<h2 id="l2-decoded-accessor-values">L2: decoded accessor values</h2>
+<p>A glTF accessor may involve:</p>
+<pre><code class="language-text">buffer offsets
+strides
+normalization
+sparse data
+integer formats
+quantization</code></pre>
+<p>The importer therefore records and compares decoded values.</p>
+<p>If:</p>
+<pre><code class="language-text">POSITION accessor</code></pre>
+<p>should decode to:</p>
+<pre><code class="language-text">(1, 2, 3)</code></pre>
+<p>but CNA produces:</p>
+<pre><code class="language-text">(1, 3, 2)</code></pre>
+<p>there is no need to wait for a screenshot to reveal the problem.</p>
+<p>The structural layer catches it first.</p>
+<hr>
+<h2 id="l4-world-geometry">L4: world geometry</h2>
+<p>A glTF file also contains scene transforms.</p>
+<p>Correct local vertex values are therefore not enough.</p>
+<p>CNA tests independently computed world-space geometry.</p>
+<p>This catches errors involving:</p>
+<pre><code class="language-text">parent/child transform order
+matrix layout
+quaternion interpretation
+scene selection
+node hierarchy</code></pre>
+<p>A cube with correct local coordinates can still appear in the wrong place if its node hierarchy is interpreted incorrectly.</p>
+<hr>
+<h2 id="l5-exact-vertex-and-index-bytes">L5: exact vertex and index bytes</h2>
+<p>CNA&#39;s glTF oracle infrastructure can also compare the exact bytes that reach the later rendering stages.</p>
+<p>For example:</p>
+<pre><code class="language-text">vertex buffer bytes
+index buffer bytes</code></pre>
+<p>are represented deterministically.</p>
+<p>This catches differences that may be visually hidden in one particular camera view.</p>
+<hr>
+<h2 id="l7-the-production-viewer">L7: the production viewer</h2>
+<p>The final glTF layer deliberately goes through:</p>
+<p><strong>cna-gltf-viewer</strong></p>
+<p>rather than through a synthetic testing renderer.</p>
+<p>The viewer is a normal CNA application.</p>
+<p>The test therefore exercises:</p>
+<pre><code class="language-text">glTF importer
+     │
+     ▼
+ContentManager
+     │
+     ▼
+Model
+     │
+     ▼
+Effects
+     │
+     ▼
+CNA renderer
+     │
+     ▼
+real framebuffer</code></pre>
+<p>The viewer can run twice in independent processes and produce deterministic captures.</p>
+<p>For renderable corpus cases, those images can be required to be byte-identical between runs.</p>
+<hr>
+<h2 id="comparison-with-khronos">Comparison with Khronos</h2>
+<p>CNA&#39;s glTF work also compares selected output with the pinned Khronos glTF Sample Renderer.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">                   same glTF
+                      │
+          ┌───────────┴───────────┐
+          ▼                       ▼
+ cna-gltf-viewer          Khronos renderer
+          │                       │
+          ▼                       ▼
+       CNA PNG              reference PNG
+          │                       │
+          └───────────┬───────────┘
+                      ▼
+                   compare</code></pre>
+<p>The camera configuration is controlled so both renderers view the same scene from the same presentation setup.</p>
+<p>This catches high-level semantic mistakes such as:</p>
+<pre><code class="language-text">wrong material
+wrong UV set
+incorrect normal map
+bad animation pose
+wrong transform
+incorrect alpha
+wrong camera</code></pre>
+<p>that lower-level tests may miss.</p>
+<p>This external renderer is diagnostic evidence used during local qualification. It is pinned by commit and version, but it is deliberately neither a runtime dependency nor a CI dependency; the committed CNA-authored corpus and the L0-L7 gates must remain independently reproducible.</p>
+<hr>
+<h2 id="determinism-is-tested">Determinism is tested</h2>
+<p>For many CNA systems, producing correct output once is not enough.</p>
+<p>The result should also be reproducible.</p>
+<p>This matters especially for:</p>
+<pre><code class="language-text">content compilation
+glTF conversion
+CNB files
+golden images
+test fixtures
+generated manifests</code></pre>
+<p>A deterministic converter should not produce different bytes because:</p>
+<pre><code class="language-text">temporary directory changed
+
+process ID changed
+
+thread order changed
+
+current timestamp changed
+
+memory address changed</code></pre>
+<p>CNA therefore contains tests that regenerate assets and verify that they are <strong>byte-identical</strong> to the expected result.</p>
+<p>This makes test failures reproducible instead of probabilistic.</p>
+<hr>
+<h2 id="the-content-pipeline-is-tested-as-a-build-system">The Content Pipeline is tested as a build system</h2>
+<p>The CNA Content Pipeline has a different test surface from the renderer.</p>
+<p>It needs to prove things such as:</p>
+<pre><code class="language-text">source asset imported correctly
+
+processor receives correct data
+
+CNB output is deterministic
+
+dependencies are tracked
+
+incremental build skips unchanged content
+
+changed dependency rebuilds dependents
+
+manifest remains correct
+
+clean removes only owned files
+
+parallel workers produce the same result
+
+atomic publication does not expose half-written assets</code></pre>
+<p>This is why testing the content pipeline is not equivalent to testing <code>ContentManager</code>.</p>
+<p>One runs at build time.</p>
+<p>The other runs inside the application.</p>
+<p>Both need independent coverage.</p>
+<p>The XNA-compatible pipeline adds another oracle layer. Generated inventories and parity reports are checked for freshness; importer and processor routes, defaults and supported outputs are measured against genuine XNA assemblies and recorded XNA behavior. Where the evidence permits it, CNA also compares the resulting XNB structure or bytes.</p>
+<p>Some genuine-runtime and differential-build cases require an external XNA and Wine environment. They remain explicit opt-in or external tests instead of being reported as passing in the ordinary private-display suite.</p>
+<hr>
+<h2 id="cnb-binary-tests">CNB binary tests</h2>
+<p>CNB is CNA&#39;s native binary content format.</p>
+<p>Its tests include validation of properties such as:</p>
+<pre><code class="language-text">header layout
+little-endian encoding
+chunk table
+asset IDs
+schema versions
+CRC-32C
+compression
+external references
+invalid offsets
+truncated input</code></pre>
+<p>Golden binary vectors are particularly useful here.</p>
+<p>If a stable CNB encoder suddenly changes bytes unexpectedly, the tests can detect it.</p>
+<p>That protects long-term content compatibility.</p>
+<hr>
+<h2 id="input-testing-without-hardware">Input testing without hardware</h2>
+<p>Input is another area where naïve tests are insufficient.</p>
+<p>A test machine may not have:</p>
+<pre><code class="language-text">gamepad
+touchscreen
+sensor
+IME
+haptic device</code></pre>
+<p>CNA therefore separates the problem.</p>
+<p>The translation logic can be tested with synthetic platform implementations.</p>
+<p>For example:</p>
+<pre><code class="language-text">fake IPlatformGamepad
+        │
+        ▼
+public GamePad API
+        │
+        ▼
+expected GamePadState</code></pre>
+<p>This can verify:</p>
+<pre><code class="language-text">button mapping
+axis mapping
+slot assignment
+capabilities
+GUID formatting
+hot-plug bookkeeping</code></pre>
+<p>without requiring a physical controller for every CI run.</p>
+<hr>
+<h2 id="but-physical-hardware-still-matters">But physical hardware still matters</h2>
+<p>A fake gamepad can prove that:</p>
+<pre><code class="language-text">rumble command reaches the platform interface</code></pre>
+<p>It cannot prove that:</p>
+<pre><code class="language-text">the motor in a real controller actually spins</code></pre>
+<p>Likewise, synthetic sensor values cannot prove that a real phone&#39;s accelerometer behaves correctly.</p>
+<p>CNA therefore explicitly records areas that remain hardware-gated.</p>
+<p>Examples include:</p>
+<pre><code class="language-text">real gamepad rumble
+
+real trigger haptics
+
+live device sensors
+
+real controller hot-plug
+
+real IME composition
+
+some OS-specific pointer behavior</code></pre>
+<p>This distinction is important.</p>
+<p>A test suite should not claim evidence it does not have.</p>
+<hr>
+<h2 id="platform-testing">Platform testing</h2>
+<p>CNA&#39;s Platform API is tested separately from individual graphics renderers.</p>
+<p>Current platform implementations include:</p>
+<pre><code class="language-text">SDL3
+HEADLESS
+TERMINAL</code></pre>
+<p>SDL3 is the only windowed implementation. Headless is available everywhere, while Terminal is POSIX-only. CNA&#39;s former SDL2 and direct Win32, X11 and Wayland implementations have been retired; SDL3 reaches those desktop window systems through its own video drivers.</p>
+<p>Tests cover platform-neutral contracts such as:</p>
+<pre><code class="language-text">window state
+events
+input
+display behavior
+lifecycle
+native handles
+capabilities</code></pre>
+<p>There are also source-level architecture gates that ensure platform abstraction rules remain intact.</p>
+<p>For example, scripts audit direct SDL use so new code cannot quietly bypass <code>IPlatform</code>.</p>
+<p>This is an unusual but important class of test:</p>
+<pre><code class="language-text">architecture itself</code></pre>
+<p>is being tested.</p>
+<hr>
+<h2 id="headless-testing">Headless testing</h2>
+<p>The Headless platform is particularly valuable in CI.</p>
+<p>It can run without:</p>
+<pre><code class="language-text">DISPLAY
+WAYLAND_DISPLAY
+real graphics window</code></pre>
+<p>This makes it useful for verifying framework logic in environments where a desktop session is unavailable.</p>
+<p>It is also used as a control configuration for features such as runtime renderer selection.</p>
+<hr>
+<h2 id="terminal-testing">Terminal testing</h2>
+<p>The Terminal platform is exercised through a pseudo-terminal.</p>
+<p>That means CNA can test real terminal behavior instead of merely calling methods on a mock object.</p>
+<p>For example, integration tests can verify:</p>
+<pre><code class="language-text">terminal frame presentation
+keyboard event handling
+terminal lifecycle</code></pre>
+<p>inside an actual pseudo-TTY environment.</p>
+<hr>
+<h2 id="runtime-renderer-selection-tests">Runtime renderer selection tests</h2>
+<p>CNA can also build multiple renderers into one executable.</p>
+<p>That creates another test requirement:</p>
+<pre><code class="language-text">Was every requested renderer actually compiled in?
+
+Can every one be selected?
+
+Does environment-variable selection work?
+
+Did enabling this mode break normal single-renderer builds?</code></pre>
+<p>The multi-renderer CI therefore builds a controlled set such as:</p>
+<pre><code class="language-text">HEADLESS
+SOFTWARE
+STUB</code></pre>
+<p>and explicitly launches the selection demo with each renderer.</p>
+<p>It also builds a normal single-renderer control configuration and runs the same shared suite.</p>
+<p>This protects backward compatibility of the traditional build mode.</p>
+<hr>
+<h2 id="windows-renderer-testing-from-linux">Windows renderer testing from Linux</h2>
+<p>CNA&#39;s Windows renderer paths are also developed and validated from a Linux workstation.</p>
+<p>That does not mean they are only compile-tested.</p>
+<p>The project uses combinations including:</p>
+<pre><code class="language-text">MinGW-w64
+Wine
+DXVK
+vkd3d-proton</code></pre>
+<p>to execute actual Windows graphics code.</p>
+<p>For example:</p>
+<pre><code class="language-text">CNA DirectX 9
+       │
+       ▼
+     Wine
+       │
+       ▼
+     DXVK
+       │
+       ▼
+    Vulkan
+       │
+       ▼
+  real GPU / driver</code></pre>
+<p>This allows real Direct3D calls and real rendered pixels to be exercised without requiring the entire development loop to move to Windows.</p>
+<hr>
+<h2 id="sdlgpu-s-direct3d-12-path">SDL_GPU&#39;s Direct3D 12 path</h2>
+<p>The same principle extends to SDL_GPU&#39;s Direct3D 12 driver through:</p>
+<pre><code class="language-text">Wine
++
+vkd3d-proton</code></pre>
+<p><code>DIRECTX12</code> is no longer a CNA renderer identity. SDL_GPU is CNA&#39;s modern native renderer, and SDL selects Direct3D 12 underneath it on Windows. MinGW-w64 builds exercise that path under Wine and vkd3d-proton, including device creation, drawing and pixel readback. A manual MSVC workflow also defines focused native-Windows smoke legs for <code>DIRECTX9</code> and <code>SDL_GPU</code>.</p>
+<p>Where presentation cannot be validated reliably in that environment, the limitation is documented instead of being converted into a fake success.</p>
+<p>Again:</p>
+<pre><code class="language-text">tested</code></pre>
+<p>and:</p>
+<pre><code class="language-text">theoretically supported</code></pre>
+<p>are deliberately kept separate.</p>
+<hr>
+<h2 id="webassembly-testing">WebAssembly testing</h2>
+<p>CNA also has dedicated Emscripten validation.</p>
+<p>A WebAssembly configuration can prove:</p>
+<pre><code class="language-text">C++ compiles under Emscripten
+
+all requested renderer archives link
+
+generated registry contains every renderer
+
+JavaScript-facing renderer selection exports exist
+
+WASM artifact is produced</code></pre>
+<p>Dedicated scripts and recorded qualification runs execute the surviving browser renderers, <code>WEBGL2</code> and <code>WEBGPU</code>, in Chrome and inspect real rendered output.</p>
+<p>The Emscripten multi-renderer CI job has a narrower responsibility: it proves that <code>WEBGL2</code> and <code>WEBGPU</code> link into one Wasm bundle, that both registry entries are present and that the JavaScript selection surface is exported. That particular job does not launch the bundle in a browser.</p>
+<p>The CI comments explicitly distinguish:</p>
+<pre><code class="language-text">bundle successfully built</code></pre>
+<p>from:</p>
+<pre><code class="language-text">runtime behavior verified in a real browser</code></pre>
+<p>That is an important recurring principle in CNA.</p>
+<hr>
+<h2 id="macos-and-ios">macOS and iOS</h2>
+<p>CNA now has a native Apple workflow rather than only future-facing source infrastructure.</p>
+<p>On macOS, CI builds CNA with <code>SOFTWARE</code>, runs the portable platform and storage suites, creates a self-contained <code>.app</code> bundle and launches a smoke application. The workflow also contains a gating SDL_GPU smoke job that uses SDL&#39;s Metal driver.</p>
+<p>For iOS/iPadOS, the workflow final-links real device and simulator application bundles. The <code>SOFTWARE</code> simulator application is installed and launched for a one-frame <code>Game</code> smoke test; SDL_GPU device and simulator legs remain experimental and non-gating.</p>
+<p>Those results still do not make every Apple path fully qualified merely because:</p>
+<pre><code class="language-text">Apple-specific source exists</code></pre>
+<p>or:</p>
+<pre><code class="language-text">a cross-platform test can compile that code path</code></pre>
+<p>Physical iPhone/iPad execution, touch, audio, storage and performance qualification remain unverified. Build evidence, simulator execution and physical-device qualification are therefore kept as separate claims.</p>
+<hr>
+<h2 id="sanitizers">Sanitizers</h2>
+<p>Functional tests answer:</p>
+<blockquote><p>Did this produce the expected result?</p></blockquote>
+<p>They do not necessarily answer:</p>
+<blockquote><p>Did it invoke undefined behavior while doing so?</p></blockquote>
+<p>CNA therefore also uses sanitizers.</p>
+<p>A particularly important example is the glTF import path.</p>
+<p>It is tested under:</p>
+<pre><code class="language-text">AddressSanitizer
++
+UndefinedBehaviorSanitizer</code></pre>
+<p>with both Draco-enabled and Draco-disabled configurations.</p>
+<p>This has already found real problems.</p>
+<p>One example involved a misaligned floating-point load triggered by malformed sparse glTF fixture data.</p>
+<p>The normal functional path could appear to work.</p>
+<p>UBSan exposed the invalid memory behavior.</p>
+<p>The importer validation was then strengthened so malformed input is rejected before reaching that operation.</p>
+<hr>
+<h2 id="why-sanitizer-suites-are-scoped">Why sanitizer suites are scoped</h2>
+<p>An interesting property of CNA&#39;s sanitizer CI is that some jobs are deliberately narrow.</p>
+<p>For example:</p>
+<pre><code class="language-text">glTF importer under ASan + UBSan</code></pre>
+<p>is expected to be fully green.</p>
+<p>The project does not simply run an enormous sanitizer build and then maintain a giant allow-list of unrelated warnings.</p>
+<p>Why?</p>
+<p>Because:</p>
+<pre><code class="language-text">sanitizer warning
+      +
+allow-list
+      +
+another warning
+      +
+another allow-list</code></pre>
+<p>eventually produces a sanitizer job that everyone ignores.</p>
+<p>A narrow fully-green sanitizer gate gives a much stronger signal.</p>
+<hr>
+<h2 id="fuzz-testing">Fuzz testing</h2>
+<p>CNA also contains fuzz testing.</p>
+<p>The C API is particularly suitable for this because it accepts untrusted raw data through a relatively small number of parsing boundaries.</p>
+<p>The project uses two complementary approaches.</p>
+<hr>
+<h2 id="exhaustive-utf-8-testing">Exhaustive UTF-8 testing</h2>
+<p>For short strings, CNA does not merely sample random inputs.</p>
+<p>It enumerates them.</p>
+<p>The C API UTF-8 oracle test runs <strong>every byte sequence of length one, two and three</strong>.</p>
+<p>That is:</p>
+<pre><code class="language-text">16,843,008 input sequences</code></pre>
+<p>tested under both embedded-NUL policies.</p>
+<p>This covers difficult UTF-8 cases such as:</p>
+<pre><code class="language-text">invalid continuation bytes
+truncation
+overlong sequences
+surrogates
+invalid lead bytes
+out-of-range code points</code></pre>
+<p>The space is small enough that random fuzzing would be weaker than exhaustive enumeration.</p>
+<p>So CNA simply tests the entire space.</p>
+<hr>
+<h2 id="independent-oracle">Independent oracle</h2>
+<p>The UTF-8 test does not compare the implementation with another copy of the same algorithm.</p>
+<p>That would reproduce the same mistakes.</p>
+<p>Instead the production implementation and test oracle use different approaches.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">production validator
+    checks byte structure
+
+independent oracle
+    reconstructs code point
+    and validates Unicode value</code></pre>
+<p>If both agree for millions of inputs, that is stronger evidence than testing one implementation against itself.</p>
+<hr>
+<h2 id="libfuzzer">libFuzzer</h2>
+<p>For larger and more complicated input spaces, exhaustive enumeration becomes impossible.</p>
+<p>CNA therefore also contains a coverage-guided:</p>
+<pre><code class="language-text">libFuzzer</code></pre>
+<p>target.</p>
+<p>It is normally run with:</p>
+<pre><code class="language-text">AddressSanitizer</code></pre>
+<p>and can explore longer or unexpected input structures.</p>
+<p>Unlike the finite UTF-8 sweep, a fuzzer has no natural completion point.</p>
+<p>For that reason it is not treated as a normal CTest that must terminate on every commit.</p>
+<p>The target is kept buildable so it does not silently rot between dedicated fuzzing campaigns.</p>
+<hr>
+<h2 id="mutation-testing-as-evidence">Mutation testing as evidence</h2>
+<p>CNA development also frequently uses <strong>mutation tests</strong> during difficult renderer work.</p>
+<p>This is not one global automated mutation-testing framework.</p>
+<p>Instead, when a regression test is introduced, the implementation may temporarily be deliberately broken to prove that the new test actually detects the defect.</p>
+<p>For example:</p>
+<pre><code class="language-text">correct implementation
+        │
+        ▼
+test passes
+
+intentionally disable texture binding
+        │
+        ▼
+test must fail
+
+restore implementation
+        │
+        ▼
+test passes again</code></pre>
+<p>This answers an important question:</p>
+<blockquote><p>Does this test actually distinguish correct behavior from the bug it claims to prevent?</p></blockquote>
+<p>A green test that also stays green when the implementation is deliberately broken is not a useful regression test.</p>
+<p>Several CNA renderer campaigns explicitly record this mutation evidence.</p>
+<hr>
+<h2 id="test-order-independence">Test order independence</h2>
+<p>Some errors appear only when tests run after other tests.</p>
+<p>Typical causes include:</p>
+<pre><code class="language-text">global state
+resource leaks
+unreleased SDL subsystem references
+allocator corruption
+singleton state
+incorrect teardown</code></pre>
+<p>CNA therefore also uses:</p>
+<pre><code class="language-text">shuffle
+repeat
+isolated reruns
+parallel vs. serial comparison</code></pre>
+<p>for selected areas.</p>
+<p>This has found cases where:</p>
+<pre><code class="language-text">test passes alone</code></pre>
+<p>but:</p>
+<pre><code class="language-text">fails after hundreds of other tests</code></pre>
+<p>which is often evidence of a much more serious lifetime problem.</p>
+<hr>
+<h2 id="parallel-failures-are-investigated-not-automatically-ignored">Parallel failures are investigated, not automatically ignored</h2>
+<p>Large suites can expose timing-dependent failures.</p>
+<p>For example:</p>
+<pre><code class="language-text">audio timing
+networking
+window lifecycle</code></pre>
+<p>may behave differently under:</p>
+<pre><code class="language-text">ctest -j2</code></pre>
+<p>than:</p>
+<pre><code class="language-text">ctest -j1</code></pre>
+<p>CNA development records this distinction.</p>
+<p>If a test fails in parallel but passes reliably when isolated, that is useful evidence.</p>
+<p>But the failure is not automatically reclassified as:</p>
+<pre><code class="language-text">does not matter</code></pre>
+<p>Instead the underlying contention or environmental dependency can be tracked separately.</p>
+<hr>
+<h2 id="failures-and-skips-are-named">Failures and skips are named</h2>
+<p>CNA avoids treating a familiar failure count as success.</p>
+<p>The general unfiltered CI suite has no known-failure allow-list. If a test fails, the job fails.</p>
+<p>The dangerous pattern is:</p>
+<pre><code class="language-text">ignore the usual 16 failures</code></pre>
+<p>without knowing what those failures actually are.</p>
+<p>Where a prerequisite is genuinely unavailable, a test uses an explicit named skip, normally through CTest&#39;s exit code 77 convention. Driver limitations and locally reproduced failures are recorded individually in <code>handoff.md</code>, together with the exact configuration that produced them.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">run everything
+      │
+      ▼
+collect failures
+      │
+      └── any failure
+              FAIL CI
+
+collect skips
+      │
+      └── named unavailable capability or environment
+              report explicitly</code></pre>
+<p>This is important because a new failure must not disappear inside a familiar count, and a skip must not be misreported as a pass.</p>
+<hr>
+<h2 id="source-and-architecture-gates">Source and architecture gates</h2>
+<p>Not every useful test needs to execute the game.</p>
+<p>CNA contains many Python and CMake gates that verify architectural rules.</p>
+<p>Examples include checking:</p>
+<pre><code class="language-text">renderer registry consistency
+
+renderer identity uniqueness
+
+valid renderer combinations
+
+descriptor syntax
+
+runtime-renderer discipline
+
+platform abstraction discipline
+
+direct SDL use
+
+C API documentation coverage
+
+ABI baseline
+
+test-coverage budgets
+
+asset provenance</code></pre>
+<p>These protect things that ordinary runtime tests may never notice.</p>
+<p>For example, a new source file could directly call SDL and still pass every visible application test.</p>
+<p>A platform-architecture gate can reject it because it bypasses <code>IPlatform</code>.</p>
+<hr>
+<h2 id="renderer-capability-tests">Renderer capability tests</h2>
+<p>CNA&#39;s ten renderer identities have intentionally different capabilities.</p>
+<p>The project therefore tests not only:</p>
+<pre><code class="language-text">does feature X work?</code></pre>
+<p>but also:</p>
+<pre><code class="language-text">does renderer correctly report whether feature X works?</code></pre>
+<p>That distinction is critical.</p>
+<p>Suppose a renderer says:</p>
+<pre><code class="language-text">SupportsTexture3D = true</code></pre>
+<p>but its <code>Texture3D</code> implementation actually does nothing.</p>
+<p>An application may select an unsupported path based on the false capability.</p>
+<p>So capability reports themselves form part of the public contract.</p>
+<hr>
+<h2 id="testing-fallback-paths">Testing fallback paths</h2>
+<p>CNA often provides fallbacks when a renderer lacks an optional feature.</p>
+<p>Those fallbacks are also tested.</p>
+<p>For example, a system might choose between:</p>
+<pre><code class="language-text">native GPU implementation</code></pre>
+<p>and:</p>
+<pre><code class="language-text">CPU or simpler fallback</code></pre>
+<p>depending on renderer capabilities.</p>
+<p>A test must verify both branches where practical.</p>
+<p>Otherwise the fallback may remain unused for months and fail exactly on the machine that needs it.</p>
+<hr>
+<h2 id="c-api-release-gates">C API release gates</h2>
+<p>CNA&#39;s native C API has especially strict testing requirements because ABI mistakes are difficult to repair once software has shipped against them.</p>
+<p>Its tests cover areas including:</p>
+<pre><code class="language-text">ABI versioning
+
+structure prefixes
+
+handle validation
+
+ownership
+
+callbacks
+
+threading rules
+
+string views
+
+buffer arithmetic
+
+graphics resources
+
+content
+
+audio
+
+networking
+
+devices</code></pre>
+<p>Dedicated release gates ensure documentation, exported symbols, compatibility matrices and implementation routes remain synchronized.</p>
+<p>This is a different kind of quality requirement from ordinary C++ source compatibility.</p>
+<hr>
+<h2 id="real-applications-are-another-test-layer">Real applications are another test layer</h2>
+<p>Small tests are excellent at finding small defects.</p>
+<p>They are poor at proving that many systems work together.</p>
+<p>CNA therefore also benefits from larger applications built on the framework.</p>
+<p>Examples include projects such as:</p>
+<pre><code class="language-text">cna-gltf-viewer
+street-simulator
+house-simulator</code></pre>
+<p>These are not replacements for CNA&#39;s formal test suite.</p>
+<p>They are integration workloads.</p>
+<p>For example, <code>street-simulator</code> simultaneously exercises:</p>
+<pre><code class="language-text">ContentManager
+
+glTF
+
+PBR
+
+skinning
+
+HDR
+
+cascaded shadows
+
+SSAO
+
+bloom
+
+fog
+
+reflection probes
+
+IBL
+
+instancing
+
+GPU timing
+
+large numbers of draw calls</code></pre>
+<p>A scene like that can expose scaling and interaction problems that an isolated unit test cannot.</p>
+<hr>
+<h2 id="a-real-scene-can-find-different-bugs">A real scene can find different bugs</h2>
+<p>Suppose all individual tests prove:</p>
+<pre><code class="language-text">PbrEffect works
+
+shadow map works
+
+RenderPipeline works
+
+glTF works
+
+instancing works</code></pre>
+<p>That still does not prove:</p>
+<pre><code class="language-text">PbrEffect + shadows + imported glTF +
+reflection probes + instancing +
+transparent glass</code></pre>
+<p>works correctly in one frame.</p>
+<p>Large demonstration applications therefore provide another kind of evidence:</p>
+<pre><code class="language-text">systems coexist</code></pre>
+<p>and:</p>
+<pre><code class="language-text">the architecture scales to a non-trivial workload</code></pre>
+<hr>
+<h2 id="performance-testing">Performance testing</h2>
+<p>Correctness is the first requirement.</p>
+<p>But a rendering framework can be perfectly correct and unusably slow.</p>
+<p>CNA therefore also performs performance measurements.</p>
+<p>Relevant metrics include:</p>
+<pre><code class="language-text">CPU frame time
+
+GPU frame time
+
+draw calls
+
+shadow draw calls
+
+triangle counts
+
+texture memory
+
+geometry memory
+
+content build time
+
+startup time</code></pre>
+<p>Performance results are generally treated as measurements rather than universal guarantees because they depend strongly on:</p>
+<pre><code class="language-text">GPU
+CPU
+driver
+OS
+renderer
+scene
+resolution</code></pre>
+<p>Still, repeatable benchmarks can detect regressions inside a controlled environment.</p>
+<hr>
+<h2 id="build-performance-is-measured-too">Build performance is measured too</h2>
+<p>CNA&#39;s CI also records build-performance information.</p>
+<p>This matters because a large C++ project can become unpleasant to develop even if its runtime performance remains excellent.</p>
+<p>The build report can track things such as:</p>
+<pre><code class="language-text">configure time
+build time
+memory consumption</code></pre>
+<p>so significant regressions become visible.</p>
+<p>Build scalability is part of framework usability.</p>
+<hr>
+<h2 id="ci-matrices">CI matrices</h2>
+<p>CNA&#39;s GitHub Actions configuration contains many dedicated workflows rather than one enormous universal job.</p>
+<p>Examples cover areas such as:</p>
+<pre><code class="language-text">general tests
+
+multi-renderer builds
+
+platform abstraction
+
+Windows DirectX 9 and SDL_GPU
+
+content pipeline on Windows
+
+Emscripten WEBGL2 + WEBGPU bundles
+
+macOS and iOS builds and smoke tests
+
+input
+
+devices
+
+32-bit arithmetic
+
+glTF renderer conformance
+
+glTF sanitizers
+
+C API ABI
+
+C API compatibility
+
+C API coverage
+
+C API generated routes and limitations
+
+C API release gates</code></pre>
+<p>This decomposition is intentional.</p>
+<p>A failure can immediately indicate which subsystem and environment changed.</p>
+<p>It also allows specialized environments to use the correct dependencies without making every ordinary CI job enormous.</p>
+<hr>
+<h2 id="why-one-giant-ci-configuration-would-be-worse">Why one giant CI configuration would be worse</h2>
+<p>CNA contains too many combinations for one build to prove everything.</p>
+<p>Consider:</p>
+<pre><code class="language-text">platform
+×
+renderer
+×
+compiler
+×
+build mode
+×
+optional library
+×
+feature configuration</code></pre>
+<p>The complete Cartesian product would be enormous.</p>
+<p>Instead CNA uses representative matrices.</p>
+<p>For example:</p>
+<pre><code class="language-text">DirectX 9 may prove exact XNA pixel behavior
+
+SDL_GPU or WebGPU may prove a modern GPU path
+
+STUB may exercise importer sanitizers
+
+HEADLESS may exercise platform logic
+
+Chrome runs may prove WebGL 2 or WebGPU behavior
+
+Wine + DXVK may prove DirectX 9 execution
+
+Wine + vkd3d-proton may prove SDL_GPU&#39;s Direct3D 12 path</code></pre>
+<p>Different jobs answer different questions.</p>
+<hr>
+<h2 id="build-success-is-not-runtime-success">Build success is not runtime success</h2>
+<p>CNA documentation repeatedly distinguishes these states:</p>
+<pre><code class="language-text">source exists
+
+compiles
+
+links
+
+starts
+
+runs tests
+
+renders pixels
+
+matches reference
+
+runs on real hardware</code></pre>
+<p>They are not equivalent.</p>
+<p>For example:</p>
+<pre><code class="language-text">renderer compiles</code></pre>
+<p>does not prove:</p>
+<pre><code class="language-text">renderer creates a device</code></pre>
+<p>and:</p>
+<pre><code class="language-text">device is created</code></pre>
+<p>does not prove:</p>
+<pre><code class="language-text">triangle is correct</code></pre>
+<p>and:</p>
+<pre><code class="language-text">triangle is correct</code></pre>
+<p>does not prove:</p>
+<pre><code class="language-text">whole XNA graphics contract is correct</code></pre>
+<p>This vocabulary is important when CNA describes an experimental backend.</p>
+<hr>
+<h2 id="testing-honesty">Testing honesty</h2>
+<p>One of the recurring CNA testing principles is to document what <strong>cannot yet be proven</strong>.</p>
+<p>Examples include:</p>
+<pre><code class="language-text">real physical gamepad haptics
+
+some real mobile sensors
+
+some browser paths
+
+native Windows hardware behavior
+
+iOS physical-device behavior
+
+SDL_GPU on Android
+
+future console targets</code></pre>
+<p>The appropriate result is not to invent a test.</p>
+<p>It is to say:</p>
+<pre><code class="language-text">not yet verified</code></pre>
+<p>and define what would be required to verify it.</p>
+<p>That makes test results more useful.</p>
+<hr>
+<h2 id="a-renderer-can-pass-tests-and-still-have-limitations">A renderer can pass tests and still have limitations</h2>
+<p>Another important point:</p>
+<pre><code class="language-text">all renderer tests pass</code></pre>
+<p>does not necessarily mean:</p>
+<pre><code class="language-text">renderer supports every CNA feature</code></pre>
+<p>A renderer may correctly report many features as unsupported.</p>
+<p>Its tests then prove:</p>
+<pre><code class="language-text">supported features work
+
+unsupported features are rejected correctly</code></pre>
+<p>That is a successful renderer.</p>
+<p>For example, <code>HEADLESS</code> and <code>STUB</code> should not fail qualification merely because they do not produce visible pixels for:</p>
+<pre><code class="language-text">SkinnedEffect</code></pre>
+<p>that effect.</p>
+<p>They should fail only if they make a capability claim they do not honor, violate their validation/no-op contract or handle an unsupported call incorrectly.</p>
+<hr>
+<h2 id="regression-tests-come-from-real-bugs">Regression tests come from real bugs</h2>
+<p>Many CNA tests were added because a real defect was discovered.</p>
+<p>A typical cycle is:</p>
+<pre><code class="language-text">bug discovered
+      │
+      ▼
+minimal reproducer
+      │
+      ▼
+test that fails
+      │
+      ▼
+fix implementation
+      │
+      ▼
+test passes
+      │
+      ▼
+regression test remains forever</code></pre>
+<p>This gives the suite historical value.</p>
+<p>Every unusual test may represent a bug that should never return.</p>
+<p>Examples from CNA development have included problems involving:</p>
+<pre><code class="language-text">culling
+
+depth
+
+instancing
+
+vertex declarations
+
+texture sampling
+
+shader selection
+
+content mipmaps
+
+glTF sparse data
+
+resource lifetime
+
+renderer capability reporting</code></pre>
+<hr>
+<h2 id="why-tests-are-often-very-specific">Why tests are often very specific</h2>
+<p>A useful regression test should identify one property.</p>
+<p>For example, suppose an instanced textured draw is white.</p>
+<p>Possible causes include:</p>
+<pre><code class="language-text">texture missing
+UV missing
+wrong shader selected
+descriptor not bound
+material colour wrong
+vertex layout wrong</code></pre>
+<p>A strong CNA regression test may therefore contain several control legs:</p>
+<pre><code class="language-text">non-instanced + white material
+
+non-instanced + red material
+
+instanced + white material
+
+instanced + red material</code></pre>
+<p>Each produces a different expected signature.</p>
+<p>That makes the failure diagnostic rather than merely reporting:</p>
+<pre><code class="language-text">pixel mismatch</code></pre>
+<p>This style appears repeatedly in modern renderer development.</p>
+<hr>
+<h2 id="the-control-case-matters">The control case matters</h2>
+<p>A test that says:</p>
+<pre><code class="language-text">expected blue, got white</code></pre>
+<p>is useful.</p>
+<p>A test that additionally proves:</p>
+<pre><code class="language-text">the same texture works in a non-instanced draw</code></pre>
+<p>is much stronger.</p>
+<p>Now the defect is narrowed to:</p>
+<pre><code class="language-text">instancing path</code></pre>
+<p>rather than:</p>
+<pre><code class="language-text">possibly the texture itself</code></pre>
+<p>CNA renderer tests increasingly use these control cases to make failures discriminating.</p>
+<hr>
+<h2 id="independent-evidence-matters">Independent evidence matters</h2>
+<p>Perhaps the most important theme in CNA testing is <strong>independence</strong>.</p>
+<p>A weak test may ask the implementation what the answer should be and then verify that it returned that answer.</p>
+<p>A strong test obtains the expected result elsewhere.</p>
+<p>Examples include:</p>
+<pre><code class="language-text">Microsoft XNA 4.0
+for graphics behavior
+
+Khronos reference renderer
+for glTF presentation
+
+independent UTF-8 oracle
+for C API validation
+
+different CNA renderer
+for cross-renderer parity
+
+hand-computed pixel value
+for simple rendering equations</code></pre>
+<p>The more independent the oracle, the less likely the implementation and test share the same mistake.</p>
+<hr>
+<h2 id="what-cna-testing-does-not-mean">What CNA testing does not mean</h2>
+<p>CNA has a large test infrastructure.</p>
+<p>That does not mean:</p>
+<pre><code class="language-text">CNA is finished</code></pre>
+<p>or:</p>
+<pre><code class="language-text">every renderer is equally mature</code></pre>
+<p>or:</p>
+<pre><code class="language-text">every operating system has been tested</code></pre>
+<p>or:</p>
+<pre><code class="language-text">every XNA game will run unchanged</code></pre>
+<p>CNA is still pre-1.0, but its renderer, platform and content surfaces are now curated rather than expanded without limit.</p>
+<p>Testing is how maintenance work and compatibility fixes remain controlled across that broad surface.</p>
+<hr>
+<h2 id="current-practical-test-hierarchy">Current practical test hierarchy</h2>
+<p>A useful simplified hierarchy is:</p>
+<pre><code class="language-text">LEVEL 1
+Compile and static contracts
+    headers
+    ABI
+    registry
+    architecture rules
+
+LEVEL 2
+Unit tests
+    math
+    state
+    parsing
+    framework logic
+
+LEVEL 3
+Integration tests
+    ContentManager
+    platform implementations
+    renderer resources
+    content pipeline
+
+LEVEL 4
+Real graphics execution
+    actual renderer
+    actual shaders
+    actual framebuffer
+
+LEVEL 5
+Pixel tests
+    selected pixel values
+    golden images
+
+LEVEL 6
+Cross-implementation tests
+    EasyGL vs SDL_GPU / WebGPU / Software
+    renderer vs renderer
+
+LEVEL 7
+External oracles
+    Microsoft XNA 4.0
+    Khronos reference renderer
+    independent parsers/oracles
+
+LEVEL 8
+Robustness testing
+    ASan
+    UBSan
+    fuzzing
+    exhaustive input sweeps
+
+LEVEL 9
+Real-world applications
+    cna-gltf-viewer
+    street-simulator
+    larger CNA projects
+
+LEVEL 10
+Real hardware qualification
+    OS / GPU / input device / mobile hardware</code></pre>
+<p>Not every CNA subsystem reaches all ten levels yet.</p>
+<p>The level reached is itself part of the project&#39;s documented maturity.</p>
+<hr>
+<h2 id="source-code">Source code</h2>
+<p>The main CNA repository is:</p>
+<p><a href="https://github.com/libcna/cna">https://github.com/libcna/cna</a></p>
+<p>The primary shared tests are distributed throughout the modules, for example:</p>
+<pre><code class="language-text">modules/*/tests/
+tests/</code></pre>
+<p>Renderer-specific test applications and fixtures appear throughout areas such as:</p>
+<pre><code class="language-text">modules/renderers/*/tests/
+modules/graphics/tests/
+modules/*/examples/</code></pre>
+<p>CI workflows are under:</p>
+<pre><code class="language-text">.github/workflows/</code></pre>
+<p>and include specialized jobs such as:</p>
+<pre><code class="language-text">general-tests-ci.yml
+multi-renderer-ci.yml
+platform-ci.yml
+apple-ci.yml
+gltf-sanitizers-ci.yml
+gltf-renderer-stride-ci.yml
+emscripten-multi-renderer-ci.yml
+d3d-windows-ci.yml
+input-ci.yml
+devices-tests.yml
+32bit-arithmetic-ci.yml
+c-api-release-gate.yml</code></pre>
+<p>Important testing and compatibility documentation includes:</p>
+<pre><code class="language-text">handoff.md
+
+docs/graphics-compatibility-report.md
+docs/xna-4-runtime-member-coverage.md
+docs/content-pipeline.md
+docs/xna-content-pipeline-parity-report.md
+docs/cross-renderer-parity-fixtures.md
+
+docs/renderer-registry.md
+docs/graphics-renderer-feature-matrix.md
+docs/runtime-renderer-selection.md
+docs/removed-renderers.md
+
+docs/gltf-conformance.md
+docs/gltf-reference-comparison.json
+docs/gltf-l7-corpus-report.json
+
+docs/input-build-and-test.md
+
+docs/c-api/FUZZING.md
+docs/c-api/RELEASE_GATE.md
+
+docs/platform-abstraction.md
+docs/releasing.md</code></pre>
+<p>Many individual renderer documents also contain their own qualification evidence.</p>
+<p>Examples include:</p>
+<pre><code class="language-text">docs/directx9-renderer.md
+docs/opengl33-renderer.md
+docs/webgl2-renderer.md
+docs/webgpu-renderer.md
+docs/software-renderer.md
+docs/headless-renderer.md
+docs/stub-renderer.md
+docs/fna3d-renderer.md</code></pre>
+<hr>
+<h2 id="conclusion">Conclusion</h2>
+<p>CNA is not tested by one giant assertion that says:</p>
+<pre><code class="language-text">CNA works.</code></pre>
+<p>It is tested by attempting to prove smaller, independently measurable statements.</p>
+<p>For example:</p>
+<pre><code class="language-text">this API exists
+
+this method behaves like XNA
+
+this renderer draws the expected pixel
+
+this second renderer produces the same result
+
+the real XNA 4.0 runtime produced the same reference image
+
+the glTF reference renderer agrees with CNA
+
+the content compiler produces identical bytes twice
+
+malformed input is rejected under UBSan
+
+millions of invalid UTF-8 sequences are handled correctly
+
+a complex real application can combine the systems successfully</code></pre>
+<p>The strongest parts of CNA&#39;s test strategy deliberately go beyond conventional unit testing.</p>
+<p>They use:</p>
+<pre><code class="language-text">real graphics contexts
+
+framebuffer readback
+
+golden images
+
+cross-renderer comparisons
+
+Microsoft XNA 4.0 reference output
+
+Khronos glTF reference output
+
+deterministic binary fixtures
+
+sanitizers
+
+exhaustive input spaces
+
+fuzzing
+
+real application workloads</code></pre>
+<p>because those methods catch different classes of bugs.</p>
+<p>The goal is not to make the test count as large as possible.</p>
+<p>The goal is to make a claim such as:</p>
+<blockquote><p>this CNA behavior matches XNA</p></blockquote>
+<p>or:</p>
+<blockquote><p>this renderer supports this feature</p></blockquote>
+<p>mean that there is measurable evidence behind it.</p>
+<p>That distinction is especially important for CNA because the project combines three difficult problems at once:</p>
+<pre><code class="language-text">XNA compatibility
+
+cross-platform systems programming
+
+a curated renderer set with 10 identities across 8 implementation families</code></pre>
+<p>A framework with that scope cannot be tested convincingly by asking only whether it compiled.</p>
+<p>It has to test what actually happened.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/testing/">#Testing</a><a href="/tag/gltf/">#glTF</a><a href="/tag/xna/">#XNA</a><a href="/tag/ctest/">#CTest</a><a href="/tag/googletest/">#GoogleTest</a><a href="/tag/graphics-testing/">#Graphics Testing</a><a href="/tag/renderer-testing/">#Renderer Testing</a><a href="/tag/pixel-tests/">#Pixel Tests</a><a href="/tag/golden-images/">#Golden Images</a><a href="/tag/conformance/">#Conformance</a><a href="/tag/sanitizers/">#Sanitizers</a><a href="/tag/fuzzing/">#Fuzzing</a><a href="/tag/ci/">#CI</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

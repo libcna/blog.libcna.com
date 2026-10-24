@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNA Examples | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA Examples is an interactive catalog of demonstrations covering the CNA framework.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/11/08/cna-examples/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNA Examples">
+  <meta property="og:description" content="CNA Examples is an interactive catalog of demonstrations covering the CNA framework.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/11/08/cna-examples/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-11-08T15:33:13Z">November 8, 2026</time></span><span>Updated <time datetime="2026-09-13T15:49:38Z">September 13, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">CNA Examples</h1>
+      <p class="article-description">CNA Examples is an interactive catalog of demonstrations covering the CNA framework.</p>
+    </header>
+    <div class="article-body"><h2 id="cna-examples">CNA Examples</h2>
+<p><strong>CNA Examples</strong> is an interactive catalog of demonstrations covering the CNA framework.</p>
+<p>Instead of distributing hundreds of tiny programs, CNA Examples puts them into <strong>one browsable CNA application</strong>. You launch it, choose an area of the framework, select a category, and run the demonstration directly inside the application.</p>
+<p><strong>GitHub:</strong> <a href="https://github.com/libcna/cna-examples">github.com/libcna/cna-examples</a> <strong>Try online: </strong><a href="https://play.libcna.com/cna-examples/cna_examples.html">https://play.libcna.com/cna-examples/cna_examples.html</a></p>
+<p><img src="https://github.com/libcna/cna-examples/raw/develop/screenshot.png" alt="Screenshot" loading="lazy"></p>
+<h2 id="one-application-hundreds-of-demonstrations">One application, hundreds of demonstrations</h2>
+<p>The current development version contains:</p>
+<ul><li><strong>13 major areas</strong></li><li><strong>79 categories</strong></li><li><strong>249 demo screens</strong></li></ul>
+<p>Every demo exercises a real <code>Microsoft::Xna::Framework</code> or <code>CNA::*</code> API. They are not mocked screenshots or static documentation.</p>
+<p>The current areas are:</p>
+<div class="table-wrap"><table><thead><tr><th>Area</th><th>Demo screens</th></tr></thead><tbody><tr><td>Framework</td><td>17</td></tr><tr><td>Math</td><td>16</td></tr><tr><td>Content</td><td>7</td></tr><tr><td>Storage</td><td>4</td></tr><tr><td>Diagnostics</td><td>4</td></tr><tr><td>Input</td><td>52</td></tr><tr><td>Audio</td><td>12</td></tr><tr><td>Devices</td><td>15</td></tr><tr><td>Networking</td><td>15</td></tr><tr><td>Media</td><td>17</td></tr><tr><td>Avatars</td><td>7</td></tr><tr><td>2D Graphics</td><td>40</td></tr><tr><td>3D Graphics</td><td>43</td></tr><tr><td>Total</td><td>249</td></tr></tbody></table></div>
+<p>The exact number will continue to grow as CNA itself grows.</p>
+<h2 id="what-does-it-look-like">What does it look like?</h2>
+<p>CNA Examples behaves more like an interactive reference application than a traditional collection of source folders.</p>
+<p>The navigation is hierarchical:</p>
+<pre><code class="language-text">CNA Examples
+    ↓
+Area
+    ↓
+Group
+    ↓
+Category
+    ↓
+Demo</code></pre>
+<p>For example:</p>
+<pre><code class="language-text">3D Graphics
+    ↓
+Textures
+    ↓
+Cube Textures
+    ↓
+RenderTargetCube demonstration</code></pre>
+<p>or:</p>
+<pre><code class="language-text">Input
+    ↓
+GamePad
+    ↓
+GamePad state demonstration</code></pre>
+<p>You can navigate with keyboard, gamepad, mouse, or touch.</p>
+<h2 id="cna-examples-is-not-cna-samples">CNA Examples is not CNA Samples</h2>
+<p>There are two different projects that should not be confused.</p>
+<h3 id="cna-samples">CNA Samples</h3>
+<p><a href="https://github.com/libcna/cna-samples">cna-samples</a> contains ports of Microsoft&#39;s original XNA samples.</p>
+<p>Those are useful primarily for <strong>XNA compatibility testing</strong>.</p>
+<h3 id="cna-examples">CNA Examples</h3>
+<p><a href="https://github.com/libcna/cna-examples">cna-examples</a> is original CNA-specific work.</p>
+<p>Its purpose is to systematically demonstrate the CNA API.</p>
+<p>The difference is roughly:</p>
+<pre><code class="language-text">CNA Samples
+    ↓
+Can existing XNA software run on CNA?
+
+CNA Examples
+    ↓
+What can CNA do, and how does each API behave?</code></pre>
+<p>Both projects are useful, but they solve different problems.</p>
+<h2 id="framework-demonstrations">Framework demonstrations</h2>
+<p>The Framework section covers some of the most fundamental CNA concepts:</p>
+<ul><li><code>Game</code></li><li>the game loop</li><li><code>GameComponent</code></li><li><code>DrawableGameComponent</code></li><li>services</li><li>dispatching</li><li>windows</li><li><code>GraphicsDeviceManager</code></li></ul>
+<p>These demos are useful when learning CNA because they show how the pieces around rendering and game lifetime fit together.</p>
+<h2 id="math">Math</h2>
+<p>The Math area demonstrates XNA&#39;s mathematical types and behavior, including:</p>
+<ul><li><code>Vector2</code></li><li><code>Vector3</code></li><li><code>Vector4</code></li><li><code>Matrix</code></li><li><code>Quaternion</code></li><li>geometry types</li><li>curves</li><li><code>Color</code></li><li>packed vectors</li></ul>
+<p>Some demos also have separate automated checks that verify the mathematical claims shown on screen.</p>
+<p>This is important because a demonstration that merely <em>looks</em> correct can still contain incorrect explanatory text.</p>
+<h2 id="input-is-one-of-the-largest-areas">Input is one of the largest areas</h2>
+<p>Input currently has <strong>52 demo screens</strong>.</p>
+<p>It covers much more than just keyboard and mouse:</p>
+<ul><li>keyboard</li><li>mouse</li><li>gamepads</li><li>touch</li><li>joysticks</li><li>text input</li><li>haptics</li><li>other device-specific input functionality</li></ul>
+<p>Some of these demonstrations naturally require actual hardware.</p>
+<p>A gamepad demo cannot be fully hardware-verified without a gamepad.</p>
+<p>The project distinguishes between features verified against real devices and features that can only be exercised partially in the current development environment.</p>
+<h2 id="graphics">Graphics</h2>
+<p>Graphics forms the largest part of CNA Examples.</p>
+<p>There are currently:</p>
+<ul><li><strong>40 2D graphics demos</strong></li><li><strong>43 3D graphics demos</strong></li></ul>
+<p>They exercise areas such as:</p>
+<ul><li>textures</li><li><code>SpriteBatch</code></li><li>graphics states</li><li>vertex and index buffers</li><li>primitives</li><li>render targets</li><li>cube textures</li><li>effects</li><li>models</li><li>depth and stencil behavior</li><li>occlusion</li><li>other graphics capabilities</li></ul>
+<p>These demonstrations are particularly useful for renderer development.</p>
+<p>The same demo can be run through different CNA graphics backends and the results compared.</p>
+<h2 id="renderer-capabilities-matter">Renderer capabilities matter</h2>
+<p>CNA renderers do not all provide identical features.</p>
+<p>For example, <code>SDL_RENDERER</code> is intentionally a 2D renderer.</p>
+<p>CNA Examples does not treat that as an error.</p>
+<p>A 3D demonstration can query the active renderer&#39;s capabilities and explain that the required feature is unavailable rather than simply crashing.</p>
+<p>This makes the application useful for exploring CNA&#39;s capability model as well as individual APIs.</p>
+<p>The current project has verified the full set of 249 demonstrations against both the EasyGL <code>OPENGLES3</code> path and <code>SDL_RENDERER</code>, with 3D demonstrations being capability-gated on the latter where appropriate.</p>
+<h2 id="more-than-visual-demos">More than visual demos</h2>
+<p>One of the most useful parts of CNA Examples is that the project does not rely only on a human looking at the screen.</p>
+<p>It also contains automated validation infrastructure.</p>
+<p>A demo can be started directly from the command line:</p>
+<pre><code class="language-bash">./cna_examples --demo &quot;Media/Pictures/Browse&quot;</code></pre>
+<p>It can run for a deterministic number of frames:</p>
+<pre><code class="language-bash">./cna_examples \
+    --demo &quot;Media/Pictures/Browse&quot; \
+    --frames 90</code></pre>
+<p>and capture the resulting frame:</p>
+<pre><code class="language-bash">./cna_examples \
+    --demo &quot;Media/Pictures/Browse&quot; \
+    --frames 90 \
+    --screenshot result.png</code></pre>
+<p>This turns an interactive demonstration catalog into a useful test harness.</p>
+<h2 id="screenshot-sweeps">Screenshot sweeps</h2>
+<p>The repository includes tools for automatically running large groups of demonstrations and capturing screenshots.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">249 demos
+   ↓
+run each demo
+   ↓
+capture frame
+   ↓
+inspect output
+   ↓
+detect blank or broken rendering</code></pre>
+<p>This can expose regressions that ordinary unit tests may miss.</p>
+<p>A graphics call may technically complete without throwing while still producing the wrong pixels.</p>
+<p>A screenshot sweep can catch that.</p>
+<h2 id="some-demos-test-themselves">Some demos test themselves</h2>
+<p>Certain demonstrations go even further.</p>
+<p>Instead of merely displaying a scene, they compute their own expected result.</p>
+<p>For example, graphics tests can perform operations such as a <code>GetData()</code> round trip and display whether the returned data is correct.</p>
+<p>This approach has already found actual CNA bugs.</p>
+<p>One such test revealed that <code>RenderTargetCube::GetData()</code> on EasyGL could silently return zeroed data.</p>
+<p>That is a good example of why CNA Examples is useful for framework development, not only education.</p>
+<h2 id="testing-state-restoration">Testing state restoration</h2>
+<p>A demonstration application has another problem: one demo can accidentally leave global graphics or window state changed for the next one.</p>
+<p>CNA Examples therefore verifies state restoration in important areas.</p>
+<p>For example, a resolution demo can change the back buffer and then leave the screen.</p>
+<p>The framework verifies that the original resolution is restored afterward.</p>
+<p>Without this discipline, the result of one demo could affect every demo that follows it.</p>
+<h2 id="synthetic-assets">Synthetic assets</h2>
+<p>CNA Examples tries to keep its bundled content self-contained.</p>
+<p>Audio, video, images, and other test media are generally generated procedurally or through tools such as FFmpeg.</p>
+<p>This avoids turning a framework demonstration repository into a collection of third-party assets with complicated licenses.</p>
+<p>The XNB examples are a special case: they use existing test fixtures from the CNA repository rather than bundling another copy.</p>
+<h2 id="desktop-web-and-eventually-more">Desktop, web and eventually more</h2>
+<p>CNA Examples is designed as a cross-platform application.</p>
+<p>The current project primarily targets Windows and Linux, with Web/Emscripten work also part of the roadmap.</p>
+<p>Longer-term targets include environments such as:</p>
+<ul><li>Android</li><li>macOS</li><li>iPhone</li><li>consoles</li></ul>
+<p>Because the demonstrations use CNA itself, porting the catalog also becomes another way of testing CNA&#39;s cross-platform abstractions.</p>
+<h2 id="a-catalog-of-cna-itself">A catalog of CNA itself</h2>
+<p>The long-term value of CNA Examples is not just that there are 249 screens today.</p>
+<p>The goal is to provide a browsable map of the framework.</p>
+<p>Instead of reading a list such as:</p>
+<pre><code class="language-text">Texture2D
+RenderTarget2D
+OcclusionQuery
+DynamicSoundEffectInstance
+NetworkSession
+GamePad
+MediaLibrary
+StorageContainer</code></pre>
+<p>and wondering what each type actually does, a developer can open CNA Examples and see the API being exercised.</p>
+<p>That makes it useful for:</p>
+<ul><li>learning CNA</li><li>developing CNA</li><li>renderer testing</li><li>regression detection</li><li>API exploration</li><li>documentation</li><li>hardware testing</li></ul>
+<h2 id="samples-prove-compatibility-examples-demonstrate-capability">Samples prove compatibility; Examples demonstrate capability</h2>
+<p>The CNA ecosystem therefore has two complementary projects:</p>
+<pre><code class="language-text">cna-samples
+    ↓
+real XNA programs
+    ↓
+compatibility evidence
+
+cna-examples
+    ↓
+focused CNA demonstrations
+    ↓
+API and capability evidence</code></pre>
+<p>Together they provide two different views of the framework.</p>
+<p>One asks whether CNA can run software written for XNA.</p>
+<p>The other asks what CNA itself can do.</p>
+<p>That is what <strong>CNA Examples</strong> is intended to become:</p>
+<p><strong>an interactive, testable catalog of the complete CNA framework.</strong></p>
+<hr>
+<p><strong>GitHub:</strong> <a href="https://github.com/libcna/cna-examples">github.com/libcna/cna-examples</a> <strong>CNA Samples:</strong> <a href="https://github.com/libcna/cna-samples">github.com/libcna/cna-samples</a> <strong>CNA:</strong> <a href="https://github.com/libcna/cna">github.com/libcna/cna</a></p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/tag/cna-ecosystem/">#CNA Ecosystem</a><a href="/tag/samples/">#Samples</a><a href="/tag/testing/">#Testing</a><a href="/tag/graphics/">#Graphics</a><a href="/tag/cna-examples/">#CNA Examples</a><a href="/tag/examples/">#Examples</a><a href="/tag/api/">#API</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

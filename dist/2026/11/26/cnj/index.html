@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNJ | CNA&#39;s Blog</title>
+  <meta name="description" content="CNJ, short for CNA Content JSON, is CNA&#39;s human-readable JSON-based content format.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/11/26/cnj/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNJ">
+  <meta property="og:description" content="CNJ, short for CNA Content JSON, is CNA&#39;s human-readable JSON-based content format.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/11/26/cnj/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-11-26T16:39:25Z">November 26, 2026</time></span><span>Updated <time datetime="2026-09-13T17:28:16Z">September 13, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">CNJ</h1>
+      <p class="article-description">CNJ, short for CNA Content JSON, is CNA&#39;s human-readable JSON-based content format.</p>
+    </header>
+    <div class="article-body"><p><strong>CNJ</strong>, short for <strong>CNA Content JSON</strong>, is CNA&#39;s human-readable JSON-based content format.</p>
+<p>It provides CNA with a content representation that is easy to inspect, edit, generate, diff, validate and process without requiring developers or tools to understand a complex binary container.</p>
+<p>A CNJ asset uses the <code>.cnj</code> extension.</p>
+<p>At its simplest, a CNJ file looks like this:</p>
+<pre><code class="language-json">{
+  &quot;cnjVersion&quot;: 1,
+  &quot;type&quot;: &quot;SpriteFont&quot;
+}</code></pre>
+<p>But CNJ is more than a generic JSON file format. It is part of the CNA content system and integrates directly with <code>ContentManager</code>, CNA&#39;s asset readers, the glTF importer and the CNB compiler.</p>
+<p>CNJ occupies an important position between ordinary source assets and CNA&#39;s compiled content format:</p>
+<pre><code class="language-text">source assets
+     │
+     ├── PNG / JPEG / WAV / DDS
+     ├── glTF / GLB
+     └── other source data
+             │
+             ▼
+            CNJ
+    human-readable CNA content
+             │
+             ▼
+            CNB
+      compiled CNA content</code></pre>
+<p>The pipeline is not mandatory. CNA can load many source formats directly, and CNJ itself can also be loaded directly. The diagram instead shows the role CNJ can play when an editable CNA-owned representation is useful.</p>
+<h2 id="why-does-cnj-exist">Why does CNJ exist?</h2>
+<p>Binary asset formats are efficient for machines, but they are inconvenient for development.</p>
+<p>A binary file is difficult to:</p>
+<ul><li>inspect manually;</li><li>modify with a text editor;</li><li>review in Git;</li><li>generate with simple scripts;</li><li>compare between commits;</li><li>diagnose when something goes wrong;</li><li>extend experimentally.</li></ul>
+<p>CNJ deliberately takes the opposite approach.</p>
+<p>The structural part of an asset is represented as ordinary JSON while large binary payloads can remain in separate files.</p>
+<p>This makes an asset such as a model understandable without requiring a binary format inspector.</p>
+<p>For example, model metadata can live in JSON while vertex and index data remain in compact binary sidecars.</p>
+<p>CNJ therefore does <strong>not</strong> attempt to encode every vertex, texture byte or animation matrix as JSON. JSON is used where JSON makes sense.</p>
+<h2 id="the-cnj-envelope">The CNJ envelope</h2>
+<p>Every CNJ document has a small common envelope.</p>
+<p>The two fundamental fields are:</p>
+<pre><code class="language-json">{
+  &quot;cnjVersion&quot;: 1,
+  &quot;type&quot;: &quot;Curve&quot;
+}</code></pre>
+<p><code>cnjVersion</code> identifies the schema version understood by the reader.</p>
+<p><code>type</code> identifies the kind of asset represented by the document.</p>
+<p>The remaining fields depend on the asset type.</p>
+<p>A SpriteFont, Model, Curve and Texture2D therefore all use <code>.cnj</code>, but their contents are different.</p>
+<p>This is conceptually similar to XNA&#39;s content system: the filename extension does not have to encode the asset type because the content itself can identify what it contains.</p>
+<h2 id="cnj-is-type-aware">CNJ is type-aware</h2>
+<p>CNJ is not simply:</p>
+<pre><code class="language-text">JSON file -&gt; arbitrary object</code></pre>
+<p>The requested C++ type still matters.</p>
+<p>A normal CNA load looks like:</p>
+<pre><code class="language-cpp">auto model = Content.Load&lt;Model&gt;(&quot;Models/house&quot;);</code></pre>
+<p>The C++ type requested through <code>Load()</code> remains the primary type information.</p>
+<p>If CNA resolves the asset to a CNJ document, its <code>&quot;type&quot;</code> field is checked as well.</p>
+<p>This means that a file declaring:</p>
+<pre><code class="language-json">{
+  &quot;cnjVersion&quot;: 1,
+  &quot;type&quot;: &quot;SpriteFont&quot;
+}</code></pre>
+<p>cannot silently be interpreted as a <code>Model</code>.</p>
+<p>The CNJ envelope therefore acts both as format metadata and as an integrity check.</p>
+<h2 id="self-contained-cnj-assets">Self-contained CNJ assets</h2>
+<p>Some CNJ files describe the asset themselves.</p>
+<p>A <code>Curve</code>, for example, can contain its keys directly in JSON.</p>
+<p>A <code>SpriteFont</code> contains glyph metadata and references its texture atlas.</p>
+<p>A <code>Model</code> contains its structural description and references binary data where necessary.</p>
+<p>An <code>AnimationClip</code> can contain animation information or reference an external binary clip.</p>
+<p>These files do not merely point at another native file. The CNJ document itself defines the asset.</p>
+<h2 id="cnj-as-a-metadata-sidecar">CNJ as a metadata sidecar</h2>
+<p>CNJ also supports another important model: a JSON document can describe a native source file.</p>
+<p>This is done with <code>sourceFile</code>.</p>
+<p>For example:</p>
+<pre><code class="language-json">{
+  &quot;cnjVersion&quot;: 1,
+  &quot;type&quot;: &quot;Texture2D&quot;,
+  &quot;sourceFile&quot;: &quot;player.png&quot;,
+  &quot;colorKey&quot;: [255, 0, 255]
+}</code></pre>
+<p>Here the PNG still contains the actual image data.</p>
+<p>The CNJ file adds CNA-specific information around it.</p>
+<p>This separates:</p>
+<pre><code class="language-text">payload
+player.png
+
+from
+
+metadata
+player.cnj</code></pre>
+<p>That is useful because formats such as PNG or WAV cannot naturally contain every piece of information an engine&#39;s content pipeline may need.</p>
+<p>CNJ can therefore enrich an ordinary native asset without inventing another binary image or audio format.</p>
+<p>Not every CNJ type supports <code>sourceFile</code>. It is intended for asset types that have a meaningful independently loadable payload.</p>
+<p>For example, <code>Texture2D</code>, <code>TextureCube</code> and <code>SoundEffect</code> can use this model, while descriptors such as <code>Model</code> and <code>SpriteFont</code> have their own structured CNJ representation.</p>
+<h2 id="safe-source-references">Safe source references</h2>
+<p>Because CNJ documents may reference other files, CNA does not treat <code>sourceFile</code> as an unrestricted filesystem path.</p>
+<p>The current implementation checks that a referenced source:</p>
+<ul><li>is not an absolute path;</li><li>does not escape the content root through <code>..</code>;</li><li>does not escape through a symbolic link;</li><li>does not resolve to another CNJ sidecar.</li></ul>
+<p>This is handled by CNA&#39;s CNJ source-file resolution logic rather than leaving each individual reader to invent its own path rules.</p>
+<p>That is particularly important once content is processed by automated tools or comes from external asset packages.</p>
+<h2 id="cnj-and-large-binary-data">CNJ and large binary data</h2>
+<p>JSON is excellent for structure.</p>
+<p>It is a poor format for millions of floating-point vertex values.</p>
+<p>CNJ therefore intentionally allows external binary sidecars.</p>
+<p>A model produced by CNA tooling may conceptually look like:</p>
+<pre><code class="language-text">character.cnj
+character_vertices.bin
+character_indices.bin
+character_skeleton.bin
+walk.cnj</code></pre>
+<p>The <code>.cnj</code> file describes what those pieces mean.</p>
+<p>The binary files store data for which a compact binary representation is more appropriate.</p>
+<p>This hybrid design gives CNA both:</p>
+<pre><code class="language-text">readable metadata
+        +
+efficient bulk data</code></pre>
+<p>without turning CNJ itself into another opaque binary container.</p>
+<h2 id="model-cnj">Model CNJ</h2>
+<p>Models are one of the most sophisticated users of CNJ.</p>
+<p>The current Model CNJ schema supports version 2.</p>
+<p>Version 2 added the scene bone/node hierarchy and the relationship between meshes and their parent bones.</p>
+<p>A model may also carry information related to:</p>
+<ul><li>primitive topology;</li><li>mesh grouping;</li><li>alpha modes;</li><li>alpha cutoff;</li><li>double-sided materials;</li><li>vertex colors;</li><li>PBR parameters;</li><li>normal maps;</li><li>metallic/roughness maps;</li><li>emissive maps;</li><li>occlusion maps;</li><li>material variants;</li><li>morph targets;</li><li>morph weights;</li><li>morph animation;</li><li>imported lights;</li><li>animation references;</li><li>glTF import diagnostics.</li></ul>
+<p>This demonstrates an important property of CNJ: it is not merely a tiny compatibility format.</p>
+<p>It has become a useful CNA-native representation of fairly sophisticated asset semantics.</p>
+<h2 id="cnj-and-gltf">CNJ and glTF</h2>
+<p>CNA has extensive glTF 2.0 support.</p>
+<p>A <code>.gltf</code> or <code>.glb</code> model can be loaded directly by CNA, so converting glTF to CNJ is not required just to use a model.</p>
+<p>However, CNA also contains the offline tool:</p>
+<pre><code class="language-text">cna_tool_gltf_to_cnj</code></pre>
+<p>which converts glTF content into CNA&#39;s CNJ representation plus the necessary sidecars.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">character.glb
+      │
+      ▼
+cna_tool_gltf_to_cnj
+      │
+      ├── character.cnj
+      ├── geometry sidecars
+      ├── skeleton data
+      └── animation CNJ files</code></pre>
+<p>This is useful when a project wants a stable CNA-owned representation of imported content rather than parsing the original interchange format every time.</p>
+<p>The direct glTF loader and the glTF-to-CNJ path are also designed to represent the same imported asset semantics.</p>
+<p>CNJ can therefore act as an <strong>inspectable intermediate representation</strong> for CNA&#39;s model pipeline.</p>
+<h2 id="cnj-and-animation">CNJ and animation</h2>
+<p>Animations do not have to be permanently embedded into one model.</p>
+<p>CNJ supports standalone <code>AnimationClip</code> assets.</p>
+<p>For example, multiple models can reference a common animation such as:</p>
+<pre><code class="language-text">Animations/Idle.cnj
+Animations/Walk.cnj
+Animations/Run.cnj</code></pre>
+<p>These clips can participate in normal <code>ContentManager</code> loading and caching.</p>
+<p>That makes shared animation libraries possible without duplicating the same animation data inside every model description.</p>
+<h2 id="cnj-and-effects">CNJ and effects</h2>
+<p>CNJ is also used by CNA&#39;s effect content readers.</p>
+<p>The runtime recognizes the custom <code>Effect</code> representation as well as CNA&#39;s XNA-style stock effects:</p>
+<pre><code class="language-text">BasicEffect
+AlphaTestEffect
+DualTextureEffect
+EnvironmentMapEffect
+SkinnedEffect</code></pre>
+<p>Effect parameters can therefore be represented using ordinary readable content data instead of requiring a proprietary binary description.</p>
+<p>This does not mean CNJ can magically execute arbitrary old XNA/D3D9 shader bytecode. Shader portability remains a separate graphics problem.</p>
+<p>CNJ describes CNA content. It does not eliminate differences between graphics APIs or shader languages.</p>
+<h2 id="custom-cnj-types">Custom CNJ types</h2>
+<p>CNJ is not limited to types built into CNA.</p>
+<p>CNA provides the CNA-specific <code>RegisterCnjLoader()</code> extension for game-defined content.</p>
+<p>Conceptually:</p>
+<pre><code class="language-cpp">struct GameData
+{
+    std::string kind;
+};
+
+content.RegisterCnjLoader&lt;GameData&gt;(
+    &quot;EnemyDefinition&quot;,
+    [](const std::string&amp; json, ContentManager&amp; content)
+    {
+        GameData result;
+        result.kind = &quot;Enemy&quot;;
+        return result;
+    });</code></pre>
+<p>A game could then have:</p>
+<pre><code class="language-json">{
+  &quot;cnjVersion&quot;: 1,
+  &quot;type&quot;: &quot;EnemyDefinition&quot;
+}</code></pre>
+<p>Another loader producing the same C++ type could be registered under another CNJ type such as:</p>
+<pre><code class="language-text">LootTable</code></pre>
+<p>This lets projects build their own content schemas without requiring every game-specific data structure to become part of CNA itself.</p>
+<h2 id="cnj-and-cnb">CNJ and CNB</h2>
+<p>CNJ should not be confused with <strong>CNB</strong>.</p>
+<p>They serve different purposes.</p>
+<div class="table-wrap"><table><thead><tr><th>Format</th><th>Purpose</th></tr></thead><tbody><tr><td>CNJ</td><td>Human-readable CNA content representation</td></tr><tr><td>CNB</td><td>Compiled binary CNA content</td></tr><tr><td>XNB</td><td>Original XNA compiled content format</td></tr><tr><td>glTF / GLB</td><td>External 3D interchange format</td></tr></tbody></table></div>
+<p>CNJ is designed for readability and tooling.</p>
+<p>CNB is designed as CNA&#39;s compiled content artifact.</p>
+<p>CNA provides:</p>
+<pre><code class="language-text">cna_tool_cnj_to_cnb</code></pre>
+<p>which can compile supported CNJ content and its binary sidecars into a <code>.cnb</code> file.</p>
+<p>For example:</p>
+<pre><code class="language-text">house.cnj
+house_vertices.bin
+house_indices.bin
+house_skeleton.bin
+        │
+        ▼
+cna_tool_cnj_to_cnb
+        │
+        ▼
+house.cnb</code></pre>
+<p>The CNB compiler can absorb appropriate sidecar files into the resulting compiled asset while keeping references to resources that should remain shared.</p>
+<p>This gives CNA a useful separation:</p>
+<pre><code class="language-text">CNJ
+editable / inspectable / source-oriented
+
+CNB
+compiled / packaged / runtime-oriented</code></pre>
+<p>CNJ remains useful even when a project ultimately ships CNB.</p>
+<h2 id="cnj-and-xnb">CNJ and XNB</h2>
+<p>CNJ originally emerged partly as a simpler alternative to implementing the entire XNA XNB ecosystem.</p>
+<p>That historical description is no longer sufficient.</p>
+<p>CNA now has XNB support as a separate compatibility path, while CNJ continues to exist as CNA&#39;s own readable content representation.</p>
+<p>The current content resolution hierarchy gives compiled content priority.</p>
+<p>Conceptually, CNA prefers:</p>
+<pre><code class="language-text">XNB
+ ↓
+CNB
+ ↓
+explicit caller-supplied file
+ ↓
+CNJ
+ ↓
+native reader formats</code></pre>
+<p>This allows original XNA content to remain authoritative when present, CNA-compiled CNB to take priority over the sources it was built from, and CNJ to take priority over ordinary loose native candidates when acting as an asset descriptor or metadata sidecar.</p>
+<p>So CNJ is not trying to <em>be</em> XNB.</p>
+<p>It solves a different problem.</p>
+<h2 id="why-not-simply-use-json-everywhere">Why not simply use JSON everywhere?</h2>
+<p>CNJ deliberately does not try to replace every asset format with JSON.</p>
+<p>A PNG is already a good image format.</p>
+<p>A WAV file already knows how to store audio samples.</p>
+<p>glTF is already a strong interchange format for 3D scenes.</p>
+<p>Large vertex buffers are better stored in binary.</p>
+<p>CNJ instead provides the CNA-specific layer that ties those pieces together.</p>
+<p>That distinction is important.</p>
+<p>The goal is not:</p>
+<pre><code class="language-text">Everything must become JSON.</code></pre>
+<p>The goal is:</p>
+<pre><code class="language-text">The structure and CNA-specific meaning of content
+should be understandable and controllable by CNA.</code></pre>
+<h2 id="cnj-as-part-of-the-cna-content-architecture">CNJ as part of the CNA content architecture</h2>
+<p>CNJ now sits inside a larger content architecture rather than functioning as an isolated file format.</p>
+<p>A project can choose different paths depending on what it needs:</p>
+<pre><code class="language-text">PNG / WAV / DDS
+      │
+      └──────────────► ContentManager
+
+glTF / GLB
+      │
+      ├──────────────► ContentManager
+      │
+      └──► CNJ ──────► ContentManager
+                │
+                └──► CNB ─────► ContentManager
+
+XNB ───────────────────────────► ContentManager</code></pre>
+<p>This flexibility is intentional.</p>
+<p>CNJ is available when readability, conversion, tooling or CNA-specific metadata are valuable, but a developer is not forced to convert every asset to CNJ merely to use CNA.</p>
+<h2 id="why-cnj-matters">Why CNJ matters</h2>
+<p>CNJ gives CNA something that relying exclusively on external asset formats cannot provide: a content representation controlled by CNA itself.</p>
+<p>That has several long-term advantages.</p>
+<p>The format can evolve with CNA.</p>
+<p>It can describe CNA-specific features.</p>
+<p>It can be generated by tools without requiring a complicated binary writer.</p>
+<p>It can be inspected years later with nothing more sophisticated than a text editor.</p>
+<p>It can be reviewed meaningfully in Git.</p>
+<p>It can serve as an intermediate representation between importers and compiled content.</p>
+<p>And because CNJ separates readable structure from large binary payloads, those advantages do not require sacrificing reasonable storage efficiency for heavy asset data.</p>
+<p>In that sense, CNJ follows one of CNA&#39;s broader architectural goals: <strong>own the abstraction while remaining able to interoperate with external technologies</strong>.</p>
+<p>CNA can understand XNB, glTF, PNG, WAV and other formats.</p>
+<p>But with CNJ, CNA also has a content language of its own.</p>
+<h2 id="source-code">Source code</h2>
+<p>CNJ is implemented as part of the CNA repository.</p>
+<p>GitHub:</p>
+<p><a href="https://github.com/libcna/cna">https://github.com/libcna/cna</a></p>
+<p>Important areas in the source tree include:</p>
+<pre><code class="language-text">misc/cnj.md
+plans/plan_cnj.md
+
+modules/content/include/CNA/Internal/CnjEnvelope.hpp
+modules/content/include/CNA/Internal/CnjSourceFile.hpp
+modules/content/include/CNA/Internal/CnjCanonicalRead.hpp
+
+modules/content/include/CNA/Content/Pipeline/CnjContentPipeline.hpp
+
+modules/content/include/CNA/Content/Cnb/CnjToCnb.hpp
+modules/content/src/Cnb/CnjToCnb.cpp
+
+tools/gltf_to_cnj/
+tools/cnj_to_cnb/</code></pre>
+<p>These files cover the CNJ format itself, envelope validation, safe file references, content-pipeline integration, glTF conversion and compilation from CNJ to CNB.</p>
+<hr>
+<p><strong>Category:</strong> CNA Development</p>
+<p><strong>Tags:</strong> CNA, CNJ, CNA Content JSON, Content Pipeline, CNB, XNB, XNA, JSON, glTF, Assets</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/content-pipeline/">#Content Pipeline</a><a href="/tag/gltf/">#glTF</a><a href="/tag/xnb/">#XNB</a><a href="/tag/cnj/">#CNJ</a><a href="/tag/cna-content-json/">#CNA Content JSON</a><a href="/tag/cnb/">#CNB</a><a href="/tag/json/">#JSON</a><a href="/tag/assets/">#Assets</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

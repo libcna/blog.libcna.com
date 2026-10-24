@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Consoles and CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA is designed as a portable game framework, but there is one major category of gaming hardware it does not currently support: game consoles.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/12/10/consoles-and-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Consoles and CNA">
+  <meta property="og:description" content="CNA is designed as a portable game framework, but there is one major category of gaming hardware it does not currently support: game consoles.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/12/10/consoles-and-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-12-10T18:06:12Z">December 10, 2026</time></span><span>Updated <time datetime="2026-10-17T13:23:17Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">Consoles and CNA</h1>
+      <p class="article-description">CNA is designed as a portable game framework, but there is one major category of gaming hardware it does not currently support: game consoles.</p>
+    </header>
+    <div class="article-body"><p>CNA is designed as a portable game framework, but there is one major category of gaming hardware it does <strong>not currently support</strong>:</p>
+<p><strong>game consoles.</strong></p>
+<p>At the moment, CNA has no officially supported runtime target for:</p>
+<pre><code class="language-text">Nintendo Switch / Switch 2
+
+PlayStation 4 / PlayStation 5
+
+Xbox One / Xbox Series X|S</code></pre>
+<p>and it also does not currently provide working ports for older or homebrew-oriented systems such as:</p>
+<pre><code class="language-text">PlayStation Vita
+PlayStation Portable
+PlayStation 2
+PlayStation 3
+Nintendo 3DS
+Wii
+GameCube
+Dreamcast
+original Xbox</code></pre>
+<p>The current situation can therefore be summarized very simply:</p>
+<pre><code class="language-text">CNA console support today:
+
+Nintendo consoles      no
+PlayStation consoles   no
+Xbox consoles          no
+retro consoles         no</code></pre>
+<p>This does <strong>not</strong> mean CNA&#39;s architecture fundamentally prevents console support.</p>
+<p>Quite the opposite: several parts of CNA are already moving in a direction that would make future console ports practical.</p>
+<p>The main obstacles are access, platform-specific integration, restricted console environments, dependencies and testing — not the basic XNA-style API.</p>
+<hr>
+<h2 id="why-doesn-t-cna-support-consoles-today">Why doesn&#39;t CNA support consoles today?</h2>
+<p>The first reason is simple:</p>
+<p><strong>CNA has not been ported to one yet.</strong></p>
+<p>There is currently no build configuration such as:</p>
+<pre><code class="language-text">CNA_PLATFORM=PS5
+CNA_PLATFORM=SWITCH
+CNA_PLATFORM=XBOX</code></pre>
+<p>There is no CNA console SDK integration, no console-specific build profile and no console hardware conformance suite.</p>
+<p>The currently implemented CNA platform backends are:</p>
+<pre><code class="language-text">SDL3
+HEADLESS
+TERMINAL</code></pre>
+<p>None of these by itself turns CNA into a console framework.</p>
+<p>Likewise, CNA currently exposes ten graphics renderer identities across eight implementation families, but having a renderer that resembles the hardware generation of a console does not constitute a console port.</p>
+<p>For example:</p>
+<pre><code class="language-text">CNA has SDL_GPU,
+which can use Direct3D 12 underneath</code></pre>
+<p>does not imply:</p>
+<pre><code class="language-text">CNA supports Xbox Series X|S</code></pre>
+<p>and:</p>
+<pre><code class="language-text">CNA has a SOFTWARE renderer</code></pre>
+<p>does not imply:</p>
+<pre><code class="language-text">CNA supports Dreamcast or PSP</code></pre>
+<p>A complete console port involves much more than drawing triangles.</p>
+<hr>
+<h2 id="modern-consoles-are-closed-development-platforms">Modern consoles are closed development platforms</h2>
+<p>The largest immediate obstacle for current commercial consoles is not technical.</p>
+<p>It is access.</p>
+<p>Modern commercial consoles use development environments distributed by their platform holders to approved developers.</p>
+<p>Examples include:</p>
+<pre><code class="language-text">Nintendo Switch / Switch 2
+    Nintendo development environment
+
+PlayStation 4 / PlayStation 5
+    Sony development environment
+
+Xbox One / Xbox Series X|S
+    Microsoft GDK with Xbox extensions</code></pre>
+<p>These environments include platform-specific:</p>
+<pre><code class="language-text">headers
+libraries
+compilers and toolchains
+graphics interfaces
+debugging tools
+deployment tools
+documentation
+development hardware
+certification information</code></pre>
+<p>Some of this information is available only under agreements with the platform holder.</p>
+<p>Consequently, CNA cannot simply download a public SDK and add:</p>
+<pre><code class="language-cpp">#ifdef CNA_PS5</code></pre>
+<p>to the public repository.</p>
+<p>For current PlayStation and Nintendo consoles in particular, important platform code and documentation are not public.</p>
+<p>Xbox has more publicly available GDK material, but full console development still requires the Xbox-specific development environment and appropriate developer access.</p>
+<hr>
+<h2 id="sdl-does-not-remove-this-requirement">SDL does not remove this requirement</h2>
+<p>SDL3 is CNA&#39;s only windowed platform implementation and remains central to desktop, mobile and Web builds. The Platform API now keeps that dependency behind <code>Sdl3Platform</code>, while headless and terminal configurations can omit SDL entirely.</p>
+<p>SDL itself has console ports.</p>
+<p>This may initially suggest an easy solution:</p>
+<pre><code class="language-text">CNA
+ ↓
+SDL
+ ↓
+console</code></pre>
+<p>But modern-console SDL ports do not magically bypass the platform holder.</p>
+<p>For systems such as Nintendo Switch and modern PlayStation consoles, the corresponding SDL ports are provided separately to developers who already have the necessary platform access.</p>
+<p>The public SDL repository cannot contain everything required to build a commercial Switch or PlayStation game.</p>
+<p>So even if CNA itself needed no changes at all:</p>
+<pre><code class="language-text">CNA
+ ↓
+SDL3 console port</code></pre>
+<p>would still require the official console development environment.</p>
+<p>SDL can simplify a console port.</p>
+<p>It cannot replace the console SDK.</p>
+<hr>
+<h2 id="public-cna-must-remain-public">Public CNA must remain public</h2>
+<p>This creates an important architectural requirement for CNA.</p>
+<p>The public repository is:</p>
+<p><a href="https://github.com/libcna/cna">https://github.com/libcna/cna</a></p>
+<p>It must remain usable as a normal open-source repository without accidentally containing confidential console material.</p>
+<p>A future modern-console architecture would therefore probably resemble:</p>
+<pre><code class="language-text">                    public CNA
+                        │
+                        ▼
+             CNA Platform interfaces
+                        │
+                        ▼
+                console boundary
+                        │
+             private / licensed code
+                        │
+                        ▼
+                  console SDK</code></pre>
+<p>Platform-specific code that is legally restricted would have to remain outside the public CNA repository.</p>
+<p>The public framework could still contain generic concepts such as:</p>
+<pre><code class="language-text">suspend / resume
+user accounts
+controller disconnect
+title storage
+platform capabilities</code></pre>
+<p>because those concepts are not secret.</p>
+<p>But proprietary SDK headers, libraries and restricted implementation details could not simply be committed into the public source tree.</p>
+<hr>
+<h2 id="cna-s-platform-api-is-an-important-step">CNA&#39;s Platform API is an important step</h2>
+<p>An older version of CNA&#39;s console feasibility analysis identified one of the largest architectural problems:</p>
+<pre><code class="language-text">CNA assumed too directly that platform = SDL3.</code></pre>
+<p>That situation has significantly improved.</p>
+<p>Modern CNA now has a dedicated platform abstraction centered around interfaces such as:</p>
+<pre><code class="language-text">CNA::Platform::IPlatform</code></pre>
+<p>with implementations including:</p>
+<pre><code class="language-text">Sdl3Platform
+HeadlessPlatform
+TerminalPlatform</code></pre>
+<p>The architecture is now much closer to:</p>
+<pre><code class="language-text">                     CNA Game
+                        │
+                        ▼
+                  CNA runtime
+                        │
+                        ▼
+IPlatform
+├── Sdl3Platform
+├── HeadlessPlatform
+├── TerminalPlatform
+└── future console platform</code></pre>
+<p><code>SDL3</code> is CNA&#39;s only windowed platform implementation. The <code>HEADLESS</code> backend and the POSIX-only <code>TERMINAL</code> backend cover display-free use cases. CNA&#39;s former SDL2 and direct Win32, X11 and Wayland platform implementations have been retired; SDL3 now reaches those desktop window systems through its own video drivers.</p>
+<p>This is highly relevant to consoles.</p>
+<p>A console port should not require rewriting <code>Game</code>, <code>ContentManager</code>, <code>SpriteBatch</code>, <code>Model</code> or the rest of the high-level API.</p>
+<p>Instead, the new environment should be connected underneath the same platform boundary.</p>
+<hr>
+<h2 id="platform-and-renderer-are-separate">Platform and renderer are separate</h2>
+<p>CNA has another architectural advantage: host-platform integration and graphics rendering are separate systems.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">                         Game
+                          │
+                          ▼
+                         CNA
+                ┌─────────┴─────────┐
+                │                   │
+                ▼                   ▼
+             Platform             Graphics
+                │                   │
+                ▼                   ▼
+        console lifecycle      console renderer
+        input / storage         graphics API</code></pre>
+<p>A future console may therefore need:</p>
+<pre><code class="language-text">one platform implementation
++
+one compatible graphics path</code></pre>
+<p>rather than a completely separate version of CNA.</p>
+<p>On some consoles, an existing CNA renderer architecture might be reusable.</p>
+<p>On others, a dedicated renderer would be required.</p>
+<hr>
+<h2 id="having-several-renderers-helps-but-does-not-solve-the-port">Having several renderers helps — but does not solve the port</h2>
+<p>CNA currently exposes ten public renderer identities through eight implementation families. They range from modern portable GPU layers to compatibility-oriented Direct3D 9, OpenGL ES, headless and CPU implementations.</p>
+<p>Relevant examples include:</p>
+<pre><code class="language-text">OPENGLES3
+OPENGL33
+
+SDL_GPU
+WEBGPU
+FNA3D
+
+SOFTWARE
+HEADLESS
+STUB
+DIRECTX9</code></pre>
+<p>The three GL identities <code>OPENGLES3</code>, <code>OPENGL33</code> and <code>WEBGL2</code> share the EasyGL implementation. <code>SDL_GPU</code> is CNA&#39;s modern native path and lets SDL choose Vulkan, Direct3D 12 or Metal underneath it. <code>FNA3D</code> is another abstraction layer and selects SDL_GPU, Direct3D 11 or OpenGL internally.</p>
+<p>This makes CNA unusually interesting for older-console experiments.</p>
+<p>For example, several homebrew environments expose graphics APIs conceptually similar to old OpenGL or OpenGL ES.</p>
+<p>But this should not be overstated.</p>
+<p>The current CNA renderer implementations have their own platform restrictions and build assumptions.</p>
+<p>An existing:</p>
+<pre><code class="language-text">OPENGLES3</code></pre>
+<p>renderer cannot simply be copied to a PlayStation Vita executable and expected to work.</p>
+<p>It would first need to be adapted, compiled and tested against the actual homebrew graphics environment.</p>
+<p>The existing renderers are useful architectural starting points.</p>
+<p>They are not existing console ports.</p>
+<hr>
+<h2 id="modern-consoles-are-only-one-category">Modern consoles are only one category</h2>
+<p>It is useful to divide console targets into several groups.</p>
+<h2 id="current-commercial-consoles">Current commercial consoles</h2>
+<p>Examples:</p>
+<pre><code class="language-text">Nintendo Switch / Switch 2
+PlayStation 4 / PlayStation 5
+Xbox One / Xbox Series X|S</code></pre>
+<p>These require official developer access for normal commercial development.</p>
+<p>For CNA, this means console work cannot seriously begin merely from public documentation.</p>
+<hr>
+<h2 id="older-consoles-with-homebrew-toolchains">Older consoles with homebrew toolchains</h2>
+<p>A very different situation exists for systems such as:</p>
+<pre><code class="language-text">PlayStation Vita
+PSP
+PlayStation 2
+
+Nintendo 3DS
+Wii
+GameCube
+
+Dreamcast
+original Xbox</code></pre>
+<p>Public community development environments exist for many of them.</p>
+<p>Examples include projects and ecosystems such as:</p>
+<pre><code class="language-text">VitaSDK
+pspdev
+PS2SDK
+
+devkitPro
+libogc
+
+KallistiOS
+nxdk</code></pre>
+<p>These do not turn CNA into a console framework automatically, but they make experimentation possible without obtaining a modern commercial-console SDK.</p>
+<p>This makes old and homebrew consoles a realistic place to attempt CNA&#39;s <strong>first actual console port</strong>.</p>
+<hr>
+<h2 id="some-old-consoles-already-have-sdl-ports">Some old consoles already have SDL ports</h2>
+<p>Another interesting fact is that public SDL support exists for several homebrew targets.</p>
+<p>Examples include systems such as:</p>
+<pre><code class="language-text">Nintendo 3DS
+PlayStation 2
+PlayStation Portable
+PlayStation Vita</code></pre>
+<p>This could substantially reduce the work required for an initial CNA experiment.</p>
+<p>The path could theoretically become:</p>
+<pre><code class="language-text">CNA
+ │
+ ▼
+CNA Sdl3Platform
+ │
+ ▼
+SDL3 homebrew port
+ │
+ ▼
+console homebrew SDK</code></pre>
+<p>But CNA&#39;s dependencies and build environment would still need to survive that toolchain.</p>
+<p>So even here:</p>
+<pre><code class="language-text">SDL supports the console</code></pre>
+<p>does not automatically imply:</p>
+<pre><code class="language-text">CNA supports the console.</code></pre>
+<hr>
+<h2 id="why-ps-vita-is-an-interesting-possible-first-target">Why PS Vita is an interesting possible first target</h2>
+<p>The CNA console analysis identifies the <strong>PlayStation Vita</strong> as one of the most practical candidates for a first experimental console port.</p>
+<p>There are several reasons.</p>
+<p>It has a public homebrew ecosystem:</p>
+<pre><code class="language-text">VitaSDK</code></pre>
+<p>and public SDL support.</p>
+<p>It also has considerably more memory than many older consoles.</p>
+<p>That matters because taking a desktop-oriented C++ framework directly to a system with:</p>
+<pre><code class="language-text">16 MB
+32 MB
+64 MB</code></pre>
+<p>of RAM introduces an entirely different category of engineering problems.</p>
+<p>A Vita port could therefore provide a useful middle ground:</p>
+<pre><code class="language-text">real game console
++
+restricted environment
++
+public development tools
++
+enough hardware resources to make bring-up realistic</code></pre>
+<p>A sensible first milestone would not be a full CNA game.</p>
+<p>It would be something much smaller:</p>
+<pre><code class="language-text">start CNA Game
+      ↓
+initialize graphics
+      ↓
+load one texture
+      ↓
+SpriteBatch draws it
+      ↓
+read controller
+      ↓
+exit cleanly</code></pre>
+<p>Only after that would audio, 3D, networking and more complex content need to be addressed.</p>
+<hr>
+<h2 id="retro-consoles-are-much-harder-than-they-look">Retro consoles are much harder than they look</h2>
+<p>Older consoles are technically accessible, but accessibility does not mean easy portability.</p>
+<p>Consider memory alone.</p>
+<p>Approximate memory budgets for some older systems are dramatically smaller than a modern PC:</p>
+<pre><code class="language-text">Dreamcast        tens of MB
+PlayStation 2    tens of MB
+PSP              tens of MB
+Nintendo Wii     under 100 MB main system memory class</code></pre>
+<p>A modern framework may casually allocate more memory than an entire old console possesses.</p>
+<p>Desktop-oriented code can assume:</p>
+<pre><code class="language-text">gigabytes of RAM
+virtual memory
+modern filesystem
+threads
+large standard library
+large executable
+large temporary buffers</code></pre>
+<p>A retro console may provide none of those luxuries.</p>
+<p>So supporting such hardware would require more than getting the compiler to accept CNA.</p>
+<hr>
+<h2 id="sharp-runtime-is-a-major-concern">sharp-runtime is a major concern</h2>
+<p>CNA also depends on <strong>Sharp Runtime</strong>.</p>
+<p>Sharp Runtime provides many <code>System::*</code> concepts used by CNA and is an important part of the framework architecture.</p>
+<p>On a normal desktop this is not unusual.</p>
+<p>On a restricted console toolchain it becomes much more important.</p>
+<p>Areas that may cause problems include:</p>
+<pre><code class="language-text">std::filesystem
+threads
+chrono functionality
+file streams
+locale behavior
+exception support
+standard-library completeness</code></pre>
+<p>CNA&#39;s original console feasibility analysis identifies Sharp Runtime as one of the areas most likely to expose restricted-toolchain problems before much of CNA itself does.</p>
+<p>Earlier Android work demonstrated this general class of problem: an unusual toolchain exposed standard-library assumptions that never appeared on a desktop Linux build. CNA and Sharp Runtime now build and run through the Android NDK, but that result does not guarantee that older homebrew toolchains provide the same library surface.</p>
+<p>A console port would therefore require not only:</p>
+<pre><code class="language-text">CNA console profile</code></pre>
+<p>but probably also:</p>
+<pre><code class="language-text">Sharp Runtime restricted profile</code></pre>
+<hr>
+<h2 id="filesystems-are-very-different">Filesystems are very different</h2>
+<p>A desktop game often assumes it can reason in ordinary filesystem paths.</p>
+<p>A console may instead have concepts such as:</p>
+<pre><code class="language-text">read-only installed title content
+
+per-user writable storage
+
+save-game storage
+
+temporary storage
+
+platform sandbox paths
+
+removable storage on some older systems</code></pre>
+<p>The game may not be allowed to access arbitrary locations.</p>
+<p>Consequently, a future console CNA should not expose:</p>
+<pre><code class="language-text">&quot;/home/user/game/save.dat&quot;</code></pre>
+<p>as its fundamental storage abstraction.</p>
+<p>The cleaner model is:</p>
+<pre><code class="language-text">Title Content
+User Storage
+Save Storage
+Temporary Storage</code></pre>
+<p>with the platform deciding what those concepts mean.</p>
+<p>CNA already has abstractions such as:</p>
+<pre><code class="language-text">TitleContainer
+StorageDevice</code></pre>
+<p>that provide a natural place to develop this model further.</p>
+<hr>
+<h2 id="console-lifecycle-is-different">Console lifecycle is different</h2>
+<p>Desktop applications usually have a relatively simple lifetime:</p>
+<pre><code class="language-text">start
+run
+exit</code></pre>
+<p>Consoles need stronger lifecycle semantics.</p>
+<p>A game may need to react to:</p>
+<pre><code class="language-text">suspend
+resume
+user signed out
+controller disconnected
+system overlay
+constrained execution
+storage device change</code></pre>
+<p>Some of these behaviors are also certification requirements.</p>
+<p>A framework cannot simply ignore them and expect games built on it to pass platform certification.</p>
+<p>The CNA Platform API therefore eventually needs to make such concepts first-class rather than pretending every system behaves like a desktop PC.</p>
+<hr>
+<h2 id="user-accounts-matter">User accounts matter</h2>
+<p>On a PC, a game can often start and simply use the operating-system user.</p>
+<p>On consoles, the active game user may be part of the platform API.</p>
+<p>A title may need to know:</p>
+<pre><code class="language-text">which user is playing?
+
+which user&#39;s save data should be opened?
+
+did that user sign out?
+
+which controller belongs to that user?</code></pre>
+<p>This affects:</p>
+<pre><code class="language-text">StorageDevice
+GamerServices
+input
+cloud saves
+achievements
+multiplayer</code></pre>
+<p>and is another reason that console support extends far beyond the graphics renderer.</p>
+<hr>
+<h2 id="controller-support-does-not-mean-console-support">Controller support does not mean console support</h2>
+<p>CNA already understands many gamepad models.</p>
+<p>Its platform input layer contains identities for controllers including:</p>
+<pre><code class="language-text">Xbox 360
+Xbox One
+
+PlayStation 3
+PlayStation 4
+PlayStation 5
+
+Nintendo Switch Pro Controller
+Nintendo Joy-Con</code></pre>
+<p>This is useful on desktop systems because those controllers can be connected to a PC.</p>
+<p>But:</p>
+<pre><code class="language-text">CNA recognizes a DualSense controller</code></pre>
+<p>does <strong>not</strong> mean:</p>
+<pre><code class="language-text">CNA runs on PlayStation 5.</code></pre>
+<p>Likewise:</p>
+<pre><code class="language-text">CNA recognizes a Switch Pro Controller</code></pre>
+<p>does not constitute Nintendo Switch support.</p>
+<p>Controller compatibility and console operating-system support are completely different things.</p>
+<hr>
+<h2 id="console-button-policy">Console button policy</h2>
+<p>Even the apparently simple gamepad abstraction has console-specific details.</p>
+<p>Different ecosystems have different conventions for:</p>
+<pre><code class="language-text">confirm
+cancel
+back
+menu</code></pre>
+<p>Nintendo&#39;s physical A/B arrangement differs from Xbox.</p>
+<p>PlayStation uses its own symbols and some conventions have historically varied by region.</p>
+<p>This means a game should ideally ask for a semantic action such as:</p>
+<pre><code class="language-text">Confirm</code></pre>
+<p>rather than hard-coding:</p>
+<pre><code class="language-text">Button A always means confirm.</code></pre>
+<p>A mature CNA console layer would eventually need a platform button policy for these behaviors.</p>
+<hr>
+<h2 id="shaders-are-another-challenge">Shaders are another challenge</h2>
+<p>Modern desktop frameworks often compile shaders at runtime during development.</p>
+<p>Consoles generally want much more controlled shader pipelines.</p>
+<p>A shipping console game may require shaders to be compiled through platform tooling before deployment.</p>
+<p>This means a CNA renderer relying on:</p>
+<pre><code class="language-text">runtime HLSL compilation
+runtime GLSL compilation
+runtime shader translation</code></pre>
+<p>may need an alternative path.</p>
+<p>The preferred console architecture is much closer to:</p>
+<pre><code class="language-text">source shader
+     │
+     ▼
+build-time compiler
+     │
+     ▼
+platform bytecode
+     │
+     ▼
+game package</code></pre>
+<p>rather than:</p>
+<pre><code class="language-text">game starts
+     │
+     ▼
+compile shader source
+     │
+     ▼
+render</code></pre>
+<p>CNA already has considerable work around compiled effects and shader portability, which would be valuable for a future console profile.</p>
+<p>But it would still need to be validated against the actual target.</p>
+<hr>
+<h2 id="dependencies-need-a-console-profile">Dependencies need a console profile</h2>
+<p>A desktop CNA build can use many optional libraries.</p>
+<p>A console build cannot simply assume all of them are available.</p>
+<p>Depending on configuration, a normal development tree can involve technologies such as:</p>
+<pre><code class="language-text">SDL3
+FFmpeg
+ENet
+easy-gl / meta-gl
+wgpu-native or emdawnwebgpu
+FNA3D / MojoShader
+testing frameworks</code></pre>
+<p>A console configuration would need a deliberately restricted build profile.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">CNA console profile
+
+CNA_BUILD_TESTS=OFF
+CNA_BUILD_EXAMPLES=OFF
+CNA_DEVICES=OFF
+CNA_ENABLE_VIDEO=OFF
+CNA_ENABLE_NET=OFF
+CNA_ENABLE_GAMER_SERVICES=OFF unless offline services are needed
+
+graphics dependencies restricted to the selected renderer
+static linking preferred</code></pre>
+<p>The exact profile would depend heavily on the target console.</p>
+<p>A PlayStation Vita profile and a PlayStation 5 profile would be very different despite sharing the PlayStation name.</p>
+<hr>
+<h2 id="build-time-renderer-inclusion-is-actually-a-cna-advantage">Build-time renderer inclusion is actually a CNA advantage</h2>
+<p>One positive result from CNA&#39;s console analysis is that the framework does not fundamentally depend on a runtime plugin model based on arbitrary dynamic libraries.</p>
+<p>Consoles commonly prefer tightly controlled, statically linked executables.</p>
+<p>CNA&#39;s renderer architecture fits this environment well. The normal configuration links one renderer chosen at build time. An opt-in multi-renderer build can link several and choose among that fixed set before the game starts; it does not discover arbitrary graphics plugins at runtime.</p>
+<pre><code class="language-text">configure project
+      │
+      ▼
+select one renderer or a fixed renderer set
+      │
+      ▼
+optionally choose a linked renderer at startup
+      │
+      ▼
+compile one application
+      │
+      ▼
+static deployment</code></pre>
+<p>This is a much more console-friendly architecture than discovering arbitrary graphics plugins at runtime.</p>
+<hr>
+<h2 id="cna-being-native-c-also-helps">CNA being native C++ also helps</h2>
+<p>CNA has another potential advantage over XNA-compatible frameworks based on managed runtimes.</p>
+<p>CNA itself is native C++.</p>
+<p>There is no requirement to bring:</p>
+<pre><code class="language-text">.NET CLR
+JIT compiler
+Mono runtime</code></pre>
+<p>onto a console simply to execute ordinary CNA game code.</p>
+<p>This eliminates a major category of console-porting work.</p>
+<p>Frameworks such as FNA and MonoGame have historically had to solve not only graphics and operating-system integration but also the problem of running their managed environment on console hardware.</p>
+<p>CNA avoids that particular problem.</p>
+<p>Sharp Runtime is still an important dependency, but it is itself native C++, not a CLR that requires a JIT.</p>
+<hr>
+<h2 id="what-about-fna-and-monogame">What about FNA and MonoGame?</h2>
+<p>Both FNA and MonoGame demonstrate that an XNA-style API can work on modern consoles.</p>
+<p>But their public repositories do not magically contain unrestricted copies of every proprietary console SDK.</p>
+<p>Console support is separated according to the legal requirements of the target.</p>
+<p>The lesson for CNA is not:</p>
+<pre><code class="language-text">copy their console code.</code></pre>
+<p>The useful lesson is architectural:</p>
+<pre><code class="language-text">XNA-style game API
+        │
+        ▼
+portable framework
+        │
+        ▼
+small platform-specific boundary
+        │
+        ▼
+licensed console environment</code></pre>
+<p>That is exactly the architecture CNA should aim for.</p>
+<hr>
+<h2 id="why-cna-is-better-positioned-now-than-before">Why CNA is better positioned now than before</h2>
+<p>The older console feasibility analysis identified platform abstraction as one of CNA&#39;s largest prerequisites.</p>
+<p>That work has now substantially happened.</p>
+<p>CNA now separates:</p>
+<pre><code class="language-text">platform
+renderer
+audio
+framework runtime</code></pre>
+<p>much more clearly than before.</p>
+<p>This is important because a console port can eventually replace only the layers that actually require replacement.</p>
+<p>For example:</p>
+<pre><code class="language-text">                   CNA application
+                        │
+                        ▼
+                      CNA
+             ┌──────────┴──────────┐
+             │                     │
+             ▼                     ▼
+      ConsolePlatform       ConsoleRenderer
+             │                     │
+             └──────────┬──────────┘
+                        ▼
+                  console SDK</code></pre>
+<p>The rest of the framework can remain shared.</p>
+<p>That does not make console support easy.</p>
+<p>But it changes the problem from:</p>
+<blockquote><p>Rewrite CNA for a console.</p></blockquote>
+<p>to:</p>
+<blockquote><p>Port CNA&#39;s boundaries to a console.</p></blockquote>
+<p>That is a much healthier position.</p>
+<hr>
+<h2 id="steam-deck-is-a-different-case">Steam Deck is a different case</h2>
+<p>Devices such as:</p>
+<pre><code class="language-text">Steam Deck
+ROG Ally
+Legion Go
+other handheld gaming PCs</code></pre>
+<p>may look and behave like consoles from the player&#39;s perspective.</p>
+<p>Technically they are not new console platforms for CNA.</p>
+<p>A Steam Deck runs a Linux-based PC environment.</p>
+<p>An ROG Ally commonly runs Windows.</p>
+<p>So CNA can target them through its existing:</p>
+<pre><code class="language-text">Linux</code></pre>
+<p>or:</p>
+<pre><code class="language-text">Windows</code></pre>
+<p>support.</p>
+<p>A game may still need:</p>
+<pre><code class="language-text">controller-first UI
+fullscreen behavior
+performance tuning
+small-screen UI
+suspend-friendly behavior</code></pre>
+<p>but that is game adaptation, not a new CNA operating-system port.</p>
+<p>This distinction is useful:</p>
+<pre><code class="language-text">Steam Deck running CNA</code></pre>
+<p>does not mean CNA has gained Nintendo/PlayStation/Xbox console support.</p>
+<p>It means CNA already runs on the PC operating system installed on that device.</p>
+<hr>
+<h2 id="what-would-count-as-real-console-support">What would count as real console support?</h2>
+<p>CNA should not claim support for a console merely because somebody manages to compile a library.</p>
+<p>A meaningful support milestone would require at least:</p>
+<pre><code class="language-text">configure with the real target toolchain
+        │
+        ▼
+build CNA + Sharp Runtime
+        │
+        ▼
+link a real executable
+        │
+        ▼
+launch on console hardware
+        │
+        ▼
+Game lifecycle works
+        │
+        ▼
+graphics work
+        │
+        ▼
+controller works
+        │
+        ▼
+ContentManager works
+        │
+        ▼
+audio works
+        │
+        ▼
+storage works</code></pre>
+<p>A mature commercial target would require still more:</p>
+<pre><code class="language-text">suspend / resume
+user switching
+controller disconnect
+save storage
+system dialogs
+error handling
+network behavior
+startup constraints
+resource limits
+certification requirements</code></pre>
+<p>Only then would it be reasonable to list the console as a genuinely supported CNA target.</p>
+<hr>
+<h2 id="possible-future-console-categories">Possible future console categories</h2>
+<p>A reasonable long-term roadmap could therefore look like:</p>
+<pre><code class="language-text">Phase 1
+    strengthen portable/restricted build profiles
+
+Phase 2
+    make Sharp Runtime work in restricted environments
+
+Phase 3
+    first public homebrew console
+
+Phase 4
+    additional old/homebrew systems
+
+Phase 5
+    licensed modern console,
+    once official SDK access exists</code></pre>
+<p>There is little value in pretending that Phase 5 can be implemented properly without the required access.</p>
+<hr>
+<h2 id="a-possible-first-experiment">A possible first experiment</h2>
+<p>If CNA eventually decides to prove its console architecture with public tools, a system such as the <strong>PlayStation Vita</strong> remains an interesting candidate.</p>
+<p>It offers a useful combination:</p>
+<pre><code class="language-text">real console
+public homebrew SDK
+public SDL support
+C/C++ toolchain
+reasonable hardware resources</code></pre>
+<p>A successful Vita experiment would provide strong evidence that CNA can survive outside normal desktop/mobile/web environments.</p>
+<p>It would also reveal problems in:</p>
+<pre><code class="language-text">Sharp Runtime
+filesystem assumptions
+memory ownership
+threading
+content loading
+input
+build dependencies</code></pre>
+<p>before CNA attempts a much more legally and technically constrained modern console.</p>
+<p>This remains a future idea, not current CNA support.</p>
+<hr>
+<h2 id="current-status">Current status</h2>
+<p>The most important table in this article is therefore very simple:</p>
+<div class="table-wrap"><table><thead><tr><th>Platform family</th><th>CNA support today</th></tr></thead><tbody><tr><td>Nintendo Switch / Switch 2</td><td>No</td></tr><tr><td>PlayStation 4 / PlayStation 5</td><td>No</td></tr><tr><td>Xbox One / Xbox Series X\</td><td>S</td><td>No</td></tr><tr><td>PlayStation Vita / PSP / PS2 / PS3</td><td>No</td></tr><tr><td>Nintendo 3DS / Wii / GameCube</td><td>No</td></tr><tr><td>Dreamcast</td><td>No</td></tr><tr><td>Original Xbox</td><td>No</td></tr></tbody></table></div>
+<p>There are currently <strong>zero officially supported game-console targets in CNA</strong>.</p>
+<p>That statement should remain explicit until a console build has actually been implemented and tested.</p>
+<hr>
+<h2 id="but-console-support-is-architecturally-possible">But console support is architecturally possible</h2>
+<p>The absence of current support should not be confused with an architectural dead end.</p>
+<p>CNA already has several useful foundations:</p>
+<pre><code class="language-text">native C++
+
+CNA Platform API
+
+separate graphics renderer API
+
+build-time renderer inclusion
+
+optional startup selection among linked renderers
+
+multiple host-platform implementations
+
+10 public renderer identities across 8 implementation families
+
+mobile and Web ports proving non-desktop lifecycle support
+
+headless operation
+
+XNA-compatible controller abstraction
+
+content-system abstraction</code></pre>
+<p>These are exactly the types of boundaries a portable console framework needs.</p>
+<p>The remaining work is substantial, but it is identifiable.</p>
+<hr>
+<h2 id="source-code-and-documentation">Source code and documentation</h2>
+<p>The CNA repository is available at:</p>
+<p><a href="https://github.com/libcna/cna">https://github.com/libcna/cna</a></p>
+<p>The original console feasibility analysis is:</p>
+<pre><code class="language-text">misc/cnaconsoles.md</code></pre>
+<p>It describes:</p>
+<ul><li>modern licensed consoles;</li><li>older homebrew consoles;</li><li>development toolchains;</li><li>likely renderer mappings;</li><li>restricted build profiles;</li><li>filesystem requirements;</li><li>Sharp Runtime concerns;</li><li>platform-holder access;</li><li>possible first console targets;</li><li>lessons from FNA and MonoGame.</li></ul>
+<p>That document is a historical feasibility analysis rather than the authoritative inventory of the current tree. It predates the completed Platform API, runtime selection among build-linked renderers and the renderer retirements of September and October 2026. Current platform and renderer facts are recorded in:</p>
+<pre><code class="language-text">docs/platform-abstraction.md
+docs/renderer-registry.md
+docs/runtime-renderer-selection.md
+docs/removed-renderers.md</code></pre>
+<p>The current platform architecture can be found primarily under:</p>
+<pre><code class="language-text">modules/platform/</code></pre>
+<p>with platform selection in:</p>
+<pre><code class="language-text">cmake/PlatformSelection.cmake</code></pre>
+<p>and graphics selection in:</p>
+<pre><code class="language-text">cmake/RendererSelection.cmake</code></pre>
+<p>The currently selectable platform implementations are:</p>
+<pre><code class="language-text">SDL3
+HEADLESS
+TERMINAL</code></pre>
+<p>There is currently no Nintendo, PlayStation or Xbox implementation.</p>
+<hr>
+<h2 id="conclusion">Conclusion</h2>
+<p>CNA does <strong>not currently support any game console</strong>.</p>
+<p>That includes both modern systems such as:</p>
+<pre><code class="language-text">Nintendo Switch
+PlayStation 5
+Xbox Series X|S</code></pre>
+<p>and older homebrew-accessible systems.</p>
+<p>For current commercial consoles, the largest immediate obstacle is official platform access: CNA cannot build and test a real commercial-console port without the appropriate SDK, agreements and development hardware.</p>
+<p>For older consoles, those legal restrictions are often much smaller, but technical restrictions become more severe:</p>
+<pre><code class="language-text">small memory
+limited standard libraries
+different filesystems
+unusual graphics APIs
+restricted threading
+different lifecycle
+specialized toolchains</code></pre>
+<p>CNA&#39;s architecture, however, is now substantially better suited to this work than when the original feasibility analysis was written.</p>
+<p>The Platform API now separates host integration from the framework.</p>
+<p>The graphics system separates renderers from the platform.</p>
+<p>CNA is native C++.</p>
+<p>Its renderer set is fixed at build time, with a small single-renderer build as the default and optional startup selection among renderers deliberately linked into a multi-renderer build.</p>
+<p>And several existing renderers provide useful starting points for both modern and retro hardware.</p>
+<p>So the correct description of CNA today is not:</p>
+<blockquote><p>CNA supports consoles.</p></blockquote>
+<p>It does not.</p>
+<p>Nor is it:</p>
+<blockquote><p>CNA cannot support consoles.</p></blockquote>
+<p>There is no fundamental architectural reason why it could not.</p>
+<p>The accurate statement is:</p>
+<blockquote><p>Console support is a future CNA goal that now has much of the required framework architecture, but no console has yet been ported, built and verified.</p></blockquote>
+<p>When the first console actually runs a CNA game, that claim can change.</p>
+<p>Until then, CNA&#39;s console support remains exactly:</p>
+<pre><code class="language-text">0 supported consoles</code></pre></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/portability/">#Portability</a><a href="/tag/platform-api/">#Platform API</a><a href="/tag/consoles/">#Consoles</a><a href="/tag/nintendo/">#Nintendo</a><a href="/tag/playstation/">#PlayStation</a><a href="/tag/xbox/">#Xbox</a><a href="/tag/nintendo-switch/">#Nintendo Switch</a><a href="/tag/playstation-5/">#PlayStation 5</a><a href="/tag/xbox-series/">#Xbox Series</a><a href="/tag/ps-vita/">#PS Vita</a><a href="/tag/homebrew/">#Homebrew</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

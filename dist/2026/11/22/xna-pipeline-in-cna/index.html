@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>XNA Pipeline in CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="One of the most difficult parts of XNA compatibility is not rendering.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/11/22/xna-pipeline-in-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="XNA Pipeline in CNA">
+  <meta property="og:description" content="One of the most difficult parts of XNA compatibility is not rendering.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/11/22/xna-pipeline-in-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-11-22T16:21:40Z">November 22, 2026</time></span><span>Updated <time datetime="2026-10-17T15:14:22Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">XNA Pipeline in CNA</h1>
+      <p class="article-description">One of the most difficult parts of XNA compatibility is not rendering.</p>
+    </header>
+    <div class="article-body"><p>One of the most difficult parts of XNA compatibility is not rendering.</p>
+<p>It is content.</p>
+<p>A typical XNA game does not load its original PNG, FBX, WAV or SpriteFont description directly at runtime. Those assets first pass through the <strong>XNA Content Pipeline</strong> and are transformed into compiled <code>.xnb</code> files.</p>
+<p>CNA therefore needs to solve two different problems:</p>
+<pre><code class="language-text">source assets
+    ↓
+XNA-compatible Content Pipeline
+    ↓
+.xnb files</code></pre>
+<p>and:</p>
+<pre><code class="language-text">.xnb files
+    ↓
+ContentManager
+    ↓
+runtime CNA objects</code></pre>
+<p>Modern CNA can do both.</p>
+<p>It can <strong>read real XNB files</strong>, including files produced by Microsoft&#39;s original XNA 4.0 tooling, and it now also contains a native C++ implementation of the XNA-style Content Pipeline capable of producing XNB files itself.</p>
+<p><strong>CNA:</strong> <a href="https://github.com/libcna/cna">github.com/libcna/cna</a></p>
+<h2 id="what-is-an-xnb-file">What is an XNB file?</h2>
+<p>An <code>.xnb</code> file is XNA&#39;s compiled runtime-content container.</p>
+<p>A source asset might begin as:</p>
+<pre><code class="language-text">player.png
+ship.fbx
+explosion.wav
+font.spritefont
+effect.fx</code></pre>
+<p>The XNA Content Pipeline transforms it into something optimized for loading by the game:</p>
+<pre><code class="language-text">player.xnb
+ship.xnb
+explosion.xnb
+font.xnb
+effect.xnb</code></pre>
+<p>An XNB contains more than a blob of asset data.</p>
+<p>It also contains information describing how the object should be reconstructed at runtime, including a table of <strong>ContentTypeReaders</strong>.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">XNB
+├── header
+├── type reader table
+├── shared resource count
+├── root object
+└── shared resources</code></pre>
+<p>The runtime reads the table, constructs the necessary readers and then reconstructs the object graph.</p>
+<p>That mechanism is one of the reasons XNB compatibility is substantially harder than simply parsing a PNG or WAV file.</p>
+<h2 id="xnb-loading-in-cna">XNB loading in CNA</h2>
+<p>CNA implements the familiar XNA content architecture:</p>
+<pre><code class="language-text">ContentManager
+      ↓
+ContentReader
+      ↓
+ContentTypeReaderManager
+      ↓
+ContentTypeReader&lt;T&gt;
+      ↓
+CNA object</code></pre>
+<p>When an application asks for:</p>
+<pre><code class="language-cpp">auto texture = Content.Load&lt;Texture2D&gt;(&quot;Textures/player&quot;);</code></pre>
+<p>CNA&#39;s content resolution can find an XNB and deserialize it through the same basic reader model used by XNA.</p>
+<p>In the current content-resolution order, <code>.xnb</code> is tried before CNA&#39;s other content representations.</p>
+<p>This makes existing XNA content a first-class compatibility path rather than something that has to be converted manually before CNA can use it.</p>
+<h2 id="contenttypereaders">ContentTypeReaders</h2>
+<p>An XNB usually contains the name of the reader expected to deserialize each object type.</p>
+<p>Examples include:</p>
+<pre><code class="language-text">Texture2DReader
+SpriteFontReader
+SoundEffectReader
+ModelReader
+BasicEffectReader
+ListReader&lt;T&gt;
+DictionaryReader&lt;TKey,TValue&gt;</code></pre>
+<p>CNA implements a large set of these readers natively in C++.</p>
+<p>Current support includes primitive values, XNA mathematics, collections, textures, SpriteFonts, audio, models, buffers, stock effects and several other runtime content types.</p>
+<p>For example, CNA can read XNB content for:</p>
+<ul><li>integers, floats, strings and other primitives</li><li><code>Vector2</code>, <code>Vector3</code>, <code>Vector4</code></li><li><code>Matrix</code></li><li><code>Quaternion</code></li><li><code>Color</code></li><li>bounding volumes</li><li><code>Curve</code></li><li><code>Texture2D</code></li><li><code>Texture3D</code></li><li><code>TextureCube</code></li><li><code>SpriteFont</code></li><li><code>SoundEffect</code></li><li><code>Song</code></li><li>vertex and index buffers</li><li>vertex declarations</li><li>XNA stock effects</li><li><code>Model</code></li><li>external references</li><li>shared resources</li><li>compiled effects where the active renderer supports them</li></ul>
+<p>The <code>ModelReader</code> is particularly important because an XNA model is not a simple mesh.</p>
+<p>It can contain:</p>
+<pre><code class="language-text">Model
+├── bones
+├── meshes
+│   └── mesh parts
+│       ├── VertexBuffer
+│       ├── IndexBuffer
+│       └── Effect
+├── bounding volumes
+├── shared GPU resources
+└── Tag</code></pre>
+<p>CNA reconstructs this object graph, including shared-resource relationships rather than simply creating independent copies of every referenced object.</p>
+<h2 id="registering-the-built-in-readers">Registering the built-in readers</h2>
+<p>There is an important architectural difference between C# and C++.</p>
+<p>CNA cannot ask the CLR to discover reader classes for it.</p>
+<p>Its reader registry therefore begins empty.</p>
+<p>The built-in readers are registered explicitly:</p>
+<pre><code class="language-cpp">#include &quot;CNA/Internal/Xnb/XnbBuiltInReaders.hpp&quot;
+
+CNA::Internal::Xnb::RegisterAllBuiltInXnbReaders();</code></pre>
+<p>This is intentionally idempotent, so an application can safely perform the registration during startup.</p>
+<p>Once registered, XNB loading can resolve the reader names stored inside the file.</p>
+<h2 id="custom-contenttypereaders">Custom ContentTypeReaders</h2>
+<p>XNA games are not restricted to Microsoft&#39;s built-in asset types.</p>
+<p>A game can define its own runtime data:</p>
+<pre><code class="language-text">LevelData
+DialogueTree
+Quest
+ParticleSettings
+AnimationDatabase</code></pre>
+<p>and supply its own <code>ContentTypeReader</code>.</p>
+<p>CNA supports the same idea.</p>
+<p>A native reader can derive from:</p>
+<pre><code class="language-cpp">ContentTypeReader&lt;MyLevelData&gt;</code></pre>
+<p>and implement the payload reader:</p>
+<pre><code class="language-cpp">class MyLevelDataReader
+    : public ContentTypeReader&lt;MyLevelData&gt;
+{
+public:
+    MyLevelDataReader()
+        : ContentTypeReader&lt;MyLevelData&gt;(
+            &quot;MyGame.Content.MyLevelData&quot;)
+    {
+    }
+
+protected:
+    MyLevelData Read(
+        ContentReader&amp; input,
+        std::optional&lt;MyLevelData&gt; existing) override
+    {
+        MyLevelData data =
+            existing.value_or(MyLevelData{});
+
+        data.roomCount = input.ReadInt32();
+
+        return data;
+    }
+};</code></pre>
+<p>The reader is then registered using the exact identity stored in the XNB:</p>
+<pre><code class="language-cpp">ContentTypeReaderManager::AddTypeCreator(
+    &quot;MyGame.Content.MyLevelDataReader&quot;,
+    []
+    {
+        return std::make_unique&lt;MyLevelDataReader&gt;();
+    });</code></pre>
+<p>After that:</p>
+<pre><code class="language-cpp">content.Load&lt;MyLevelData&gt;(&quot;level1&quot;);</code></pre>
+<p>can use it like a built-in reader.</p>
+<p>This design has also been tested against real third-party XNB content rather than only synthetic CNA fixtures.</p>
+<h2 id="the-reflection-problem">The reflection problem</h2>
+<p>This is where recreating XNA in C++ becomes particularly interesting.</p>
+<p>XNA was built on .NET.</p>
+<p>.NET can use <strong>reflection</strong>.</p>
+<p>C++ cannot normally do this:</p>
+<pre><code class="language-text">give me all public fields of this arbitrary type
+tell me their managed types
+construct the corresponding readers
+assign values to those fields by name</code></pre>
+<p>XNA used that ability in several places.</p>
+<p>One important example is <code>ReflectiveReader</code>.</p>
+<p>A developer could define a relatively ordinary C# data class and allow the Content Pipeline to serialize it without manually writing every read operation.</p>
+<p>At runtime, XNA could use reflection to reconstruct the object.</p>
+<p>CNA cannot simply reproduce that mechanism.</p>
+<h2 id="cna-s-reflectivetypereaderbuilder">CNA&#39;s ReflectiveTypeReaderBuilder</h2>
+<p>Instead, CNA requires the application to describe the serialized members explicitly.</p>
+<p>For example:</p>
+<pre><code class="language-cpp">ReflectiveTypeReaderBuilder&lt;ParticleSystemSettings&gt;(
+    &quot;ParticlesSettings.ParticleSystemSettings&quot;)
+
+    .Field(&amp;ParticleSystemSettings::MinNumParticles)
+    .Field(&amp;ParticleSystemSettings::TextureFilename)
+
+    .EnumField(
+        &amp;ParticleSystemSettings::AccelerationMode,
+        &quot;ParticlesSettings.AccelerationMode&quot;)
+
+    .Register();</code></pre>
+<p>CNA then builds the appropriate reflective-style reader from that declaration.</p>
+<p>This is an important distinction:</p>
+<p><strong>CNA does not implement general C++ runtime reflection.</strong></p>
+<p>But it <strong>can read XNB payloads originally written for XNA&#39;s ReflectiveReader</strong> once the native C++ program describes the type.</p>
+<p>The original XNB does not necessarily have to be rebuilt.</p>
+<h2 id="reference-types-and-shared-resources">Reference types and shared resources</h2>
+<p>The distinction becomes more complicated for C# reference types.</p>
+<p>If an object is serialized as a reference type inside something such as a list, dictionary or <code>Model.Tag</code>, CNA must preserve that reference-shaped representation.</p>
+<p>For those types, the builder can use:</p>
+<pre><code class="language-cpp">.RegisterShared();</code></pre>
+<p>For example:</p>
+<pre><code class="language-cpp">ReflectiveTypeReaderBuilder&lt;ModelKeyframe&gt;(
+    &quot;CustomModelAnimation.ModelKeyframe&quot;)
+
+    .Field(&amp;ModelKeyframe::bone)
+    .Field(&amp;ModelKeyframe::time)
+    .Field(&amp;ModelKeyframe::transform)
+
+    .RegisterShared();</code></pre>
+<p>XNB also has an explicit shared-resource table.</p>
+<p>A field corresponding to:</p>
+<pre><code class="language-csharp">[ContentSerializer(SharedResource = true)]</code></pre>
+<p>can be represented with:</p>
+<pre><code class="language-cpp">.SharedResourceField(&amp;ModelPart::effect)</code></pre>
+<p>CNA delays the assignment until the shared resources have been loaded, reproducing XNA&#39;s two-pass fix-up model.</p>
+<p>So even without CLR reflection and garbage-collected object references, the wire semantics can still be preserved.</p>
+<h2 id="generic-readers-without-reflection">Generic readers without reflection</h2>
+<p>Generic readers create another problem.</p>
+<p>XNA can encounter something conceptually like:</p>
+<pre><code class="language-text">ListReader&lt;Vector3&gt;
+ListReader&lt;Matrix&gt;
+DictionaryReader&lt;String, Int32&gt;
+ArrayReader&lt;Vector3&gt;</code></pre>
+<p>and use reflection and runtime generic type information to determine what must be instantiated.</p>
+<p>C++ templates do not work like CLR generics.</p>
+<p>CNA therefore registers concrete combinations explicitly.</p>
+<p>Several commonly required combinations are built in, such as those needed for SpriteFonts, models and animation data.</p>
+<p>A game can register another combination when it needs one.</p>
+<p>For example:</p>
+<pre><code class="language-text">List&lt;MyKeyframe&gt;</code></pre>
+<p>is not something CNA can create automatically from a type name if <code>MyKeyframe</code> exists only inside the game.</p>
+<p>The game knows that C++ type, so the game registers its corresponding reader.</p>
+<p>This is a recurring CNA design principle:</p>
+<blockquote><p>Replace implicit CLR discovery with explicit, type-safe native registration.</p></blockquote>
+<h2 id="xnb-compression">XNB compression</h2>
+<p>XNB also has container-level compression.</p>
+<p>CNA currently supports:</p>
+<pre><code class="language-text">Uncompressed XNB
+LZX
+LZ4</code></pre>
+<p>LZX is the important historical format because it is the compression used by the original XNA ecosystem.</p>
+<p>CNA has both the read side and a deterministic native LZX writer.</p>
+<p>LZ4 belongs to the later extended XNB ecosystem rather than Microsoft&#39;s XNA 4.0. CNA can read its raw-block representation, but it does not pretend that LZ4 combined with an original XNA 4.0 platform target is a file Microsoft XNA itself could have produced.</p>
+<h2 id="creating-xnb-files">Creating XNB files</h2>
+<p>CNA originally approached XNB primarily as a compatibility format to consume.</p>
+<p>That has changed.</p>
+<p>CNA now contains a <strong>native XNB writer</strong>.</p>
+<p>The build path can be:</p>
+<pre><code class="language-text">source asset
+    ↓
+ContentImporter
+    ↓
+ContentProcessor
+    ↓
+ContentTypeWriter
+    ↓
+ContentWriter
+    ↓
+XNB writer
+    ↓
+.xnb</code></pre>
+<p>This brings CNA much closer to the original XNA development workflow.</p>
+<p>For example:</p>
+<pre><code class="language-bash">cna-content build Content -o bin/Content \
+    --format xnb \
+    --xnb-platform windows \
+    --xnb-version 5 \
+    --xnb-profile reach</code></pre>
+<p>can compile source content into XNA-compatible output.</p>
+<p>LZX compression can also be requested.</p>
+<h2 id="the-xna-content-pipeline-api">The XNA Content Pipeline API</h2>
+<p>The implementation goes beyond having a few converters that happen to create XNB files.</p>
+<p>CNA reproduces the architecture of the XNA 4.0 Content Pipeline itself.</p>
+<p>It contains equivalents for concepts such as:</p>
+<pre><code class="language-text">ContentImporter&lt;T&gt;
+ContentProcessor&lt;TInput, TOutput&gt;
+ContentTypeWriter&lt;T&gt;
+ContentWriter
+
+ContentImporterContext
+ContentProcessorContext
+
+ContentIdentity
+ExternalReference&lt;T&gt;
+
+BuildAsset
+BuildAndLoadAsset
+Convert
+dependency tracking
+logging
+processor parameters
+
+IntermediateSerializer
+BuildContent</code></pre>
+<p>This makes it possible to port custom XNA pipeline code to native C++ instead of rewriting the entire asset workflow around a completely different model.</p>
+<h2 id="how-complete-is-the-content-pipeline-api">How complete is the Content Pipeline API?</h2>
+<p>The current measured XNA 4.0 pipeline profile contains:</p>
+<pre><code class="language-text">128 / 128 public or protected types
+705 / 705 relevant public or protected members
+27 / 27 enum values
+
+10 / 10 built-in importers
+12 / 12 built-in processors
+47 / 47 processor properties
+
+18 / 18 declared source extensions</code></pre>
+<p>The current parity report has <strong>zero missing types and zero missing measured members</strong>.</p>
+<p>That does not mean every implementation detail is identical.</p>
+<p>C++ cannot reproduce every CLR mechanism literally.</p>
+<p>The parity model therefore distinguishes:</p>
+<pre><code class="language-text">EXACT_EQUIVALENT
+SEMANTIC_EQUIVALENT
+HOST_SUBSTITUTION</code></pre>
+<p>For example, a .NET attribute cannot literally exist in the same form in native C++.</p>
+<p>The capability can still be reproduced.</p>
+<h2 id="replacing-pipeline-attributes-and-assembly-scanning">Replacing pipeline attributes and assembly scanning</h2>
+<p>In XNA, an importer might look like this:</p>
+<pre><code class="language-csharp">[ContentImporter(
+    &quot;.quest&quot;,
+    DefaultProcessor = &quot;QuestProcessor&quot;)]
+public class QuestImporter
+    : ContentImporter&lt;Quest&gt;
+{
+}</code></pre>
+<p>The XNA build system can scan assemblies and discover that class through reflection.</p>
+<p>CNA has no CLR assembly scanner.</p>
+<p>Instead, the same metadata becomes a descriptor:</p>
+<pre><code class="language-cpp">ContentImporterAttribute attribute(&quot;.quest&quot;);
+attribute.setDefaultProcessorProperty(
+    &quot;QuestProcessor&quot;);</code></pre>
+<p>and the class is explicitly registered:</p>
+<pre><code class="language-cpp">RegisterXnaImporter&lt;QuestImporter&gt;(
+    *registry,
+    &quot;QuestImporter&quot;,
+    attribute);</code></pre>
+<p>Processors use the equivalent model.</p>
+<p>This gives CNA the same information without pretending that a C++ executable is a .NET assembly.</p>
+<p><code>PipelineComponentScanner</code> then scans CNA&#39;s <strong>registered component catalog</strong>, rather than loading arbitrary assemblies and reflecting over their classes.</p>
+<h2 id="replacing-reflection-in-intermediateserializer">Replacing reflection in IntermediateSerializer</h2>
+<p>XNA also uses reflection for its intermediate XML serialization.</p>
+<p>CNA handles this in a similar explicit way.</p>
+<p>A C# type such as:</p>
+<pre><code class="language-csharp">public class Quest
+{
+    public string Name { get; set; }
+    public List&lt;Vector3&gt; Waypoints;
+}</code></pre>
+<p>can become a C++ type that describes its serializable members:</p>
+<pre><code class="language-cpp">static void DescribeContent(
+    ContentTypeDescriptor&lt;Quest&gt;&amp; d)
+{
+    d.Field(&quot;Name&quot;, &amp;Quest::name);
+    d.Field(&quot;Waypoints&quot;, &amp;Quest::waypoints);
+}</code></pre>
+<p>CNA&#39;s <code>IntermediateSerializer</code> then performs the generic serialization work.</p>
+<p>The game describes the schema.</p>
+<p>CNA provides the machinery.</p>
+<p>Again, the reflection mechanism disappears, but the useful behavior remains.</p>
+<h2 id="contentproj-support">.contentproj support</h2>
+<p>CNA can also work with XNA-style content projects.</p>
+<p>Instead of manually converting every project into another build format, a project can be built with:</p>
+<pre><code class="language-bash">cna-content build MyGameContent.contentproj \
+    -o Content</code></pre>
+<p>CNA interprets important XNA content-project information such as:</p>
+<ul><li><code>XnaPlatform</code></li><li><code>XnaProfile</code></li><li><code>XnaCompressContent</code></li><li>importer selection</li><li>processor selection</li><li>logical asset names</li><li>processor parameters</li><li>content and copy items</li><li><code>Link</code></li><li>output paths</li></ul>
+<p>There is also CMake integration for adding a content project as a build dependency.</p>
+<p>This matters because compatibility with an XNA game is not just compatibility with individual PNG or FBX files.</p>
+<p>The <strong>content project&#39;s build decisions are part of the game&#39;s behavior</strong>.</p>
+<h2 id="custom-pipeline-components">Custom pipeline components</h2>
+<p>A game can also port its own importer, processor and writer.</p>
+<p>In XNA these might live in a separate C# pipeline assembly.</p>
+<p>In CNA they are compiled into a native content compiler and explicitly registered.</p>
+<p>For example:</p>
+<pre><code class="language-text">QuestImporter
+      ↓
+QuestProcessor
+      ↓
+QuestWriter
+      ↓
+QuestReader</code></pre>
+<p>The writer declares the reader identity that will appear in the resulting XNB.</p>
+<p>At runtime the game registers that reader with <code>ContentTypeReaderManager</code>.</p>
+<p>This preserves the same important relationship XNA had:</p>
+<pre><code class="language-text">build-time ContentTypeWriter
+          ↕
+runtime ContentTypeReader</code></pre>
+<p>CNA does not dynamically load arbitrary C# pipeline assemblies, but custom native pipeline code is fully supported.</p>
+<h2 id="testing-against-the-real-xna-4-0-pipeline">Testing against the real XNA 4.0 pipeline</h2>
+<p>Implementing an API with the right class names is not enough.</p>
+<p>A pipeline can successfully produce a valid XNB and still behave differently from Microsoft&#39;s pipeline.</p>
+<p>For that reason, CNA development went much further than synthetic unit tests.</p>
+<p>A corpus was built from <strong>real Microsoft XNA sample projects</strong>.</p>
+<p>The reference files were produced by the <strong>genuine Microsoft XNA 4.0 Content Pipeline running on Windows 7</strong>.</p>
+<p>The process was essentially:</p>
+<pre><code class="language-text">original Microsoft XNA sample asset
+            ↓
+original XNA 4.0 Content Pipeline
+        on Windows 7
+            ↓
+reference XNB</code></pre>
+<p>Then the exact same original source asset and its original <code>.contentproj</code> settings were fed to CNA:</p>
+<pre><code class="language-text">same source asset
+same importer
+same processor
+same processor parameters
+same target/profile
+            ↓
+CNA Content Pipeline
+            ↓
+CNA-generated XNB</code></pre>
+<p>The files could then be compared directly.</p>
+<h2 id="byte-identity-as-a-compatibility-test">Byte identity as a compatibility test</h2>
+<p>The strongest possible result is:</p>
+<pre><code class="language-text">SHA(reference.xnb)
+    ==
+SHA(cna-generated.xnb)</code></pre>
+<p>That means CNA did not merely produce something that its own reader accepts.</p>
+<p>It reproduced Microsoft&#39;s output byte for byte.</p>
+<p>An earlier focused test on the XNA Platformer sample had already achieved a striking result:</p>
+<p><strong>44 of 45 successfully buildable assets were byte-identical to Microsoft&#39;s XNA 4.0 output.</strong></p>
+<p>That result motivated a much larger sweep.</p>
+<h2 id="7-726-genuine-xnb-files">7,726 genuine XNB files</h2>
+<p>The later compatibility campaign expanded the test to the available Microsoft XNA sample corpus.</p>
+<p>The final denominator contained:</p>
+<p><strong>7,726 genuine XNB files</strong></p>
+<p>produced by Microsoft&#39;s XNA 4.0 Content Pipeline.</p>
+<p>Every reference was classified.</p>
+<p>The final clean sweep produced:</p>
+<div class="table-wrap"><table><thead><tr><th>Result</th><th>XNB files</th></tr></thead><tbody><tr><td>Byte-identical</td><td>4,337</td></tr><tr><td>Semantically identical</td><td>747</td></tr><tr><td>Accepted difference</td><td>815</td></tr><tr><td>Sample-specific custom pipeline gap</td><td>1,797</td></tr><tr><td>Environment gap</td><td>9</td></tr><tr><td>Reference no longer present</td><td>21</td></tr><tr><td>Unexplained</td><td>0</td></tr><tr><td>Total</td><td>7,726</td></tr></tbody></table></div>
+<p>The most important number is not actually 4,337.</p>
+<p>It is:</p>
+<p><strong>0 unexplained differences.</strong></p>
+<p>Every XNB in the corpus either matched, differed in a measured and understood way, required sample-specific custom code, was externally blocked, or had another explicit classification.</p>
+<h2 id="what-does-semantically-identical-mean">What does “semantically identical” mean?</h2>
+<p>Byte identity is excellent evidence, but it is not always the correct requirement.</p>
+<p>For example, two valid LZX streams can represent the same decompressed payload while choosing different compression decisions.</p>
+<p>Likewise, tiny floating-point differences may produce exactly the same runtime object.</p>
+<p>The semantic-difference checks therefore decompressed and parsed both sides instead of accepting a convenient label.</p>
+<p>The final campaign had <strong>747 semantically identical XNBs</strong>.</p>
+<p>For hundreds of those files, the XNB payload itself was identical after decompression even though the compressed byte stream differed.</p>
+<p>Mutation tests were used to verify that these comparisons were capable of detecting deliberately introduced differences.</p>
+<h2 id="why-can-two-correct-pipelines-produce-different-bytes">Why can two correct pipelines produce different bytes?</h2>
+<p>Some output depends on components for which CNA deliberately uses a different implementation.</p>
+<p>The final corpus contained <strong>815 accepted differences</strong>, all audited field by field.</p>
+<p>Examples include:</p>
+<ul><li>GDI+ versus FreeType glyph rasterization</li><li>different valid DXT block-compression choices</li><li>D3DX versus another conforming JPEG decoder</li><li>compiler version strings embedded in effect bytecode</li><li>XNA&#39;s mipmap-filter dithering</li><li>Windows Media encoding</li><li>Xbox 360 XMA encoding</li></ul>
+<p>These are not simply waved away as “close enough”.</p>
+<p>The allowed fields for each category are defined and automatically checked.</p>
+<p>A supposedly accepted difference outside those fields fails the audit.</p>
+<h2 id="the-corpus-found-real-cna-bugs">The corpus found real CNA bugs</h2>
+<p>This exercise was valuable because it found bugs that API-completeness tests never could.</p>
+<p>The large XNA sample sweep found and fixed <strong>75 framework defects</strong>.</p>
+<p>Examples included differences in:</p>
+<ul><li>SpriteFont atlas sizing</li><li>Windows font-family selection</li><li>PNG <code>gAMA</code> handling</li><li>BMP/DIB parsing</li><li>X-file materials</li><li>generated normals</li><li>texture paths</li><li>effect compiler configuration</li><li>FBX node transforms</li><li>FBX inheritance</li><li>shear</li><li>root promotion</li><li>model vertex merging</li><li>asset-relative path handling</li><li>content-project logical names</li><li>shared nested assets</li></ul>
+<p>The rule during this work was simple:</p>
+<blockquote><p>An unexplained difference is treated as a CNA bug until evidence proves otherwise.</p></blockquote>
+<p>That is a much stronger development method than designing fixtures around what CNA already happens to do.</p>
+<h2 id="custom-sample-pipelines-are-the-largest-remaining-corpus-gap">Custom sample pipelines are the largest remaining corpus gap</h2>
+<p>The biggest number left in the sample corpus is:</p>
+<p><strong>1,797 custom pipeline gaps.</strong></p>
+<p>This does not mean CNA is missing 1,797 built-in XNA features.</p>
+<p>Many official XNA samples contain <strong>their own custom C# importers or processors</strong>.</p>
+<p>Examples include custom terrain processors, animation processors and sample-specific content transformations.</p>
+<p>XNA loads those from the sample&#39;s own .NET pipeline assembly.</p>
+<p>CNA cannot execute arbitrary C# pipeline assemblies inside its native C++ content compiler.</p>
+<p>To build those exact assets, the sample-specific pipeline component has to be ported to C++ and registered with CNA.</p>
+<p>That work belongs to the individual sample port rather than to the generic XNA pipeline implementation unless it exposes a reusable missing framework feature.</p>
+<h2 id="what-cna-still-does-not-reproduce-perfectly">What CNA still does not reproduce perfectly</h2>
+<p>Despite the very high compatibility level, there are still real boundaries.</p>
+<h3 id="automatic-clr-reflection">Automatic CLR reflection</h3>
+<p>CNA does not provide a CLR or general-purpose C++ runtime reflection system.</p>
+<p>Reflection-dependent behavior is replaced with explicit descriptors and builders.</p>
+<p>For runtime XNB reflective content this means <code>ReflectiveTypeReaderBuilder</code>.</p>
+<p>For IntermediateSerializer it means <code>DescribeContent()</code>.</p>
+<p>For pipeline components it means explicit registration.</p>
+<p>The resulting behavior can match XNA, but the mechanism is deliberately native C++.</p>
+<h3 id="dynamic-pipeline-assembly-loading">Dynamic pipeline assembly loading</h3>
+<p>XNA can discover custom pipeline components inside .NET assemblies.</p>
+<p>CNA does not load arbitrary C# pipeline DLLs.</p>
+<p>Custom components are ported to C++ and linked into a content compiler instead.</p>
+<h3 id="xbox-360-output">Xbox 360 output</h3>
+<p>Writing an <code>X</code> into the XNB platform byte is easy.</p>
+<p>Producing a genuinely correct Xbox 360 asset is not.</p>
+<p>Xbox 360 content involves big-endian and platform-specific payload rules.</p>
+<p>CNA therefore refuses to claim normal Xbox XNB compatibility rather than placing Windows-form payloads behind an Xbox header.</p>
+<p>There is an explicit override intended for experimentation, but this is not considered qualified Xbox support.</p>
+<h3 id="windows-phone-qualification">Windows Phone qualification</h3>
+<p>The Windows Phone XNB platform identifier can be written, but the complete result has not been verified against a real Windows Phone XNA runtime.</p>
+<h3 id="xma">XMA</h3>
+<p>The Xbox XMA audio encoder is not publicly available in a form CNA can simply reproduce.</p>
+<p>CNA therefore does not ship one.</p>
+<h3 id="effect-source-compilation">Effect source compilation</h3>
+<p>CNA can read and write compiled effect content, but it does not embed a proprietary HLSL/Effect compiler.</p>
+<p>Building original <code>.fx</code> source into XNA Effect Framework bytecode requires a compatible external compiler, historically Microsoft&#39;s legacy <code>fxc</code>.</p>
+<h3 id="some-effectmaterial-arrays">Some EffectMaterial arrays</h3>
+<p>Array-valued EffectMaterial parameters remain a documented writer gap because the exact XNA reader shape has not been established strongly enough to justify guessing.</p>
+<h3 id="arbitrary-generic-reader-combinations">Arbitrary generic reader combinations</h3>
+<p>CNA can implement them, but C++ cannot manufacture every possible CLR generic instantiation automatically from a managed type string.</p>
+<p>Unusual closed combinations therefore need explicit registration.</p>
+<h2 id="xnb-and-cnb-are-different-goals">XNB and CNB are different goals</h2>
+<p>CNA also has its own compiled content format, <strong>CNB</strong>.</p>
+<p>The two should not be confused.</p>
+<pre><code class="language-text">XNB
+    ↓
+XNA compatibility
+
+CNB
+    ↓
+CNA-native compiled content</code></pre>
+<p>The interesting part is that CNA&#39;s modern Content Pipeline can share much of the earlier workflow:</p>
+<pre><code class="language-text">source
+  ↓
+Importer
+  ↓
+Processor
+  ↓
+          ┌── XNB writer
+          │
+          └── CNB writer</code></pre>
+<p>The importer and processor do not need to be duplicated just because the final container is different.</p>
+<p>This keeps XNA compatibility and CNA&#39;s native future connected without making them the same format.</p>
+<h2 id="how-close-is-cna-to-the-xna-content-pipeline">How close is CNA to the XNA Content Pipeline?</h2>
+<p>There are several different answers depending on what “complete” means.</p>
+<h3 id="api-surface">API surface</h3>
+<p>For the measured XNA Game Studio 4.0 Refresh Content Pipeline API:</p>
+<p><strong>essentially complete.</strong></p>
+<p>The current parity inventory reports:</p>
+<pre><code class="language-text">128 / 128 types
+705 / 705 members
+27 / 27 enum values
+
+10 / 10 importers
+12 / 12 processors
+47 / 47 processor properties
+18 / 18 source extensions</code></pre>
+<p>with no missing rows.</p>
+<h3 id="normal-xnb-runtime-loading">Normal XNB runtime loading</h3>
+<p>For ordinary XNA game content:</p>
+<p><strong>very broad and already practical.</strong></p>
+<p>Textures, fonts, audio, models, effects, shared resources, custom readers and reflective content are all covered.</p>
+<h3 id="xnb-generation">XNB generation</h3>
+<p>For normal Windows XNA content:</p>
+<p><strong>strong enough to reproduce thousands of Microsoft&#39;s own sample outputs exactly.</strong></p>
+<p>The large Windows 7 reference sweep is much stronger evidence than a handful of hand-built test assets.</p>
+<h3 id="every-xna-project-ever-written">Every XNA project ever written</h3>
+<p>Not yet.</p>
+<p>A game can contain its own C# pipeline code, depend on proprietary Microsoft encoders, target Xbox-specific formats, or use unusual custom reader graphs.</p>
+<p>Those require project-specific work or externally unavailable technology.</p>
+<h2 id="more-than-file-format-compatibility">More than file-format compatibility</h2>
+<p>The goal of this work was never simply:</p>
+<blockquote><p>CNA can open an XNB.</p></blockquote>
+<p>The stronger goal is:</p>
+<blockquote><p>An XNA content project should be understandable to CNA, its source assets should pass through familiar importer/processor/writer concepts, the resulting XNB should reproduce Microsoft&#39;s behavior as closely as the native environment permits, and the game should then load that XNB through the familiar ContentManager model.</p></blockquote>
+<p>That requires compatibility at several layers:</p>
+<pre><code class="language-text">.contentproj
+      ↓
+importers
+      ↓
+processors
+      ↓
+processor parameters
+      ↓
+ContentTypeWriters
+      ↓
+XNB container
+      ↓
+ContentTypeReaders
+      ↓
+shared resources
+      ↓
+ContentManager
+      ↓
+runtime objects</code></pre>
+<p>CNA now implements that chain to a level where it can be measured against the original pipeline rather than merely compared conceptually.</p>
+<h2 id="the-original-pipeline-remains-the-oracle">The original pipeline remains the oracle</h2>
+<p>The most important design principle behind the compatibility work is that CNA&#39;s own output is not treated as the definition of correctness.</p>
+<p>For XNA compatibility, the oracle is XNA.</p>
+<p>The original Microsoft sample sources, original <code>.contentproj</code> files, genuine XNA-generated XNB files and genuine XNA runtime behavior provide the reference.</p>
+<p>CNA&#39;s job is to explain every difference.</p>
+<p>That is why the Windows 7 corpus was so useful.</p>
+<p>Instead of asking:</p>
+<blockquote><p>Does this look like a reasonable implementation?</p></blockquote>
+<p>the test could ask:</p>
+<blockquote><p>Here is the exact asset Microsoft shipped and the exact XNB Microsoft XNA 4.0 produced from it. What does CNA produce?</p></blockquote>
+<p>That is a much harder test.</p>
+<p>It is also a much more useful one.</p>
+<p>And today, across the complete measured corpus, the number of unexplained differences is:</p>
+<p><strong>zero.</strong></p>
+<hr>
+<p><strong>CNA:</strong> <a href="https://github.com/libcna/cna">github.com/libcna/cna</a> <strong>xna4-spec:</strong> <a href="https://github.com/libcna/xna4-spec">github.com/libcna/xna4-spec</a></p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/testing/">#Testing</a><a href="/tag/xna-4-0/">#XNA 4.0</a><a href="/tag/compatibility/">#Compatibility</a><a href="/tag/xnb/">#XNB</a><a href="/tag/xna-content-pipeline/">#XNA Content Pipeline</a><a href="/tag/content/">#Content</a><a href="/tag/contentmanager/">#ContentManager</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

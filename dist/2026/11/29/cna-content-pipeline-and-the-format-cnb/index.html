@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNA Content Pipeline and the format CNB | CNA&#39;s Blog</title>
+  <meta name="description" content="Games rarely use their original source assets exactly as artists created them.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/11/29/cna-content-pipeline-and-the-format-cnb/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNA Content Pipeline and the format CNB">
+  <meta property="og:description" content="Games rarely use their original source assets exactly as artists created them.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/11/29/cna-content-pipeline-and-the-format-cnb/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-11-29T17:28:18Z">November 29, 2026</time></span><span>Updated <time datetime="2026-10-17T15:16:00Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a></span></div>
+      <h1 class="article-title">CNA Content Pipeline and the format CNB</h1>
+      <p class="article-description">Games rarely use their original source assets exactly as artists created them.</p>
+    </header>
+    <div class="article-body"><p>Games rarely use their original source assets exactly as artists created them.</p>
+<p>A texture may begin as a PNG. A 3D model may arrive as glTF. Audio may be stored as WAV, FLAC or Ogg. A font may be described by a <code>.spritefont</code> file. Before these assets reach a running game, they often need to be validated, transformed, optimized and compiled into a representation designed for the runtime.</p>
+<p>That is the job of the <strong>CNA Content Pipeline</strong>.</p>
+<p>CNA also has its own compiled binary content format for the resulting assets:</p>
+<p><strong>CNB — CNA Binary Content.</strong></p>
+<p>The two concepts are closely related, but they are not the same thing:</p>
+<pre><code class="language-text">CNA Content Pipeline
+    = the build system that processes assets
+
+CNB
+    = CNA&#39;s native compiled runtime asset format
+
+ContentManager
+    = the runtime system that loads those assets</code></pre>
+<p>Understanding this distinction is important because the Content Pipeline can produce more than CNB, and CNB can be produced by several CNA tools.</p>
+<hr>
+<h2 id="the-basic-idea">The basic idea</h2>
+<p>A typical CNA project may contain authoring assets like these:</p>
+<pre><code class="language-text">ContentSource/
+├── Models/
+│   └── robot.gltf
+├── Textures/
+│   └── wall.png
+├── Fonts/
+│   └── ui.spritefont
+├── Sounds/
+│   └── explosion.wav
+└── Music/
+    └── theme.ogg</code></pre>
+<p>The CNA Content Pipeline compiles them:</p>
+<pre><code class="language-bash">cna-content build ContentSource -o Content</code></pre>
+<p>The result may look like:</p>
+<pre><code class="language-text">Content/
+├── .cna-content.lock
+├── .cna-content-manifest.json
+├── Models/
+│   └── robot.cnb
+├── Textures/
+│   └── wall.cnb
+├── Fonts/
+│   └── ui.cnb
+├── Sounds/
+│   └── explosion.cnb
+└── Music/
+    ├── theme.cnb
+    └── theme.ogg</code></pre>
+<p>The game continues to use the familiar XNA-style API:</p>
+<pre><code class="language-cpp">auto robot =
+    Content.Load&lt;Model&gt;(&quot;Models/robot&quot;);
+
+auto wall =
+    Content.Load&lt;Texture2D&gt;(&quot;Textures/wall&quot;);
+
+auto font =
+    Content.Load&lt;SpriteFont&gt;(&quot;Fonts/ui&quot;);
+
+auto sound =
+    Content.Load&lt;SoundEffect&gt;(&quot;Sounds/explosion&quot;);</code></pre>
+<p>The application does not need to know how the source file was imported.</p>
+<p>At runtime it deals with compiled content.</p>
+<hr>
+<h2 id="architecture-of-the-content-pipeline">Architecture of the Content Pipeline</h2>
+<p>CNA&#39;s Content Pipeline is inspired by the architecture of the <strong>XNA 4.0 Content Pipeline</strong>.</p>
+<p>Its central model is:</p>
+<pre><code class="language-text">Importer
+   ↓
+Processor
+   ↓
+Writer</code></pre>
+<p>In CNA the complete path is approximately:</p>
+<pre><code class="language-text">                         BUILD TIME
+
+source asset
+    │
+    ▼
+ContentImporter
+    │
+    ▼
+source-oriented imported representation
+    │
+    ▼
+ContentProcessor
+    │
+    ▼
+runtime-oriented processed representation
+    │
+    ▼
+ContentTypeWriter
+    │
+    ▼
+CNB codec
+    │
+    ▼
+*.cnb
+    │
+    ▼
+atomic publication
+
+                         RUNTIME
+
+*.cnb
+    │
+    ▼
+CNB decoder
+    │
+    ▼
+CnbLoaderRegistry
+    │
+    ▼
+ContentManager
+    │
+    ▼
+Texture2D / Model / SpriteFont / ...</code></pre>
+<p>These stages deliberately have different responsibilities.</p>
+<hr>
+<h2 id="importers">Importers</h2>
+<p>An importer understands an <strong>authoring format</strong>.</p>
+<p>For example:</p>
+<pre><code class="language-text">PNG
+JPEG
+WAV
+glTF
+GLB
+CNJ
+XNB
+.spritefont</code></pre>
+<p>An image importer answers a question roughly equivalent to:</p>
+<blockquote><p>What image data exists in this file?</p></blockquote>
+<p>It does not decide every detail about how that image should eventually be stored as a CNA <code>Texture2D</code>.</p>
+<p>That comes later.</p>
+<p>Some current built-in routes include:</p>
+<div class="table-wrap"><table><thead><tr><th>Source</th><th>Importer</th></tr></thead><tbody><tr><td>PNG, JPEG, BMP, TGA, GIF, PSD, HDR, PNM</td><td>CNA.ImageImporter</td></tr><tr><td>WAV</td><td>CNA.WavImporter</td></tr><tr><td>MP3, Ogg, FLAC, Opus, AAC and others</td><td>CNA.SongImporter</td></tr><tr><td>MP4, WebM, MKV, AVI, MOV and others</td><td>CNA.VideoImporter</td></tr><tr><td>glTF / GLB</td><td>CNA.GltfImporter</td></tr><tr><td>CNJ</td><td>CNA.CnjImporter</td></tr><tr><td>supported XNB</td><td>CNA.XnbImporter</td></tr><tr><td>.spritefont</td><td>CNA.FontDescriptionImporter</td></tr></tbody></table></div>
+<p>The important point is that an importer produces an intermediate C++ representation rather than a runtime graphics object.</p>
+<hr>
+<h2 id="processors">Processors</h2>
+<p>A processor transforms imported data into the representation that CNA actually wants to serialize.</p>
+<p>For example:</p>
+<pre><code class="language-text">ImageImporter
+      │
+      ▼
+ImportedImage
+      │
+      ▼
+TextureProcessor
+      │
+      ▼
+processed Texture2D data</code></pre>
+<p>The processor is where operations such as these may happen:</p>
+<ul><li>resizing;</li><li>color keying;</li><li>premultiplying alpha;</li><li>creating mipmaps;</li><li>validating dimensions;</li><li>converting formats;</li><li>processing model data;</li><li>generating SpriteFont atlases;</li><li>preparing runtime-oriented metadata.</li></ul>
+<p>This is very similar conceptually to XNA.</p>
+<p>The source format and runtime format remain separate concerns.</p>
+<p>That means a PNG and a CNJ Texture2D can converge onto the same processor:</p>
+<pre><code class="language-text">wall.png
+   │
+   └── ImageImporter ───────┐
+                            │
+wall.cnj                    ▼
+   │                  ImportedImage
+   └── CnjImporter ─────────┘
+                            │
+                            ▼
+                     TextureProcessor
+                            │
+                            ▼
+                  Texture2DContentWriter</code></pre>
+<p>Once both inputs represent the same semantics, there is no reason to maintain two independent compilation implementations.</p>
+<hr>
+<h2 id="content-type-writers">Content Type Writers</h2>
+<p>The final build-time stage is the writer.</p>
+<p>For native CNA output, built-in writers are deliberately thin adapters around CNA&#39;s authoritative CNB encoders.</p>
+<p>Examples include:</p>
+<pre><code class="language-text">Texture2DContentWriter
+    -&gt; EncodeTexture2DToCnb()
+
+SoundEffectContentWriter
+    -&gt; EncodeSoundEffectToCnb()
+
+SpriteFontContentWriter
+    -&gt; EncodeSpriteFontToCnb()
+
+CurveContentWriter
+    -&gt; EncodeCurveToCnb()
+
+AnimationClipContentWriter
+    -&gt; EncodeAnimationClipToCnb()
+
+ModelContentWriter
+    -&gt; EncodeModelToCnb()
+       or EncodeModelV2ToCnb()</code></pre>
+<p>This is an important architectural choice.</p>
+<p>There is not one implementation of the Model format in the pipeline and another unrelated implementation somewhere in the runtime.</p>
+<p>The pipeline ultimately uses the same authoritative CNB format definitions and codecs.</p>
+<p>That helps prevent:</p>
+<pre><code class="language-text">writer implementation
+        ≠
+reader implementation</code></pre>
+<p>which is one of the easiest ways for a custom binary format to become unreliable.</p>
+<hr>
+<h2 id="headless-compilation">Headless compilation</h2>
+<p>The Content Pipeline is designed as a <strong>build-time system</strong>.</p>
+<p>It does not need to create the game environment merely to compile a model or texture.</p>
+<p>In particular, pipeline components do not need to:</p>
+<ul><li>create a window;</li><li>initialize a renderer;</li><li>create a <code>GraphicsDevice</code>;</li><li>upload textures to a GPU;</li><li>create GPU vertex buffers;</li><li>read data back from graphics hardware;</li><li>open an audio device.</li></ul>
+<p>Model processing operates on CPU-side representations.</p>
+<p>This separation is important for:</p>
+<pre><code class="language-text">CI
+build servers
+headless Linux machines
+asset farms
+cross-platform development
+automated testing</code></pre>
+<p>Content compilation should not require the game itself to run.</p>
+<hr>
+<h2 id="what-is-cnb">What is CNB?</h2>
+<p><strong>CNB is CNA&#39;s native compiled binary content format.</strong></p>
+<p>Its file extension is:</p>
+<pre><code class="language-text">.cnb</code></pre>
+<p>CNB exists to provide a runtime-oriented counterpart to formats such as CNJ.</p>
+<p>CNJ is intended to be readable and editable.</p>
+<p>A sophisticated model represented through CNJ may consist of many files:</p>
+<pre><code class="language-text">robot.cnj
+robot_vertices.bin
+robot_indices.bin
+robot_skeleton.bin
+walk.cnj
+run.cnj
+...</code></pre>
+<p>That is useful during authoring and inspection.</p>
+<p>It is less attractive as the final runtime representation.</p>
+<p>CNB can compile one logical asset into one binary asset:</p>
+<pre><code class="language-text">robot.cnj
++ geometry sidecars
++ skeleton data
++ internal animation data
+        │
+        ▼
+     robot.cnb</code></pre>
+<p>Resources that are genuinely shared can remain separate.</p>
+<hr>
+<h2 id="cnb-is-not-an-archive">CNB is not an archive</h2>
+<p>This distinction is deliberate.</p>
+<p>A <code>.cnb</code> file represents <strong>one logical asset</strong>.</p>
+<p>It is not CNA&#39;s equivalent of:</p>
+<pre><code class="language-text">ZIP
+PAK
+WAD
+VPK</code></pre>
+<p>CNB does not attempt to bundle the entire game&#39;s Content directory into one gigantic file.</p>
+<p>For example:</p>
+<pre><code class="language-text">Models/house.cnb
+Textures/wall.cnb
+Textures/roof.cnb
+Fonts/ui.cnb</code></pre>
+<p>remain individual assets.</p>
+<p>A future asset-packaging format would be a different layer.</p>
+<hr>
+<h2 id="cnb-is-not-an-interchange-format">CNB is not an interchange format</h2>
+<p>CNB is also not intended to replace formats such as glTF, PNG or WAV.</p>
+<p>The roles are different:</p>
+<pre><code class="language-text">glTF / PNG / WAV
+    authoring and interchange
+
+CNJ
+    readable CNA representation
+
+CNB
+    compiled CNA runtime representation</code></pre>
+<p>An artist does not need to export a model from Blender as CNB.</p>
+<p>glTF remains an appropriate interchange format.</p>
+<p>CNB is what CNA may create afterwards.</p>
+<hr>
+<h2 id="cnb-versus-xnb">CNB versus XNB</h2>
+<p>XNA uses the <code>.xnb</code> compiled content format.</p>
+<p>CNA supports XNB extensively for compatibility, but CNB was intentionally designed as a separate format.</p>
+<p>CNB does <strong>not</strong> simply put a CNA header around XNB.</p>
+<p>There is no hidden:</p>
+<pre><code class="language-text">CNB
+└── XNB payload</code></pre>
+<p>for ordinary native content.</p>
+<p>CNB has its own:</p>
+<ul><li>header;</li><li>type identifiers;</li><li>schema versions;</li><li>chunk system;</li><li>checksums;</li><li>external-reference representation;</li><li>binary codecs;</li><li>loader registry.</li></ul>
+<p>It also deliberately avoids several concepts inherited from .NET and XNA&#39;s serialization architecture.</p>
+<p>CNB has no need for:</p>
+<pre><code class="language-text">assembly-qualified .NET type names
+CLR reflection
+XNB ContentTypeReader tables
+.NET generic reader identities
+platform identifier bytes
+shared-resource fixup protocol from XNB</code></pre>
+<p>CNB is a native CNA format rather than an imitation of XNB.</p>
+<hr>
+<h2 id="but-the-pipeline-can-also-produce-xnb">But the pipeline can also produce XNB</h2>
+<p>CNB is the default Content Pipeline output, but it is not the only output.</p>
+<p>The current pipeline supports:</p>
+<pre><code class="language-text">--format cnb</code></pre>
+<p>and:</p>
+<pre><code class="language-text">--format xnb</code></pre>
+<p>This means the architecture is really:</p>
+<pre><code class="language-text">                 ┌──────────► CNB serializer ──► .cnb
+source
+  │              │
+  ▼              │
+Importer ─► Processor
+                 │
+                 └──────────► XNB serializer ──► .xnb</code></pre>
+<p>The importer and processor can remain the same.</p>
+<p>Only the serialization side changes.</p>
+<p>This is particularly useful because CNA is simultaneously:</p>
+<ul><li>an XNA-compatible framework;</li><li>a modern native C++ framework;</li><li>and an ecosystem with its own content technology.</li></ul>
+<hr>
+<h2 id="xnb-can-also-be-a-source">XNB can also be a source</h2>
+<p>There is another interesting direction.</p>
+<p>Supported existing XNB files can themselves enter the CNA Content Pipeline.</p>
+<p>For example:</p>
+<pre><code class="language-text">legacy_texture.xnb
+        │
+        ▼
+    XnbImporter
+        │
+        ▼
+canonical CPU representation
+        │
+        ▼
+existing processor
+        │
+        ▼
+native CNB writer
+        │
+        ▼
+legacy_texture.cnb</code></pre>
+<p>The resulting CNB does not contain the original XNB.</p>
+<p>The supported asset is decoded and converted into CNA&#39;s native representation.</p>
+<p>This provides a path from legacy XNA content toward native CNA content without making CNB permanently dependent on the XNB format.</p>
+<hr>
+<h2 id="the-cnb-container">The CNB container</h2>
+<p>CNB 1.0 uses a deliberately explicit binary layout.</p>
+<p>Every file begins with a fixed <strong>64-byte header</strong>.</p>
+<p>The first bytes are:</p>
+<pre><code class="language-text">43 4E 42 1A
+ C  N  B</code></pre>
+<p>The header contains information including:</p>
+<pre><code class="language-text">container version
+asset type ID
+asset schema version
+chunk count
+file size
+table-of-contents offset
+table-of-contents checksum
+header checksum</code></pre>
+<p>All multi-byte values use a defined <strong>little-endian encoding</strong>.</p>
+<p>The format does not serialize C++ structures directly with something like:</p>
+<pre><code class="language-cpp">file.write(
+    reinterpret_cast&lt;char*&gt;(&amp;object),
+    sizeof(object));</code></pre>
+<p>That would make the format dependent on compiler ABI, padding and host representation.</p>
+<p>CNB instead explicitly writes each primitive value.</p>
+<p>Consequently CNB does not depend on:</p>
+<pre><code class="language-text">sizeof(runtime object)
+C++ struct padding
+compiler ABI
+std::type_index
+pointer size
+memory addresses</code></pre>
+<p>That is essential for a format intended to survive across builds and platforms.</p>
+<hr>
+<h2 id="cnb-is-chunk-based">CNB is chunk based</h2>
+<p>After the header is a table describing the chunks contained in the asset.</p>
+<p>A chunk has information including:</p>
+<pre><code class="language-text">type
+flags
+offset
+stored size
+uncompressed size
+checksum
+compression codec
+alignment</code></pre>
+<p>Chunk identifiers are four printable ASCII characters.</p>
+<p>For example, different asset schemas define identifiers for their own structures.</p>
+<p>This makes CNB closer to a structured container than one enormous serialized C++ object.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">CNB file
+├── Header
+├── Table of Contents
+├── CMET
+├── XREF
+├── asset-specific chunk
+├── asset-specific chunk
+└── asset-specific chunk</code></pre>
+<p>Not every file contains every chunk.</p>
+<p>The required chunks depend on its asset schema.</p>
+<hr>
+<h2 id="cmet-content-metadata">CMET — content metadata</h2>
+<p>CNB defines a container-level chunk named:</p>
+<pre><code class="language-text">CMET</code></pre>
+<p>It stores metadata such as:</p>
+<pre><code class="language-text">canonical asset type name
+logical content name</code></pre>
+<p>For CNA&#39;s built-in asset types this information is primarily diagnostic because their numeric IDs are controlled and frozen by CNA.</p>
+<p>For custom asset types, however, the canonical name becomes part of safe type identification.</p>
+<hr>
+<h2 id="xref-external-references">XREF — external references</h2>
+<p>Another important container-level chunk is:</p>
+<pre><code class="language-text">XREF</code></pre>
+<p>It represents references from one compiled asset to another.</p>
+<p>For example, a Model might refer to:</p>
+<pre><code class="language-text">Textures/robot_albedo</code></pre>
+<p>rather than embedding another independent copy of that texture.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">robot.cnb
+    │
+    ├── geometry
+    ├── hierarchy
+    └── XREF ───────► Textures/robot_albedo.cnb</code></pre>
+<p>An XREF can also carry an expected asset type.</p>
+<p>The logical names are validated so that a compiled file cannot simply inject arbitrary filesystem traversal such as:</p>
+<pre><code class="language-text">../../../../something</code></pre>
+<p>into ContentManager.</p>
+<hr>
+<h2 id="asset-type-ids">Asset type IDs</h2>
+<p>Every CNB file declares an asset type.</p>
+<p>The current built-in IDs include:</p>
+<div class="table-wrap"><table><thead><tr><th>ID</th><th>Asset</th></tr></thead><tbody><tr><td>1</td><td>Texture2D</td></tr><tr><td>2</td><td>Texture3D</td></tr><tr><td>3</td><td>TextureCube</td></tr><tr><td>4</td><td>SpriteFont</td></tr><tr><td>5</td><td>Model</td></tr><tr><td>6</td><td>AnimationClip</td></tr><tr><td>7</td><td>Curve</td></tr><tr><td>8</td><td>SoundEffect</td></tr><tr><td>9</td><td>Song</td></tr><tr><td>10</td><td>Video</td></tr><tr><td>11</td><td>Effect — reserved</td></tr></tbody></table></div>
+<p><code>Model</code> currently has both schema 1 and schema 2.</p>
+<p>The container version and asset schema version are deliberately independent.</p>
+<p>For example:</p>
+<pre><code class="language-text">CNB container 1.0
+    +
+Model schema 2</code></pre>
+<p>does not imply that the entire CNB container had to become version 2.</p>
+<p>This allows individual asset formats to evolve independently.</p>
+<hr>
+<h2 id="why-is-effect-only-reserved">Why is Effect only reserved?</h2>
+<p>The absence of a native CNB Effect schema is deliberate.</p>
+<p>XNA Effect content fundamentally revolves around Direct3D 9-era compiled Effect Framework bytecode.</p>
+<p>Putting that bytecode inside a supposedly renderer-independent CNA binary format would create an obvious portability problem:</p>
+<pre><code class="language-text">Effect.cnb
+    containing D3D9-specific bytecode
+
+           ↓
+
+OpenGL renderer?
+SDL_GPU renderer?
+other CNA renderers?</code></pre>
+<p>For that reason the current Content Pipeline&#39;s <code>.fx</code> and <code>.fxb</code> routes target XNB when producing XNA-compatible compiled effects.</p>
+<p>The CNB Effect type ID exists, but no native portable Effect schema is currently defined.</p>
+<p>This is an example of CNA refusing to pretend that a problem is solved merely by wrapping platform-specific data in a new container.</p>
+<hr>
+<h2 id="custom-cnb-types">Custom CNB types</h2>
+<p>CNB is not limited to CNA&#39;s built-in asset types.</p>
+<p>The custom range is:</p>
+<pre><code class="language-text">0x80000000 - 0xFFFFFFFF</code></pre>
+<p>Custom IDs are derived from the canonical type name.</p>
+<p>Because a 31-bit hash can theoretically collide, CNA does not rely solely on the integer.</p>
+<p>For custom assets, the canonical name stored in <code>CMET</code> is also checked against the registered runtime loader.</p>
+<p>This gives CNB several layers of protection against accidental type collisions.</p>
+<p>Custom runtime types can be connected to ContentManager through the CNA extension mechanism, including:</p>
+<pre><code class="language-cpp">ContentManager::RegisterCnbLoaderEXT&lt;T&gt;()</code></pre>
+<p>The low-level <code>CnbWriter</code> is also available for custom schemas.</p>
+<p>This means games and tools can build their own compiled asset formats on top of the same CNB container instead of inventing another binary container from scratch.</p>
+<hr>
+<h2 id="deterministic-builds">Deterministic builds</h2>
+<p>A major Content Pipeline goal is <strong>determinism</strong>.</p>
+<p>The same inputs should produce the same compiled bytes.</p>
+<p>CNB output therefore avoids incorporating things such as:</p>
+<pre><code class="language-text">timestamps
+process IDs
+random values
+temporary directory names
+memory addresses
+absolute temporary paths
+pointer values
+RTTI identifiers</code></pre>
+<p>Directory discovery and component selection are also ordered deterministically.</p>
+<p>This matters for several reasons:</p>
+<pre><code class="language-text">reproducible builds
+Git/LFS storage
+build caching
+CI validation
+binary comparison
+long-term format testing</code></pre>
+<p>CNA even maintains golden CNB vectors whose bytes are checked by the test suite.</p>
+<p>For a binary format, byte-level regression testing is extremely valuable.</p>
+<hr>
+<h2 id="incremental-builds">Incremental builds</h2>
+<p>Compiling every asset after every source change would be wasteful.</p>
+<p>The pipeline therefore stores an incremental-build manifest:</p>
+<pre><code class="language-text">.cna-content-manifest.json</code></pre>
+<p>The manifest tracks information such as:</p>
+<ul><li>source identity;</li><li>dependencies;</li><li>relevant configuration;</li><li>component identities;</li><li>processor parameters;</li><li>content hashes;</li><li>produced files;</li><li>runtime references;</li><li>deployment files.</li></ul>
+<p>A later invocation can determine that an asset has not changed and report:</p>
+<pre><code class="language-text">SKIP</code></pre>
+<p>instead of rebuilding it.</p>
+<p>To inspect why the pipeline decided to build or skip something:</p>
+<pre><code class="language-bash">cna-content build ContentSource -o Content --explain</code></pre>
+<p>This produces deterministic reason lines explaining the decision.</p>
+<p>That is much more useful than a build cache that simply says:</p>
+<blockquote><p>something changed.</p></blockquote>
+<hr>
+<h2 id="dependency-tracking">Dependency tracking</h2>
+<p>The pipeline distinguishes several concepts that are easy to confuse.</p>
+<p>Consider:</p>
+<pre><code class="language-text">robot.gltf
+robot.bin
+robot_albedo.png</code></pre>
+<p>During the build, these may all be source dependencies.</p>
+<p>But the compiled Model may use a runtime reference:</p>
+<pre><code class="language-text">Textures/robot_albedo</code></pre>
+<p>Those are not the same thing.</p>
+<p>CNA therefore separates:</p>
+<pre><code class="language-text">build dependencies
+runtime XREFs
+deployment-support files</code></pre>
+<p>Changing a source dependency can trigger recompilation.</p>
+<p>An XREF tells the runtime which other content asset is required.</p>
+<p>A deployment file tells the build system that some external data needs to be copied alongside the output.</p>
+<p>Keeping these concepts separate makes the build graph considerably more precise.</p>
+<hr>
+<h2 id="song-and-video-are-intentionally-different">Song and Video are intentionally different</h2>
+<p>Large streaming media is not blindly embedded into CNB.</p>
+<p>For <code>Song</code> and <code>Video</code>, CNB stores portable metadata and an external runtime reference.</p>
+<p>The actual media remains a separately deployed file.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">theme.cnb
+    └── reference ─────► theme.ogg</code></pre>
+<p>rather than:</p>
+<pre><code class="language-text">theme.cnb
+    └── entire 100 MB audio stream</code></pre>
+<p>The Content Pipeline still tracks, fingerprints and deploys the external media.</p>
+<p>It simply recognizes that streaming content has different runtime requirements from something like a Curve or a small texture.</p>
+<hr>
+<h2 id="safe-publication">Safe publication</h2>
+<p>Writing a compiled asset directly over the old one would be dangerous.</p>
+<p>A crash halfway through could leave:</p>
+<pre><code class="language-text">half old asset
++
+half new asset
+=
+corrupt content</code></pre>
+<p>The pipeline instead uses atomic publication machinery.</p>
+<p>New outputs are prepared separately and only replace their final destination once complete.</p>
+<p>The manifest is also part of the ownership model.</p>
+<p>This becomes especially important when one build step produces several outputs.</p>
+<hr>
+<h2 id="safe-clean">Safe clean</h2>
+<p>The command:</p>
+<pre><code class="language-bash">cna-content clean Content</code></pre>
+<p>does not simply search for every <code>.cnb</code> file and delete it.</p>
+<p>That would be dangerous because a developer might have placed unrelated files in the same directory.</p>
+<p>Instead CNA uses the valid previous manifest to establish which files the Content Pipeline actually owns.</p>
+<p>Only outputs proven to belong to the pipeline are eligible for removal.</p>
+<p>Manual files are preserved.</p>
+<p>This fits a broader rule used throughout the system:</p>
+<blockquote><p>do not claim ownership of something merely because its filename looks familiar.</p></blockquote>
+<hr>
+<h2 id="parallel-content-builds">Parallel content builds</h2>
+<p>Build execution is serial by default.</p>
+<p>For larger projects, independent graph nodes can be processed in parallel:</p>
+<pre><code class="language-bash">cna-content build ContentSource -o Content --workers 4</code></pre>
+<p>Supported worker counts are bounded.</p>
+<p>Dependencies are still honored:</p>
+<pre><code class="language-text">Texture A ─────┐
+               │
+Texture B ─────┼──► Model
+               │
+Skeleton ──────┘</code></pre>
+<p>The Model cannot become ready until its required build dependencies have completed.</p>
+<p>Shared dependencies execute once.</p>
+<p>The pipeline is tested to ensure that different worker counts do not change the resulting content tree or compiled bytes.</p>
+<p>So parallelism is an execution optimization, not part of asset identity.</p>
+<hr>
+<h2 id="cross-process-locking">Cross-process locking</h2>
+<p>Worker threads are not the only possible source of races.</p>
+<p>Two independent instances of <code>cna-content</code> could theoretically target the same output directory.</p>
+<p>CNA therefore uses:</p>
+<pre><code class="language-text">.cna-content.lock</code></pre>
+<p>for output-root coordination.</p>
+<p>A concurrent build or clean operation against an already active output root is rejected rather than being allowed to race the existing operation.</p>
+<p>This protects:</p>
+<pre><code class="language-text">manifest state
+compiled files
+clean operations
+staging
+publication</code></pre>
+<p>across processes as well as within one process.</p>
+<hr>
+<h2 id="optional-configuration">Optional configuration</h2>
+<p>The simple convention-based workflow requires no project file:</p>
+<pre><code class="language-bash">cna-content build ContentSource -o Content</code></pre>
+<p>But projects can add a strict <code>.cna-content.json</code> configuration when explicit choices are needed.</p>
+<p>For example:</p>
+<pre><code class="language-json">{
+  &quot;format&quot;: &quot;CNA.ContentPipeline.Config&quot;,
+  &quot;version&quot;: 1,
+  &quot;assets&quot;: {
+    &quot;Textures/wall.png&quot;: {
+      &quot;logicalName&quot;: &quot;Environment/stone&quot;,
+      &quot;importer&quot;: &quot;CNA.ImageImporter&quot;,
+      &quot;processor&quot;: &quot;CNA.TextureProcessor&quot;,
+      &quot;writer&quot;: &quot;CNA.Texture2DContentWriter&quot;,
+      &quot;parameters&quot;: {
+        &quot;colorKey&quot;: {
+          &quot;type&quot;: &quot;string&quot;,
+          &quot;value&quot;: &quot;255,0,255&quot;
+        }
+      }
+    }
+  }
+}</code></pre>
+<p>This can control things such as:</p>
+<pre><code class="language-text">logical content names
+importer selection
+processor selection
+writer selection
+processor parameters
+additional named source roots</code></pre>
+<p>But CNA deliberately does not require a large MSBuild-style content project merely to compile a directory.</p>
+<hr>
+<h2 id="cmake-integration">CMake integration</h2>
+<p>CNA also provides a CMake helper:</p>
+<pre><code class="language-cmake">cna_add_content(
+    TARGET MyGameContent
+    SOURCE_DIR &quot;${CMAKE_CURRENT_SOURCE_DIR}/ContentSource&quot;
+    OUTPUT_DIR &quot;${CMAKE_CURRENT_BINARY_DIR}/Content&quot;
+)
+
+add_dependencies(MyGame MyGameContent)</code></pre>
+<p>A configured build can use:</p>
+<pre><code class="language-cmake">cna_add_content(
+    TARGET MyGameContent
+    SOURCE_DIR ContentSource
+    OUTPUT_DIR Content
+    CONFIG_FILE ContentSource/pipeline.json
+    WORKERS 4
+)</code></pre>
+<p>CMake does not reimplement CNA&#39;s incremental-build logic.</p>
+<p>It invokes the content tool, while the Content Pipeline&#39;s own manifest decides which individual assets actually need rebuilding.</p>
+<p>That keeps the content build rules centralized in one system.</p>
+<hr>
+<h2 id="cnb-checksums-and-validation">CNB checksums and validation</h2>
+<p>CNB was designed with hostile or corrupted input in mind.</p>
+<p>The header contains a CRC-32C checksum.</p>
+<p>The table of contents also has a checksum.</p>
+<p>Individual chunks have their own CRC-32C values.</p>
+<p>The parser validates sizes, ranges, alignments and relationships before trusting them.</p>
+<p>This is not cryptographic security.</p>
+<p>A person capable of deliberately modifying a CNB can also recompute CRC-32C.</p>
+<p>The purpose is instead to detect things such as:</p>
+<pre><code class="language-text">damaged files
+truncated files
+invalid offsets
+accidental corruption
+malformed generated content</code></pre>
+<p>CNB does not claim to provide authenticity or digital signatures.</p>
+<hr>
+<h2 id="compression">Compression</h2>
+<p>CNB supports compression on a <strong>per-chunk</strong> basis rather than forcing an entire file through one compression stream.</p>
+<p>The current format assigns:</p>
+<pre><code class="language-text">0 = none
+1 = LZ4, reserved
+2 = Zstandard
+3 = Deflate, reserved</code></pre>
+<p>Zstandard support is implemented when CNA is built with the corresponding support.</p>
+<p>Compression is opt-in and uncompressed storage remains the default.</p>
+<p>Importantly, a chunk is only stored compressed when compression actually makes it smaller.</p>
+<p>This means a CNB can conceptually contain:</p>
+<pre><code class="language-text">small metadata chunk       uncompressed
+large texture chunk        Zstandard
+small lookup table         uncompressed
+large geometry chunk       Zstandard</code></pre>
+<p>rather than requiring one policy for every byte in the asset.</p>
+<p>The checksum covers the stored bytes so corruption is detected before compressed input reaches the decompressor.</p>
+<hr>
+<h2 id="why-not-compress-everything">Why not compress everything?</h2>
+<p>Because smaller files do not automatically mean faster loading.</p>
+<p>For some data, decompression can save enough disk I/O to improve loading.</p>
+<p>On a very fast NVMe SSD, the extra CPU decompression work can instead make loading slower.</p>
+<p>That is why CNB treats compression as a policy decision rather than an unquestionable requirement.</p>
+<p>This is another useful distinction between:</p>
+<pre><code class="language-text">storage size optimization</code></pre>
+<p>and:</p>
+<pre><code class="language-text">runtime performance optimization</code></pre>
+<p>They are related, but they are not the same problem.</p>
+<hr>
+<h2 id="compatibility-and-evolution">Compatibility and evolution</h2>
+<p>CNB separates:</p>
+<pre><code class="language-text">container version</code></pre>
+<p>from:</p>
+<pre><code class="language-text">asset schema version</code></pre>
+<p>This gives CNA room to evolve.</p>
+<p>Unknown optional chunks can be ignored.</p>
+<p>Unknown mandatory chunks cause a clear rejection.</p>
+<p>A reader can therefore distinguish between:</p>
+<blockquote><p>I do not understand this information, but I do not need it.</p></blockquote>
+<p>and:</p>
+<blockquote><p>I do not understand this information, and loading without it would be incorrect.</p></blockquote>
+<p>That is a much safer evolution model than simply attempting to parse whatever bytes happen to be present.</p>
+<hr>
+<h2 id="cnj-cnb-and-xnb-together">CNJ, CNB and XNB together</h2>
+<p>The three formats now have distinct roles in CNA.</p>
+<div class="table-wrap"><table><thead><tr><th>Format</th><th>Main role</th></tr></thead><tbody><tr><td>CNJ</td><td>Human-readable CNA content</td></tr><tr><td>CNB</td><td>Native compiled CNA runtime content</td></tr><tr><td>XNB</td><td>XNA-compatible compiled content</td></tr></tbody></table></div>
+<p>They can also participate in conversion paths.</p>
+<p>For example:</p>
+<pre><code class="language-text">PNG
+ │
+ ▼
+CNA Content Pipeline
+ │
+ └────────────► CNB</code></pre>
+<p>or:</p>
+<pre><code class="language-text">CNJ
+ │
+ ▼
+CNA Content Pipeline
+ │
+ └────────────► CNB</code></pre>
+<p>or:</p>
+<pre><code class="language-text">glTF
+ │
+ ▼
+CNA Content Pipeline
+ │
+ └────────────► CNB</code></pre>
+<p>or even:</p>
+<pre><code class="language-text">supported XNB
+ │
+ ▼
+XnbImporter
+ │
+ ▼
+canonical CNA data
+ │
+ ▼
+CNB</code></pre>
+<p>And when XNA-compatible output is required:</p>
+<pre><code class="language-text">source
+ │
+ ▼
+CNA Content Pipeline
+ │
+ └────────────► XNB</code></pre>
+<p>This is significantly more flexible than treating content compilation as a one-way converter tied permanently to one binary format.</p>
+<hr>
+<h2 id="why-cna-needs-its-own-content-pipeline">Why CNA needs its own Content Pipeline</h2>
+<p>CNA could theoretically rely forever on loose source assets and XNB.</p>
+<p>But that would make the framework dependent on formats and assumptions designed elsewhere.</p>
+<p>A native pipeline allows CNA to control:</p>
+<ul><li>validation;</li><li>deterministic compilation;</li><li>dependency tracking;</li><li>incremental builds;</li><li>asset schemas;</li><li>custom asset types;</li><li>runtime references;</li><li>publication;</li><li>content tooling;</li><li>long-term format evolution.</li></ul>
+<p>At the same time, CNA does not abandon existing standards.</p>
+<p>It can ingest formats such as:</p>
+<pre><code class="language-text">PNG
+JPEG
+WAV
+Ogg
+FLAC
+glTF
+GLB
+XNB
+CNJ</code></pre>
+<p>and convert them into the representation appropriate for the project.</p>
+<p>This follows the same architectural philosophy found elsewhere in CNA:</p>
+<blockquote><p>support external ecosystems, but do not make CNA&#39;s internal architecture permanently dependent on them.</p></blockquote>
+<hr>
+<h2 id="cnb-and-long-term-portability">CNB and long-term portability</h2>
+<p>CNB also fits CNA&#39;s broader portability goals.</p>
+<p>The format does not serialize raw C++ layouts.</p>
+<p>It does not depend on CLR reflection.</p>
+<p>It does not encode runtime pointer values.</p>
+<p>It does not bind a Model file to one graphics renderer.</p>
+<p>It does not contain a platform byte that decides which renderer is allowed to load it.</p>
+<p>The pipeline produces CPU-defined content, while renderer selection remains a runtime concern.</p>
+<p>That separation matters if CNA is expected to survive changes in graphics APIs, operating systems and hardware over many years.</p>
+<p>A texture asset should not become unreadable merely because the framework later gains another renderer.</p>
+<hr>
+<h2 id="current-stability">Current stability</h2>
+<p>In the current CNA source tree, <strong>CNB container 1.0 is implemented and treated as a stable format</strong>.</p>
+<p>The existing built-in schema-1 binary contracts, asset IDs, chunk IDs and CRC behavior are frozen.</p>
+<p>Model schema 2 has its own separately versioned wire contract.</p>
+<p>The public custom C++ Content Pipeline component interfaces remain more experimental than the existing built-in CNB wire formats.</p>
+<p>This distinction is healthy.</p>
+<p>It is much easier to evolve a C++ build API than to change bytes that games may already have shipped.</p>
+<hr>
+<h2 id="source-code">Source code</h2>
+<p>The CNA repository is available at:</p>
+<p><a href="https://github.com/libcna/cna">https://github.com/libcna/cna</a></p>
+<p>The principal documentation is:</p>
+<pre><code class="language-text">docs/content-pipeline.md
+docs/cnb-format.md
+docs/xnb-interoperability.md
+docs/cnb-compression-measurements.md
+docs/content-pipeline-benchmark.md</code></pre>
+<p>The CNA-native Content Pipeline interfaces and implementation are primarily under:</p>
+<pre><code class="language-text">modules/content/include/CNA/Content/Pipeline/
+modules/content/src/Pipeline/</code></pre>
+<p>The broader XNA-compatible build-time API is under:</p>
+<pre><code class="language-text">modules/content-pipeline/</code></pre>
+<p>CNB itself is implemented under:</p>
+<pre><code class="language-text">modules/content/include/CNA/Content/Cnb/
+modules/content/src/Cnb/</code></pre>
+<p>Important CNB components include:</p>
+<pre><code class="language-text">CnbFormat
+CnbDocument
+CnbWriter
+CnbLoaderRegistry
+CnbByteReader
+CnbByteWriter
+CnbChunkCompression
+
+CnbTextureCodec
+CnbSpriteFontCodec
+CnbModelCodec
+CnbModelV2Codec
+CnbAnimationClipCodec
+CnbCurveCodec
+CnbSoundEffectCodec
+CnbMediaCodec</code></pre>
+<p>The command-line Content Pipeline lives under:</p>
+<pre><code class="language-text">tools/content/</code></pre>
+<p>and CNA also contains specialized content tools such as:</p>
+<pre><code class="language-text">tools/cnb_info/
+tools/cnj_to_cnb/
+tools/gltf_to_cnb/
+tools/source_to_cnb/</code></pre>
+<p>Together these pieces form CNA&#39;s native build-time content ecosystem.</p>
+<hr>
+<h2 id="conclusion">Conclusion</h2>
+<p>The CNA Content Pipeline is much more than a file converter.</p>
+<p>It is the layer responsible for turning heterogeneous authoring assets into validated, deterministic runtime content while tracking dependencies, supporting incremental compilation, managing build graphs and publishing outputs safely.</p>
+<p>CNB is the native binary format that complements that system.</p>
+<p>The relationship can be summarized simply:</p>
+<pre><code class="language-text">                CNA CONTENT PIPELINE
+
+PNG ─────┐
+WAV ─────┤
+glTF ────┤
+CNJ ─────┤──► Import ─► Process ─► Write ─► CNB
+XNB ─────┤
+... ─────┘
+
+                         RUNTIME
+
+CNB ─► ContentManager ─► CNA runtime object</code></pre>
+<p>CNJ gives CNA an inspectable content representation.</p>
+<p>The Content Pipeline gives CNA a controlled build process.</p>
+<p>CNB gives CNA a deterministic native runtime format.</p>
+<p>And XNB remains available where XNA compatibility matters.</p>
+<p>Together they allow CNA to support the old XNA content ecosystem without making that ecosystem the permanent limit of what CNA&#39;s content system can become.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/tag/content-pipeline/">#Content Pipeline</a><a href="/tag/gltf/">#glTF</a><a href="/tag/xnb/">#XNB</a><a href="/tag/contentmanager/">#ContentManager</a><a href="/tag/cnj/">#CNJ</a><a href="/tag/cnb/">#CNB</a><a href="/tag/assets/">#Assets</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

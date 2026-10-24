@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Car Simulator | CNA&#39;s Blog</title>
+  <meta name="description" content="Car Simulator is a CNA-based passenger-car driving experience set across a fictional Czech town, villages, countryside and forest.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/02/04/car-simulator/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Car Simulator">
+  <meta property="og:description" content="Car Simulator is a CNA-based passenger-car driving experience set across a fictional Czech town, villages, countryside and forest.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/02/04/car-simulator/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-02-04T12:00:00Z">February 4, 2027</time></span><span>Updated <time datetime="2026-10-17T14:35:22Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a>, <a href="/category/games/">Games</a></span></div>
+      <h1 class="article-title">Car Simulator</h1>
+      <p class="article-description">Car Simulator is a CNA-based passenger-car driving experience set across a fictional Czech town, villages, countryside and forest.</p>
+    </header>
+    <div class="article-body"><p><strong>Car Simulator</strong> is a passenger-car driving experience set in a fictional Czech landscape and built on CNA&#39;s XNA 4.0-compatible API.</p>
+<p>It has no missions, deliveries or economy. The purpose is driving itself: start the fictional Lipan 1.2, leave the town square and explore roads through villages, fields, hills and forest under changing traffic, weather and time of day.</p>
+<p><strong>Source:</strong> <a href="https://github.com/libcnalab/car-simulator">https://github.com/libcnalab/car-simulator</a></p>
+<p><strong>Play online:</strong> <a href="https://play.libcna.com/car-simulator/car-simulator.html">https://play.libcna.com/car-simulator/car-simulator.html</a></p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/car-simulator/main/docs/screenshots/hero.jpg" alt="The Lipan 1.2 in the Czech-inspired landscape" loading="lazy"></p>
+<h2 id="lipova-and-the-roads-around-it">Lipová and the roads around it</h2>
+<p>The 6.4 by 7.6 kilometre map centers on <strong>Lipová</strong>, a small town with a square, church, residential streets, shops, bus stops, filling station and a signal-controlled junction.</p>
+<p>Roads continue through Březí, Podhájí, Nové Město and Kamenice, into farmland and forest, and up a long gravel approach to Hrad Lipník. The complete network contains about 27 kilometres of roads and uses Czech signs and markings.</p>
+<p>Ambient traffic follows lanes, obeys junction rules and signals, reacts to the player and includes cars, buses and lorries. Pedestrians use pavements and crossings, while parked vehicles and street objects remain physical obstacles.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/car-simulator/main/docs/screenshots/square.jpg" alt="Driving through the main square in Lipová" loading="lazy"></p>
+<h2 id="a-data-driven-map">A data-driven map</h2>
+<p>The region is not hard-coded as one enormous renderer source file. Its data is split by responsibility:</p>
+<pre><code class="language-text">map identity and global settings
+terrain and land-use regions
+roads, lanes and junctions
+buildings, vegetation and street objects
+traffic routes, signals and spawn rules</code></pre>
+<p>Generation tools turn the authoritative source data into the runtime map and perform structural checks. Road edges, markings, terrain cuts, settlement placement and traffic lanes therefore agree instead of being maintained as unrelated copies.</p>
+<p>The map also provides named spawn points and routes. A developer can begin on the square, in the forest, near a village or at the castle approach, then repeat the same drive after a rendering or physics change.</p>
+<p>Traffic is based on the lane graph. Vehicles keep distance, observe priorities, yield and stop rules, react to traffic lights and wait for oncoming traffic when a bus or lorry needs more space. Some cars overtake a stopped bus or slow vehicle only when the opposing lane is clear.</p>
+<p>The intent is not to reproduce every edge case of Czech road law. It is to provide enough coherent traffic behavior that the player drives through a living road network rather than around decorative moving cars.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/car-simulator/main/docs/screenshots/traffic.jpg" alt="Road traffic sharing the simulator&#39;s lane network" loading="lazy"></p>
+<h2 id="a-simulated-car-rather-than-a-moving-camera">A simulated car rather than a moving camera</h2>
+<p>The Lipan 1.2 has a project-owned rigid-body, suspension, tyre, engine, clutch, gearbox, fuel, thermal and electrical simulation.</p>
+<p>Players can use a manual or automatic gearbox, drive from the cockpit or an exterior camera, inspect live instruments and mirrors, and experience different grip on wet or snowy roads.</p>
+<p>Weather includes clear sky, cloud, overcast, rain, fog and snow. The world adds street lighting, building windows and headlamps after dark, together with windscreen rain and working wipers.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/car-simulator/main/docs/screenshots/rainynight.jpg" alt="A rainy night drive" loading="lazy"></p>
+<h2 id="vehicle-physics">Vehicle physics</h2>
+<p>The car simulation uses metres, kilograms, seconds and radians consistently. A rigid body tracks position, orientation and momentum while forces from gravity, suspension, tyres and driveline update it.</p>
+<p>Each wheel has suspension travel and a contact state. The tyre model responds to longitudinal and lateral slip instead of moving the body directly from key input. Wheel rotation, braking and the driveline are integrated with stability limits suited to the simulator&#39;s time step.</p>
+<p>The powertrain includes:</p>
+<ul><li>starter and engine state;</li><li>throttle and RPM response;</li><li>clutch engagement;</li><li>manual and automatic gearboxes;</li><li>differential behavior;</li><li>fuel use and temperature;</li><li>electrical and lamp state;</li><li>odometer and trip distance.</li></ul>
+<p>This is a project-owned driving model, not a claim of manufacturer-grade engineering simulation. It is detailed enough for starting, stalling, shifting, traction changes and collisions to matter during ordinary play.</p>
+<p>Wet roads reduce grip, snow reduces it further, and hard impacts can deform the body and break lights. Resetting places the vehicle back on the road in a repaired state so a mistake does not end the session.</p>
+<h2 id="cockpit-mirrors-and-cameras">Cockpit, mirrors and cameras</h2>
+<p>The cockpit has a live speedometer and engine instruments, rotating steering wheel, rear-view mirror and wing mirrors. The exterior camera follows the body rather than replacing its motion with a fixed animation.</p>
+<p>Mirrors are additional render views, so their update frequency is configurable. This provides a direct performance lever without removing them from the scene. An on-foot first-person camera lets the player leave a stopped car and inspect the same world at pedestrian height.</p>
+<p>The simulator can also enter fixed inspection views for screenshots. Those paths make it possible to review a mirror, wheel, light beam or cockpit detail without reproducing an exact manual camera move.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/car-simulator/main/docs/screenshots/cockpit.jpg" alt="The working cockpit, instruments and mirror" loading="lazy"></p>
+<h2 id="sound-driven-by-simulation">Sound driven by simulation</h2>
+<p>Engine audio blends licensed CC0 recordings with RPM-driven synthesis. Starter, idle and load states transition according to the real simulated engine rather than a separate visual timer.</p>
+<p>Tyre noise responds to road surface and slip. Wind grows with speed, impacts and controls have their own sounds, nearby traffic contributes spatial engines, and the interior/exterior camera changes the mix. The helicopter mode uses a separate rotor and turbine layer.</p>
+<p>Audio tests verify routing, buffers, transitions and signal levels, while listening packs are retained for subjective review. A passing waveform check is not described as proof that a mix sounds good on every speaker.</p>
+<h2 id="controls">Controls</h2>
+<p>The default keyboard layout exposes the simulated systems instead of reducing driving to four keys.</p>
+<div class="table-wrap"><table><thead><tr><th>Input</th><th>Action</th></tr></thead><tbody><tr><td><code>W</code> / <code>S</code></td><td>Accelerate and brake</td></tr><tr><td><code>A</code> / <code>D</code></td><td>Steer</td></tr><tr><td><code>E</code></td><td>Start or stop the engine</td></tr><tr><td><code>T</code></td><td>Switch manual and automatic transmission</td></tr><tr><td><code>Left Shift</code> / <code>Left Ctrl</code></td><td>Shift up or down</td></tr><tr><td><code>Space</code></td><td>Handbrake</td></tr><tr><td><code>C</code></td><td>Switch cockpit and exterior camera</td></tr><tr><td><code>L</code> / <code>K</code></td><td>Lights and high beam</td></tr><tr><td><code>I</code></td><td>Cycle wiper modes</td></tr><tr><td><code>F4</code></td><td>Change weather</td></tr><tr><td><code>M</code></td><td>Show the map</td></tr><tr><td><code>G</code></td><td>Leave or re-enter a stopped car</td></tr></tbody></table></div>
+<p>Gamepads and steering wheels are supported as input devices, with bindings and sensitivity stored in the profile. The in-game <code>F1</code> overlay shows the active mapping rather than assuming the defaults were never changed.</p>
+<h2 id="more-than-the-ordinary-drive">More than the ordinary drive</h2>
+<p>The normal passenger car remains the baseline, but the project also includes intentionally exaggerated turbo modes, an on-foot exploration mode and a helicopter mode.</p>
+<p>The simulator can drive named routes automatically for repeatable performance measurements. Headless scripts capture the screenshot gallery and benchmark clear, rainy, daytime and nighttime scenes from cockpit and exterior cameras.</p>
+<p>The helicopter is intentionally an extra mode rather than the core identity of the project. It provides another way to inspect the complete terrain and settlements, with climb, turning and a controllable searchlight.</p>
+<p>Walking mode uses first-person collision and footsteps. Traffic recognizes a person in its path, so leaving the vehicle does not turn the pedestrian into an invisible camera.</p>
+<p>The exaggerated turbo settings are similarly explicit options. They do not replace the ordinary Lipan 1.2 baseline used for validation and normal driving.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/car-simulator/main/docs/screenshots/wetroad.jpg" alt="Wet-road rendering in changing weather" loading="lazy"></p>
+<h2 id="cna-without-renderer-specific-game-code">CNA without renderer-specific game code</h2>
+<p>The runtime application is written against CNA and Sharp Runtime rather than calling OpenGL or SDL graphics directly.</p>
+<p>The boundary is enforced so map, vehicle, UI and rendering code cannot quietly depend on one backend. Buffers, effects, textures, render targets, input, audio and storage go through the framework&#39;s public API.</p>
+<p>This turns Car Simulator into a substantial compatibility consumer. Traffic, weather, mirrors, transparent effects, a large streamed map, continuous audio and persistent settings all run together for much longer than a focused graphics sample.</p>
+<p>The renderer can still expose different performance and capability characteristics. The project records conformance results per backend instead of assuming source compatibility alone guarantees identical pixels.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/car-simulator/main/docs/screenshots/signals.jpg" alt="Traffic signals at a road junction" loading="lazy"></p>
+<h2 id="testing-and-performance-evidence">Testing and performance evidence</h2>
+<p>The test suite covers vehicle physics, map validity, traffic rules, weather, save data, audio and rendering helpers. Deterministic simulation traces make acceleration, braking, shifting and route behavior comparable after a change.</p>
+<p>Named autopilot routes drive through the ordinary physics and lane network; the car is not teleported between benchmark points. The benchmark suite runs clear day, rain, clear night and rainy night from both exterior and cockpit views.</p>
+<p>The diagnostic overlay reports frame time, worst-one-percent behavior, update and draw stages, mirror cost, weather, culling counts and live audio inputs. Recorded hardware figures identify the GPU and configuration used rather than presenting one machine as a universal requirement.</p>
+<p>Headless gallery captures use Xvfb and Mesa&#39;s software OpenGL ES path. They prove the scene renders reproducibly without hiding behind a hand-selected frame, but they are not hardware-GPU performance measurements.</p>
+<p>Sanitizer presets and install checks cover memory and packaging separately. This layered approach distinguishes physics correctness, clean execution, visual output and real-hardware performance.</p>
+<h2 id="browser-build-and-videos">Browser build and videos</h2>
+<p>Car Simulator has a playable WebGL 2 edition on <code>play.libcna.com</code>. It is one of the projects in this series that is already publicly deployed rather than merely planned.</p>
+<p>Two videos are available on the official CNA YouTube channel:</p>
+<ul><li><a href="https://www.youtube.com/watch?v=asNrr1IR1MQ">CNA Car Simulator</a></li><li><a href="https://www.youtube.com/watch?v=bvENJr9gwgw">CNA Car Simulator #2 — Helicopter was added</a></li></ul>
+<p>The web edition runs the same driving systems through CNA&#39;s browser platform and WebGL 2 renderer. Browser input and audio activation still follow web security rules, so the first interaction is important for capturing the pointer and starting sound.</p>
+<p>Car Simulator is one of the projects in this article series that already has both source and a public playable deployment. The screenshots and videos remain useful even so: they show more locations, weather conditions and controls than a visitor is likely to discover in a short first browser session.</p>
+<p>The source is licensed under the MIT License. Audio and other third-party assets retain the licenses documented in the repository.</p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/category/games/">Games</a><a href="/tag/cna/">#CNA</a><a href="/tag/car-simulator/">#Car Simulator</a><a href="/tag/c-23/">#C++23</a><a href="/tag/3d/">#3D</a><a href="/tag/driving/">#Driving</a><a href="/tag/simulation/">#Simulation</a><a href="/tag/webgl2/">#WebGL2</a><a href="/tag/online-demo/">#Online Demo</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

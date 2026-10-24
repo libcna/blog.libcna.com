@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Room Simulator | CNA&#39;s Blog</title>
+  <meta name="description" content="Room Simulator is a CNA reference scene that combines a furnished living room, an exterior street, changing daylight, weather and reflections.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/01/28/room-simulator/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Room Simulator">
+  <meta property="og:description" content="Room Simulator is a CNA reference scene that combines a furnished living room, an exterior street, changing daylight, weather and reflections.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/01/28/room-simulator/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-01-28T12:00:00Z">January 28, 2027</time></span><span>Updated <time datetime="2026-10-17T14:35:22Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">Room Simulator</h1>
+      <p class="article-description">Room Simulator is a CNA reference scene that combines a furnished living room, an exterior street, changing daylight, weather and reflections.</p>
+    </header>
+    <div class="article-body"><p><strong>Room Simulator</strong> is an explorable 3D reference scene built with CNA.</p>
+<p>It concentrates on one furnished living room and the street outside its windows, then observes that scene under changing light and weather. This smaller scale makes it possible to spend more attention on materials, reflections, shadows and the relationship between an interior and its exterior.</p>
+<p><strong>Source:</strong> <a href="https://github.com/libcnalab/room-simulator">https://github.com/libcnalab/room-simulator</a></p>
+<p><strong>Play online:</strong> <a href="https://play.libcna.com/room-simulator/room-simulator.html">https://play.libcna.com/room-simulator/room-simulator.html</a></p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/room-simulator/develop/docs/screenshots/m9-entrance-day.png" alt="Room Simulator during the day" loading="lazy"></p>
+<h2 id="one-scene-many-conditions">One scene, many conditions</h2>
+<p>The room contains sofas, tables, shelving, lights, plants, kitchen fittings, a television and smaller decorative objects. Windows and doors connect the interior visually to a generated street.</p>
+<p>The environment changes with:</p>
+<ul><li>time of day;</li><li>sunlight direction and intensity;</li><li>interior illumination;</li><li>cloud and weather state;</li><li>wet exterior surfaces;</li><li>reflections and post-processing.</li></ul>
+<p>Because the arrangement remains familiar, lighting and renderer changes are easier to notice than they would be in a constantly changing world.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/room-simulator/develop/docs/screenshots/m9-sun-window.png" alt="Sunlight entering the room through its street-facing windows" loading="lazy"></p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/room-simulator/develop/docs/screenshots/m9-wet-street-night.png" alt="Wet street reflections at night" loading="lazy"></p>
+<h2 id="the-room-and-the-street-belong-together">The room and the street belong together</h2>
+<p>The scene is designed to be observed from both sides of its windows.</p>
+<p>Inside, furniture, lamps, kitchen surfaces, shelving, glass and smaller props create a dense material test. Outside, the street provides buildings, vegetation, road surfaces and sky illumination. Sunlight can enter through the windows, while interior light, glass and reflections affect what is visible after dark.</p>
+<p>That relationship creates harder cases than a closed room:</p>
+<ul><li>exposure must cope with a bright window and darker interior at the same time;</li><li>transparent panes must preserve the street while receiving reflection cues;</li><li>the mirror and planar reflections need a coherent secondary view;</li><li>rain changes exterior materials without wetting the room;</li><li>the sun and artificial lamps must remain plausible at different hours.</li></ul>
+<p>The result is deliberately a reference scene rather than a large game world. A rendering change can be compared against a known sofa, window, lamp or street corner instead of being hidden by procedural variation.</p>
+<h2 id="rendering-pipeline">Rendering pipeline</h2>
+<p>The executable is a CNA <code>Game</code> subclass. <code>RoomApplication</code> owns the camera, clock, weather, asset libraries, scene and renderer. <code>RoomScene</code> creates procedural architecture, places imported furniture and registers renderable items.</p>
+<p><code>SceneRenderer</code> then organizes the frame into several stages:</p>
+<pre><code class="language-text">shadow preparation
+environment and reflection probes
+planar reflections
+opaque geometry
+transparent geometry
+HDR post-processing
+exposure and presentation</code></pre>
+<p>The application uses PBR materials, imported glTF models and generated textures. A material library keeps those resources consistent across the room and exterior. Imported furniture remains owned by the model library, while procedural meshes belong to the scene; that explicit lifetime boundary matters when render targets or device resources are recreated.</p>
+<p>Some effects were adapted from CNA&#39;s retired engine and retain their Ms-PL notices. They are application code now, not a hidden second engine on which the room depends.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/room-simulator/develop/docs/screenshots/m9-reflections-street-night.png" alt="Night reflections across the street outside the room" loading="lazy"></p>
+<h2 id="image-based-exposure">Image-based exposure</h2>
+<p>Moving from a bright street to a darker interior is also an exposure problem.</p>
+<p>Room Simulator measures the rendered HDR image rather than estimating brightness only from the clock. After the scene target is complete, a shader samples it into a 64 by 36 luminance target. Each cell stores a packed logarithmic Rec.709 luminance value that can be read through CNA&#39;s ordinary texture-data API.</p>
+<p>The CPU then calculates a center-weighted geometric mean while rejecting extreme highlights. Auto exposure adapts toward that measurement over time.</p>
+<p>This path is useful because it exercises render targets, custom shader packages, data readback and HDR processing together. If a renderer cannot execute the required shader source, the simulator reports that limitation instead of pretending image-based exposure ran.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/room-simulator/develop/docs/screenshots/m9-entrance-night.png" alt="The room entrance after the scene changes to night" loading="lazy"></p>
+<h2 id="time-and-weather">Time and weather</h2>
+<p>The simulation owns a solar clock and weather transitions independently of the renderer.</p>
+<p>A deterministic launch can specify the viewpoint, time and weather:</p>
+<pre><code class="language-text">room-simulator --view entrance --time 12:00 --weather cloudy
+room-simulator --view entrance --time 22:00 --weather rain --hold-weather</code></pre>
+<p>Holding the weather prevents a review capture from transitioning to another state before the target frame. Fixed views cover the entrance, furniture groupings, sunlit window, stove, street, wet road and nighttime reflections.</p>
+<p>This makes the same scene useful for checking daylight balance, lamp intensity, wet materials and exposure adaptation without manual setup.</p>
+<h2 id="a-practical-cna-reference-application">A practical CNA reference application</h2>
+<p>Room Simulator uses CNA for the application loop, input, content, geometry, effects and presentation. Its own code organizes the room, exterior, simulation and rendering passes.</p>
+<p>The renderer includes planar and environment-probe work, material preparation, shadows and post-processing. Imported furniture can be added through the repository&#39;s asset scripts, while procedural geometry keeps the application usable without the optional external models.</p>
+<p>Deterministic command-line views can render the same camera, time and weather repeatedly. The project uses those views for screenshot review and render smoke tests.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/room-simulator/develop/docs/screenshots/m9-stove-night.png" alt="The kitchen stove and nearby furnishings under night lighting" loading="lazy"></p>
+<h2 id="assets-and-procedural-fallback">Assets and procedural fallback</h2>
+<p>The full presentation uses externally sourced furniture with documented Creative Commons licenses. Fetch and extraction scripts verify the downloaded archives against a manifest before preparing the models.</p>
+<p>Those assets are not required for the executable to start. Without them, the simulator falls back to its procedural room geometry. This is useful for development and build verification, although the resulting image is not equivalent to the curated gallery.</p>
+<p>Optional compilation can convert prepared content into CNA&#39;s <code>.cnb</code> format for faster loading. The loose-source path remains available, so the same application also exercises the runtime import route.</p>
+<h2 id="visual-testing">Visual testing</h2>
+<p>The checked-in screenshots are a curated human-reviewed gallery rather than exact cross-machine golden images.</p>
+<p>A quick review captures four representative cases covering:</p>
+<ol><li>ordinary daylight;</li><li>night lighting;</li><li>direct sunlight through the room;</li><li>rainy exterior reflections.</li></ol>
+<p>The full set contains 28 views. A contact sheet makes missing objects, severe clipping, black regions, broken glass, incorrect shadows and reflection mistakes easier to spot together.</p>
+<p>The automated render smoke uses a smaller 320 by 180 frame and verifies that the application produced a real, non-black PNG. That proves the rendering path ran, but it does not replace inspection of the full-resolution scene.</p>
+<p>Unit tests separately cover solar and weather simulation, texture baking, reflection math and cube calculations. Graphics changes still need a real render because ownership and draw-order failures cannot be established by CPU tests alone.</p>
+<h2 id="desktop-and-web">Desktop and web</h2>
+<p>The maintained native baseline uses CNA&#39;s OPENGLES3 renderer. A WebGL 2 build brings the same scene to modern browsers, and a packaged version is already available on <code>play.libcna.com</code>.</p>
+<p>The repository also records an important qualification: the browser path should be rebuilt and checked whenever its pinned dependency baseline changes. A deployed build proves a usable web edition exists, not that every newer native revision has automatically received the same validation.</p>
+<p>The native baseline is Linux with CNA&#39;s OPENGLES3 renderer. Exact dependency revisions are kept in <code>dependencies.lock</code>, allowing a visual result to be associated with a specific CNA, Sharp Runtime, EasyGL and Meta-GL combination.</p>
+<p>The WebGL 2 build packages HTML, JavaScript, WebAssembly and a data bundle. For static hosting, the project can split the large data file into 64 MiB parts and include the code and asset license records beside it.</p>
+<h2 id="known-boundaries">Known boundaries</h2>
+<p>The project documents unresolved work rather than hiding it behind the gallery.</p>
+<p>The maintained renderer baseline remains OPENGLES3; OPENGL33, WebGL2 and other CNA renderer families require their own fresh checks after dependency changes. The small automated render only proves that a non-black frame exists, and CI currently emphasizes the CPU suite.</p>
+<p>A finite-HDR cleanup pass also remains enabled because the locked baseline can produce non-finite intermediate pixels before bloom. Contact shadows are disabled because their current pass creates visible rims, and motion blur is wired but has not received a full visual evaluation.</p>
+<p>These qualifications make Room Simulator more useful as a reference: it records both what the scene demonstrates and which conclusions its current evidence does not support.</p>
+<p>Room Simulator is source-available under the MIT License, with separate attribution for its imported Creative Commons models.</p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/tag/cna/">#CNA</a><a href="/tag/room-simulator/">#Room Simulator</a><a href="/tag/c-23/">#C++23</a><a href="/tag/3d/">#3D</a><a href="/tag/webgl2/">#WebGL2</a><a href="/tag/lighting/">#Lighting</a><a href="/tag/reflections/">#Reflections</a><a href="/tag/weather/">#Weather</a><a href="/tag/online-demo/">#Online Demo</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>School Simulator | CNA&#39;s Blog</title>
+  <meta name="description" content="School Simulator is a large first-person CNA school with 748 rooms, a full timetable and up to thousands of simulated occupants.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/01/14/school-simulator/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="School Simulator">
+  <meta property="og:description" content="School Simulator is a large first-person CNA school with 748 rooms, a full timetable and up to thousands of simulated occupants.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/01/14/school-simulator/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-01-14T12:00:00Z">January 14, 2027</time></span><span>Updated <time datetime="2026-10-17T14:35:22Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">School Simulator</h1>
+      <p class="article-description">School Simulator is a large first-person CNA school with 748 rooms, a full timetable and up to thousands of simulated occupants.</p>
+    </header>
+    <div class="article-body"><p><strong>School Simulator</strong> is a walkable six-level school whose day continues around the player.</p>
+<p>It combines a large 3D building with timetables, lessons, breaks, lunch waves, clubs, staff duties and fire drills. Depending on the selected population preset, the simulation can manage anything from an empty campus to a few thousand people.</p>
+<p><strong>Source:</strong> <a href="https://github.com/libcnalab/school-simulator">https://github.com/libcnalab/school-simulator</a></p>
+<p><strong>Web status:</strong> The repository contains a working browser build, but School Simulator is not yet deployed on <code>play.libcna.com</code>. A playable web version is being prepared.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/school-simulator/main/docs/images/entrance.jpg" alt="The main entrance before lessons" loading="lazy"></p>
+<h2 id="a-complete-campus">A complete campus</h2>
+<p>The building has four main wings around a courtyard, together with sports and community blocks, a basement and outdoor grounds.</p>
+<p>Across the campus are <strong>748 rooms</strong>, <strong>855 doors</strong>, ten staircases and two elevators. Classrooms, laboratories, offices, workshops, music rooms, a library, gym, auditorium, cafeteria and service spaces have their own furniture and places for simulated occupants.</p>
+<p>Outside are plazas, a playground, running track, football field, car park, bicycle area and fire-drill assembly points.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/school-simulator/main/docs/images/campus-map.jpg" alt="The campus map and its connected wings" loading="lazy"></p>
+<h2 id="a-school-day-in-motion">A school day in motion</h2>
+<p>Students follow a weekly timetable. Teachers, administrators, cooks, librarians, security staff, janitors and other roles have their own destinations and schedules.</p>
+<p>The simulation uses several levels of detail:</p>
+<pre><code class="language-text">abstract simulation for distant people
+reduced simulation around the active area
+full walking and local avoidance near the player</code></pre>
+<p>Routes pass through rooms, corridors, doors, stairs and working elevators. Door throughput, elevator capacity and lunch queues matter when a large population moves at once.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/school-simulator/main/docs/images/cafeteria.jpg" alt="The cafeteria during the first lunch wave" loading="lazy"></p>
+<h2 id="more-than-students-and-classrooms">More than students and classrooms</h2>
+<p>The population contains several kinds of people with different responsibilities. Students move between lessons, lunch and clubs. Teachers follow their classes, while reception, administration, nursing, counselling, IT, security, catering, library and maintenance roles have their own work areas.</p>
+<p>The building responds to the simulated schedule. Bells announce transitions, whiteboards show the lesson in progress, room lights follow occupation and daylight, and digital signs display current information. Corridor ambience grows around crowds instead of playing as one constant sound everywhere.</p>
+<p>The time scale is adjustable. A player can observe an ordinary day, accelerate it, jump to the next lesson or trigger a fire drill. During a drill, occupants leave their normal activities, route toward the outside and gather at assigned assembly points.</p>
+<p>This makes the school useful as a systems experiment. A visually simple crowd can still expose congestion at a door, an invalid staircase connection, an elevator capacity problem or disagreement between the abstract and full simulations.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/school-simulator/main/docs/images/fire-drill.jpg" alt="A fire drill sending the school population to outdoor assembly points" loading="lazy"></p>
+<h2 id="navigation-at-several-scales">Navigation at several scales</h2>
+<p>The navigation system is hierarchical.</p>
+<p>At the largest scale, a room graph connects destinations through doors, corridors, stairs and elevators. Inside a loaded room, waypoints describe aisles, desks, queue lanes and usable positions. Local separation keeps nearby walkers from occupying exactly the same path.</p>
+<p>Agents use three fidelity levels:</p>
+<div class="table-wrap"><table><thead><tr><th>Fidelity</th><th>Purpose</th></tr></thead><tbody><tr><td>Abstract</td><td>Advance a distant person&#39;s schedule without simulating every footstep</td></tr><tr><td>Reduced</td><td>Preserve movement around the active part of the campus at lower cost</td></tr><tr><td>Full</td><td>Walk through local waypoints, doors and obstacles near the player</td></tr></tbody></table></div>
+<p>The transition between those representations must preserve identity, destination and schedule. Tests compare full and abstract outcomes so an optimization cannot quietly send people to different lessons.</p>
+<p>Door gates limit throughput. Elevators model calls, cab movement, capacity, boarding and the preferences of occupants who choose the lift. Stuck detection gives the test suite evidence when a route or crowded transition stops making progress.</p>
+<h2 id="rooms-as-active-spaces">Rooms as active spaces</h2>
+<p>The forty room types are not only labels on a floor plan. Their layouts define furniture, occupation points and specialized activity.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/school-simulator/main/docs/images/classroom.jpg" alt="A furnished classroom ready for a scheduled lesson" loading="lazy"></p>
+<p>A classroom provides desks and a board. Laboratories add benches and animated demonstrations. The computer room has live displays, the physics lab has its own apparatus, the gym includes hoops and scoreboards, and the auditorium supplies a stage and seating. The cafeteria includes serving and queue lanes that become important during lunch.</p>
+<p>Security cameras render selected views into textures for the CCTV wall. Diagnostic screens appear in the server room. These features exercise CNA render targets and UI rendering inside the larger scene rather than as isolated test programs.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/school-simulator/main/docs/images/cctv.jpg" alt="Live security-camera views on the school&#39;s CCTV wall" loading="lazy"></p>
+<h2 id="streaming-a-748-room-building">Streaming a 748-room building</h2>
+<p>Keeping every interior resident on the GPU would be wasteful. The application therefore builds and retains room meshes around the player, with smaller bubbles around secondary cameras.</p>
+<p>The facade, roof and grounds are built once so the school remains complete when viewed from outside. Interior rooms are streamed by level and distance, with a limited number built per frame. Doors and elevator cabs remain separate because they move.</p>
+<p>People are culled by distance, view and room availability, then batched into a dynamic buffer. Their visual detail drops from ten boxes to three or two as distance grows. CCTV, signage and other screens update at reduced rates, while audio keeps only the nearest occupied room ambiences.</p>
+<p>The frame is organized deliberately:</p>
+<pre><code class="language-text">input and elevators
+        │
+        ▼
+player movement and collision
+        │
+        ▼
+schedule and population simulation
+        │
+        ▼
+room streaming, doors and interaction
+        │
+        ▼
+offscreen screens, world, people, weather and UI</code></pre>
+<p>These budgets let the large plan remain explorable without pretending that all 748 rooms need full rendering every frame.</p>
+<h2 id="an-explorable-cna-stress-test">An explorable CNA stress test</h2>
+<p>School Simulator renders room interiors lazily around the player. It also handles animated doors, elevator cabs, weather, day and night lighting, CCTV render targets, digital signs, lesson boards and room-aware sound.</p>
+<p>The project separates the framework-independent simulation from the CNA application. Headless tools can run complete days and verify scheduling, navigation and determinism without creating a window, while the first-person application renders the same school through CNA.</p>
+<p>Its automated checks cover plan structure, navigation, room geometry, timetables, elevators, fire drills and long simulation runs. Screenshot tours provide another layer of visual evidence.</p>
+<p>The headless <code>school-sim-cli</code> can validate the blueprint, print statistics, run a complete day or perform a multi-day extreme-population soak. Because it does not include CNA, failures in scheduling or navigation can be separated from rendering and platform failures.</p>
+<p>The graphical application then adds millions of geometry and collision checks across the rooms. Scripted screenshot tours move to named places, set weather and time, wait for the simulation and record the resulting frame.</p>
+<p>This separation is valuable for CNA as well. A renderer bug should not be diagnosed as a timetable bug, and a simulation invariant should not require a working display server to test.</p>
+<h2 id="controls-and-observation-tools">Controls and observation tools</h2>
+<p>Ordinary play uses <code>W A S D</code>, mouse look and <code>Shift</code> to run. <code>E</code> interacts with doors, people, elevators and light switches. <code>Tab</code> opens the full campus map and <code>M</code> toggles the minimap.</p>
+<p>Several keys turn the application into an observation tool:</p>
+<ul><li><code>1</code> through <code>5</code> choose the clock speed;</li><li><code>Space</code> pauses the school clock;</li><li><code>N</code> moves to the next lesson;</li><li><code>B</code> rings the bell;</li><li><code>F</code> begins a fire drill;</li><li><code>O</code> changes the weather;</li><li><code>F3</code> shows performance and population statistics;</li><li><code>F4</code> visualizes paths, fidelity regions, bounds and collision.</li></ul>
+<p>Free flight is available for inspection, but ordinary first-person movement uses the same stairs, elevators and collision as the spaces being tested.</p>
+<h2 id="native-and-browser-builds">Native and browser builds</h2>
+<p>The main development target is Linux, but the same application also builds for WebGL 2 through Emscripten. The repository reports a browser download of roughly 6 MB and a tested busy-cafeteria scene.</p>
+<p>The public deployment on <code>play.libcna.com</code> is still being prepared. Until then, the repository contains the build instructions, source and its complete screenshot gallery.</p>
+<p>The browser edition is the same application, simulation and content running through CNA&#39;s WebGL 2 renderer and SDL3&#39;s browser platform path. Application-specific web code is limited mainly to locating the preloaded content.</p>
+<p>The packaged build is single-threaded and does not need cross-origin isolation. URL arguments can choose a population preset, time or scripted scene, which makes the browser version useful for repeatable tests as well as interactive play.</p>
+<p>Headless Chrome validation has loaded the school, captured pointer lock, walked with real key events, opened the statistics display and rendered a busy cafeteria. The documented run showed 525 people in that room, 413 drawn and 89 draw calls at the observed frame.</p>
+<p>The browser work also exposed practical integration problems: fixed-step frame pacing, accelerated pointer-lock input, first-use shader stalls and expensive on-demand door-plate rendering. CNA and the application were adjusted so variable-step games receive one update per browser frame, relative input retains fractional motion, textures and shader variants warm up, and door plates are packed into atlases.</p>
+<p>That evidence is narrower than universal browser support. Physical-GPU browsers, Safari, touch controls and audible output still need separate qualification.</p>
+<h2 id="what-the-project-demonstrates">What the project demonstrates</h2>
+<p>School Simulator asks whether CNA can host a large application in which rendering is only one part of the workload.</p>
+<p>At the same time, it runs a schedule, streams geometry, manages thousands of identities, plays spatial audio, updates offscreen displays, processes first-person input and keeps navigation deterministic. It is therefore both a virtual school and a practical integration test for long-running CNA applications.</p>
+<p>School Simulator is licensed under the MIT License.</p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/tag/cna/">#CNA</a><a href="/tag/school-simulator/">#School Simulator</a><a href="/tag/c-23/">#C++23</a><a href="/tag/3d/">#3D</a><a href="/tag/simulation/">#Simulation</a><a href="/tag/npcs/">#NPCs</a><a href="/tag/webgl2/">#WebGL2</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

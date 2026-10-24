@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Train Simulator | CNA&#39;s Blog</title>
+  <meta name="description" content="Train Simulator is a first-person passenger experience following a six-car electric train across a deterministic 286.4-kilometre railway.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/02/11/train-simulator/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Train Simulator">
+  <meta property="og:description" content="Train Simulator is a first-person passenger experience following a six-car electric train across a deterministic 286.4-kilometre railway.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/02/11/train-simulator/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-02-11T12:00:00Z">February 11, 2027</time></span><span>Updated <time datetime="2026-10-17T14:35:22Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a>, <a href="/category/games/">Games</a></span></div>
+      <h1 class="article-title">Train Simulator</h1>
+      <p class="article-description">Train Simulator is a first-person passenger experience following a six-car electric train across a deterministic 286.4-kilometre railway.</p>
+    </header>
+    <div class="article-body"><p><strong>Train Simulator</strong> is a first-person passenger experience built with C++23 and CNA.</p>
+<p>It follows the fictional <strong>Northern Valley Express</strong> over a deterministic 286.4-kilometre railway. The player can walk through a six-car electric train, sit by the window, inspect passenger information, use the accessible toilet and watch stations and countryside pass outside.</p>
+<p><strong>Source:</strong> <a href="https://github.com/libcna/train-simulator">https://github.com/libcna/train-simulator</a></p>
+<p><strong>Web status:</strong> Train Simulator has a WebGL 2 build, but it is not yet published on <code>play.libcna.com</code>. A playable web version is being prepared.</p>
+<p><img src="https://raw.githubusercontent.com/libcna/train-simulator/develop/docs/screenshots/passenger-saloon.png" alt="Passengers aboard the Northern Valley Express" loading="lazy"></p>
+<h2 id="life-inside-the-train">Life inside the train</h2>
+<p>The six connected cars contain seats, tables, luggage areas, gangways, working passenger doors, information displays, signage, vestibules and an accessible toilet.</p>
+<p>Thirty-four CNA avatar passengers share the service with the player. They occupy seats, walk through the train, read, use handheld devices, converse, visit the toilet, board and leave. A conductor performs passenger-area inspections while a driver occupies the active cab.</p>
+<p>The player remains in a stable train-relative first-person space even while the complete train accelerates, brakes and follows curves.</p>
+<h2 id="six-cars-with-distinct-roles">Six cars with distinct roles</h2>
+<p>The consist is not one repeated empty carriage. Cars can be identified as standard, quiet, work/table, accessible, family or luggage accommodation, with matching signs, upholstery accents and details.</p>
+<p>Seats have separate cushions, backs, armrests, headrest covers and support structures. Facing bays include tables, cup recesses and power outlets. Luggage racks, grab poles, suspended handles, ventilation, emergency equipment and route literature make the saloons readable as passenger spaces.</p>
+<p>Vestibules connect the train through glazed sensor doors, bellows and bridge plates. Passenger doors slide into real openings at stations. Their interlock is shared with passenger movement, so an avatar cannot walk through a closed or only partly opened leaf.</p>
+<p>The accessible toilet is also a usable room. It contains a toilet, sink, mirror approximation, support rail, alarm cord, dispensers, ventilation and an occupied indicator. Both player and NPC use participate in the same availability state.</p>
+<p>The driving cabs are visible but remain staff-only. A driver occupies the active end, and the controls change with the current direction of travel.</p>
+<h2 id="passenger-behavior">Passenger behavior</h2>
+<p>CNA avatars supply identities and skeletal rendering, while the simulator owns train-specific behavior.</p>
+<p>Passengers sit in assigned places, stand, walk through the aisle, read, check handheld devices, look outside and hold short conversations. Seated poses are blended onto the avatar skeleton, and walking adds a lightweight gait with ankle and toe motion.</p>
+<p>Station activity is connected to the service. Waiting passengers board through the correct platform-side doors, find a place and later alight. The conductor moves through passenger areas and performs visible inspection stops using a handheld terminal.</p>
+<p>These are bounded behaviors rather than a claim of human-level crowd simulation. Their purpose is to make the train inhabited while exercising animation, navigation, ownership of seats and moving-reference-frame logic.</p>
+<h2 id="first-person-movement-on-a-moving-vehicle">First-person movement on a moving vehicle</h2>
+<p>The player walks in train-relative coordinates. Acceleration, braking, suspension sway, curve lean and vibration affect the view without allowing numerical drift to pull the player through a carriage.</p>
+<p>Collision covers seats, walls, doors, tables, vestibules and platform transitions. At a stop, retractable bridge plates span the designed horizontal gap to the platform. Context prompts allow the player to sit, inspect information or use facilities.</p>
+<p>The camera can transition smoothly into a seat. From there, the passing world is framed by the actual window bay instead of a separate cinematic scene.</p>
+<p>Mouse capture is reconciled with CNA&#39;s relative mode, application focus and overlays every frame. Opening the map, help or pause menu releases the cursor deliberately; a click reacquires it when play resumes.</p>
+<h2 id="a-railway-that-keeps-moving">A railway that keeps moving</h2>
+<p>The route has twelve stations and a 135-minute timetable. Trains accelerate, cruise, brake, stop on the correct platform side and reverse at terminals so the service can continue indefinitely.</p>
+<p>The streamed landscape includes towns, industry, farmland, woodland, tunnels, rivers, bridges, roads, level crossings, catenary, signals and other trains. Day, night and weather conditions change the view without changing the route itself.</p>
+<p><img src="https://raw.githubusercontent.com/libcna/train-simulator/develop/docs/screenshots/lakehurst-window.png" alt="The view across Lakehurst from a passenger seat" loading="lazy"></p>
+<p><img src="https://raw.githubusercontent.com/libcna/train-simulator/develop/docs/screenshots/passenger-information.png" alt="A passenger-information display inside the train" loading="lazy"></p>
+<h2 id="timetable-and-train-movement">Timetable and train movement</h2>
+<p>The twelve-station service has an authored 135-minute timetable in both directions. Speed limits vary by segment, and the simulation predicts arrival time and whether the train is early or late.</p>
+<p>Acceleration and braking are smooth rather than instant, while station state chooses the correct doors and platform side. At a terminal, the service reverses and can continue indefinitely.</p>
+<p>Passenger displays update with destination, next stop, speed, estimated arrival and following calls. A larger interactive route view shows all twelve stations and the train&#39;s current position without pausing the journey.</p>
+<p>The world can be accelerated for testing, but the player can also ride at normal time and treat the project as a passenger journey rather than a control-cab simulator.</p>
+<p><img src="https://raw.githubusercontent.com/libcna/train-simulator/develop/docs/screenshots/route-map.png" alt="The route map showing the service and its stations" loading="lazy"></p>
+<h2 id="streaming-286-kilometres">Streaming 286 kilometres</h2>
+<p>The route is deterministic but not kept in memory as one continuous high-detail scene.</p>
+<p>A bounded streamer maintains geometry around the moving train in 250-metre chunks. Terrain, buildings, vegetation, track equipment and traffic are generated from route position and seed. Distant layers use simpler forms, while closer areas add fences, signs, vegetation and building details.</p>
+<p>Railway infrastructure includes double track, catenary, block signals, speed boards, kilometre posts, level crossings, point equipment, cabinets and stations. Special landmarks such as Lakehurst, tunnels, a river crossing and a dry-valley viaduct prevent the long route from becoming one repeated corridor.</p>
+<p>Road traffic and several opposing train types add motion outside. These remain lightweight systems intended for the passenger view, not independent road or railway dispatch simulations.</p>
+<h2 id="day-weather-and-sound">Day, weather and sound</h2>
+<p>Time of day changes sunlight, sky and artificial lighting. Weather can introduce cloud, rain, fog and snow, altering both the distant landscape and what the passenger sees close to the window.</p>
+<p>The audio scene combines rail movement, traction, doors, announcements, interior ambience and location-sensitive events. Surface-aware footsteps distinguish passenger areas and vestibules.</p>
+<p>Like the visuals, audio is evaluated at several levels: code and signal tests can prove that a source was produced, while subjective balance still requires listening.</p>
+<h2 id="built-as-a-tested-cna-application">Built as a tested CNA application</h2>
+<p>Train Simulator is described by its repository as an early but playable showcase foundation, not a finished commercial game. Its interaction, simulation, streaming, rendering, UI and audio systems work together, while visual realism remains an active area of development.</p>
+<p>The committed screenshot views are produced from scripted launches. The capture process waits for avatar loading, checks the output and retries incomplete readbacks, making the gallery part of the project&#39;s validation evidence.</p>
+<p>The visual audit records more than a hundred identified scene issues and their before-and-after evidence. It covers repeated geometry, lineside vegetation, station composition, building variety, interiors and train details.</p>
+<p>Closing a numbered audit list does not declare the graphics finished. The repository still describes repetitive geometry and stylized avatars as visible limitations, and it keeps visual realism separate from whether automated tests pass.</p>
+<p>Simulation and application tests cover route state, doors, timetable behavior, streaming boundaries, interaction and generated content. Install verification builds a relocatable Linux tree with the required CNA and SDL libraries, launches it from outside the repository and checks that origin-relative loading works.</p>
+<p>Fixed inspection modes and command-line starts can choose a station, route kilometre, travel direction, carriage, quality tier and overlay. This allows one reported scene to be recreated without waiting through the complete timetable.</p>
+<h2 id="controls-and-passenger-tools">Controls and passenger tools</h2>
+<p>The main interaction model is first-person exploration rather than train driving.</p>
+<p><code>W A S D</code> and mouse look move through the consist. Context interaction opens doors, uses a seat or inspects a display. Help, route map, pause and accessibility settings are available as overlays, and quality options can be selected without rewriting the saved preferences used for ordinary play.</p>
+<p>Command-line options also support unobstructed screenshots, a passenger-view preset, fixed frame counts and scheduled exits. These are development tools, but they reuse the real application rather than a separate scene renderer.</p>
+<p><img src="https://raw.githubusercontent.com/libcna/train-simulator/develop/docs/screenshots/stonebridge-platform.png" alt="The train stopped at Stonebridge platform" loading="lazy"></p>
+<h2 id="native-and-browser-editions">Native and browser editions</h2>
+<p>The native target uses CNA&#39;s OpenGL 3.3 renderer. The Emscripten edition uses WebGL 2 and packages the same runtime assets into HTML, JavaScript, WebAssembly and data files.</p>
+<p>That browser build exists today, but its public home on <code>play.libcna.com</code> is still being prepared.</p>
+<p>The web package is single-threaded and does not require cross-origin isolation. Its canvas scales with the page while preserving the game&#39;s 16:9 backing view. Pointer-lock movement applies a browser correction, and the in-game sensitivity control remains available.</p>
+<p>The browser version still needs an HTTP server because browsers cannot load its WebAssembly and preloaded data correctly from a local <code>file://</code> URL. The repository produces the HTML, JavaScript, WebAssembly and data files together as one deployable set.</p>
+<p>Mobile platforms, platform-specific macOS work, Vulkan and DirectX are outside the present project scope. The article&#39;s portability claim is therefore limited to the verified OpenGL 3.3 desktop and WebGL 2 paths.</p>
+<h2 id="what-train-simulator-contributes-to-cna">What Train Simulator contributes to CNA</h2>
+<p>The project combines a long streamed route with a moving interior reference frame, animated CNA avatars, user interaction, schedule simulation, audio and browser packaging.</p>
+<p>It is a different workload from a driving game or static building. Most of the world is observed through windows, while small errors in door state, seat alignment, avatar pose or train-relative movement remain close to the player for a long time.</p>
+<p>That makes Train Simulator useful both as a playable passenger experience and as a demanding CNA integration project whose limitations remain visible in its own documentation.</p>
+<p>Train Simulator is licensed under the MIT License, with asset and audio credits documented in the repository.</p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/category/games/">Games</a><a href="/tag/cna/">#CNA</a><a href="/tag/train-simulator/">#Train Simulator</a><a href="/tag/c-23/">#C++23</a><a href="/tag/3d/">#3D</a><a href="/tag/railways/">#Railways</a><a href="/tag/simulation/">#Simulation</a><a href="/tag/webgl2/">#WebGL2</a><a href="/tag/avatars/">#Avatars</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

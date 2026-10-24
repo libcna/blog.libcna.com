@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Museum Simulator | CNA&#39;s Blog</title>
+  <meta name="description" content="Museum Simulator is a ten-floor first-person CNA museum whose 295 exhibit rooms turn framework APIs into interactive displays.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/01/07/museum-simulator/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Museum Simulator">
+  <meta property="og:description" content="Museum Simulator is a ten-floor first-person CNA museum whose 295 exhibit rooms turn framework APIs into interactive displays.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/01/07/museum-simulator/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-01-07T12:00:00Z">January 7, 2027</time></span><span>Updated <time datetime="2026-10-17T14:35:22Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">Museum Simulator</h1>
+      <p class="article-description">Museum Simulator is a ten-floor first-person CNA museum whose 295 exhibit rooms turn framework APIs into interactive displays.</p>
+    </header>
+    <div class="article-body"><p><strong>Museum Simulator</strong>, developed as <strong>CNA 3D Museum</strong>, turns framework documentation into a place that can be explored in first person.</p>
+<p>Its ten floors contain <strong>295 exhibit rooms</strong>. Each room demonstrates a focused graphics, content, audio, input, networking or platform concept, labels the API involved and distinguishes original XNA 4.0 behavior from CNA extensions.</p>
+<p><strong>Source:</strong> <a href="https://github.com/libcnalab/museum-simulator">https://github.com/libcnalab/museum-simulator</a></p>
+<p><strong>Web status:</strong> The project has a working WebGL 2 build, but it is not yet published on <code>play.libcna.com</code>. A playable web version is being prepared.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/museum-simulator/develop/docs/images/lobby.jpg" alt="The entrance hall of Museum Simulator" loading="lazy"></p>
+<h2 id="a-framework-reference-you-can-walk-through">A framework reference you can walk through</h2>
+<p>The museum is arranged by subject rather than as a sequence of menus:</p>
+<ul><li>Floor 0 introduces the building and its main systems.</li><li>Floors 1–3 cover mathematics, sprites and fundamental 3D rendering.</li><li>Floors 4–6 explore effects, lighting, render targets, models, animation and particles.</li><li>Floors 7–8 cover audio, input, content, platform services and CNA extensions.</li><li>Floor 9 contains performance and renderer-validation exhibits.</li></ul>
+<p>The building currently has 36 wings, 370 walkable cells and 72 exhibit kinds. A directory, minimap, elevators and stairs make the large collection navigable.</p>
+<h2 id="interactive-exhibits">Interactive exhibits</h2>
+<p>The rooms are not static posters. Visitors can operate controls, change values and see the corresponding CNA behavior inside the scene.</p>
+<p>Examples include instanced rendering, light types, a CRT shader, planar mirrors, PBR glTF models, particle fire, runtime font building, content compilation and diagnostic traces.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/museum-simulator/develop/docs/images/pbr.jpg" alt="The interactive metallic and roughness PBR exhibit" loading="lazy"></p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/museum-simulator/develop/docs/images/validation.jpg" alt="A renderer geometry and coverage exhibit" loading="lazy"></p>
+<p>The project uses CNA&#39;s public API directly and does not place another engine between the museum and the framework. Application code supplies the rooms, navigation and exhibit system; CNA supplies the XNA-style runtime underneath them.</p>
+<h2 id="what-the-floors-contain">What the floors contain</h2>
+<p>The museum begins with a guided overview and becomes progressively more specialized.</p>
+<p>The fundamentals floor turns vectors, matrices, rotations, curves, collision volumes and camera transforms into visible objects. The 2D floor concentrates on <code>SpriteBatch</code>, <code>SpriteFont</code> and text. The next level introduces buffers, primitives, dynamic geometry, instancing and textures.</p>
+<p>The effects floors include <code>BasicEffect</code>, lighting labs, custom <code>ShaderEffect</code> programs, render-state comparisons, mirrors, multiple render targets and floating-point targets. Model-focused rooms cover glTF, PBR, skeletal animation, particles and small simulations.</p>
+<p>Later exhibits demonstrate audio, video, keyboard, mouse, gamepad and other input. Content rooms load several image and model formats, build assets at runtime and show the output of CNA&#39;s content compiler. Platform, diagnostics, devices and the optional CNAEXT module have their own displays.</p>
+<p>The final floor is not just a conclusion. It contains performance tools, renderer self-checks, reference scenes and an observation deck over the museum.</p>
+<h2 id="xna-or-cna-extension">XNA or CNA extension?</h2>
+<p>Each exhibit records its origin. Of the current 295 rooms, 233 demonstrate XNA 4.0 behavior and 62 demonstrate CNA extensions.</p>
+<p>That label prevents two different ideas from being blurred together:</p>
+<pre><code class="language-text">XNA-compatible API
+    behavior a ported XNA application may expect
+
+CNA extension
+    newer functionality added by CNA</code></pre>
+<p>Visitors can therefore learn features such as render targets or <code>BasicEffect</code> without mistaking a CNA-only PBR, diagnostics or shader-package facility for an original XNA API.</p>
+<p>The generated coverage index currently names 1,292 APIs across the building. A separate map lists every room and its exact number, making the museum usable as a reference rather than only as a tour.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/museum-simulator/develop/docs/images/directory.jpg" alt="The museum directory used to find exhibits across all ten floors" loading="lazy"></p>
+<h2 id="finding-your-way">Finding your way</h2>
+<p>The player moves with ordinary first-person controls. The mouse looks around, <code>W A S D</code> moves, <code>E</code> or a click operates an exhibit, and <code>Q</code> chooses the previous value on a panel.</p>
+<p>Navigation aids are part of the application:</p>
+<div class="table-wrap"><table><thead><tr><th>Control</th><th>Purpose</th></tr></thead><tbody><tr><td><code>M</code> or <code>Tab</code></td><td>Open the searchable directory and floor map</td></tr><tr><td><code>N</code></td><td>Toggle the minimap</td></tr><tr><td><code>T</code>, <code>Shift+T</code>, <code>Y</code></td><td>Change or run the museum clock</td></tr><tr><td><code>F1</code></td><td>Show the controls</td></tr><tr><td><code>F3</code></td><td>Show live statistics</td></tr><tr><td><code>R</code></td><td>Return to the entrance</td></tr></tbody></table></div>
+<p>Elevators connect all ten floors, while a complete stair system provides a walkable route between them. The directory can quick-travel to rooms on floors already visited. Door plaques, banners and accent colors help identify the current wing and subject.</p>
+<h2 id="how-the-museum-is-built">How the museum is built</h2>
+<p>The application stores the museum as a catalog of floors, wings, rooms, themes and reference views. World code turns that catalog into halls, portals and collision geometry. Rooms are built lazily rather than keeping the complete interior active at maximum detail.</p>
+<p>Exhibits live in subject-oriented source directories such as Math, Sprites, Geometry, Performance and Validation. Rendering, interaction, UI, audio, camera and diagnostics remain separate subsystems around that catalog.</p>
+<p>Content is also part of the demonstration. The build invokes CNA&#39;s content compiler for selected assets and the museum later loads the resulting <code>.cnb</code> and <code>.xnb</code> files through the ordinary public API.</p>
+<p>The result is an ordinary CNA application rather than a documentation viewer that fakes its outputs. When an exhibit says it created a render target, compiled content or queried a device, the running room is using that feature.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/museum-simulator/develop/docs/images/mirror.jpg" alt="A planar mirror exhibit rendered inside the museum" loading="lazy"></p>
+<h2 id="different-renderers-different-capabilities">Different renderers, different capabilities</h2>
+<p>The same portable museum code has been toured on OPENGLES3, OPENGL33 and CNA&#39;s CPU software renderer. Optional FNA3D, WEBGPU and SDL_GPU builds exercise their own shader and effect paths.</p>
+<p>Not every room can promise identical support everywhere. FNA3D can execute compiled XNA effect binaries, while the WebGPU and SDL_GPU configurations use their native shader representations. Wireframe fill, source shader formats, networking, video and advanced extensions can vary by build.</p>
+<p>The exhibit checks those capabilities and displays a notice when an optional feature is unavailable. This is more informative than silently drawing a misleading substitute.</p>
+<p><img src="https://raw.githubusercontent.com/libcnalab/museum-simulator/develop/docs/images/fire.jpg" alt="The particle-fire exhibit in operation" loading="lazy"></p>
+<h2 id="browser-edition">Browser edition</h2>
+<p>The Emscripten build uses CNA&#39;s WebGL 2 renderer and produces an HTML shell, JavaScript, WebAssembly and a preloaded data bundle.</p>
+<p>The browser profile retains the museum&#39;s own content-pipeline exhibits and local persistence. Native FFmpeg video, the Inspector and networking or Gamer Services are left out, and the relevant rooms identify those omissions.</p>
+<p>The repository&#39;s browser smoke test starts the real build in headless Chrome, renders the lobby, checks that exhibits report no errors and verifies deferred IndexedDB autosave. That proves the repository has a working browser target, although the public deployment on <code>play.libcna.com</code> is still being prepared.</p>
+<h2 id="a-substantial-verification-workload">A substantial verification workload</h2>
+<p>Museum Simulator is also designed to be inspected automatically. Its tools can:</p>
+<ul><li>validate the complete room catalog and walking connectivity;</li><li>visit every exhibit and operate its controls;</li><li>capture named reference views;</li><li>compare renderers;</li><li>check navigation through every staircase and elevator;</li><li>monitor resource growth during repeated tours;</li><li>smoke-test the WebGL 2 build in Chromium.</li></ul>
+<p>The project has been exercised across OPENGLES3, OPENGL33, SOFTWARE, FNA3D, WEBGPU, SDL_GPU and browser WEBGL2 configurations, with explicitly different capabilities and qualifications for each renderer.</p>
+<p>Structural tests catch duplicate room identities, disconnected doors, unreachable cells, invalid arrival poses and missing assets before a person starts exploring. The museum also validates its catalog at startup.</p>
+<p>Scripted tours can begin in a named room, manipulate a panel, advance frames, capture a screenshot and continue elsewhere. The complete control tour visits every room and operates every available range. Separate tools compare arrival views between renderers and monitor whether repeated tours leak textures or grow memory.</p>
+<p>This does not mean every human impression can be automated. Audible sound quality still needs listening, some services require a local account stack, and visual realism remains a judgment beyond structural correctness.</p>
+<h2 id="current-boundaries">Current boundaries</h2>
+<p>The building uses walkable stairs but no moving escalators. Software rendering can tour the whole museum without a display, although it is much slower than GPU rendering. Windows builds omit some service and video features when their optional dependencies are unavailable.</p>
+<p>These boundaries are documented per exhibit and per renderer. The museum&#39;s value comes from making the distinction visible: a room may be structurally valid, runnable, visually reviewed or unavailable for a specific reason, and those are not treated as the same level of evidence.</p>
+<h2 id="more-than-a-showcase">More than a showcase</h2>
+<p>Small examples are ideal for learning one API call. Museum Simulator demonstrates how many of those calls coexist in a single long-running application.</p>
+<p>It is simultaneously an interactive CNA guide, a renderer comparison environment and a large integration test that happens to look like a virtual museum.</p>
+<p>The source is available under the MIT License.</p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/tag/cna/">#CNA</a><a href="/tag/museum-simulator/">#Museum Simulator</a><a href="/tag/c-23/">#C++23</a><a href="/tag/3d/">#3D</a><a href="/tag/xna/">#XNA</a><a href="/tag/webgl2/">#WebGL2</a><a href="/tag/interactive-documentation/">#Interactive Documentation</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li><li><a href="/2027/02/04/car-simulator/">Car Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">1</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">17</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">22</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>
