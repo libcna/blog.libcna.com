@@ -170,6 +170,10 @@ content/posts/2026/11/15/planned-article.md
 date: 2026-11-15
 ```
 
+A published article may link to a scheduled one. Until the target's
+publication date, such a link is rendered as plain text; the first build on or
+after that date turns it into a normal link.
+
 Preview scheduled articles locally with:
 
 ```bash

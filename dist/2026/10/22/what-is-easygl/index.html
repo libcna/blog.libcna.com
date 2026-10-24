@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What is EasyGL? | CNA&#39;s Blog</title>
+  <meta name="description" content="EasyGL is a toolkit-independent C++20 graphics library built on top of OpenGL and OpenGL ES.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/10/22/what-is-easygl/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="What is EasyGL?">
+  <meta property="og:description" content="EasyGL is a toolkit-independent C++20 graphics library built on top of OpenGL and OpenGL ES.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/10/22/what-is-easygl/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-10-22T13:20:47Z">October 22, 2026</time></span><span>Updated <time datetime="2026-09-13T15:18:40Z">September 13, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/graphics/">Graphics</a></span></div>
+      <h1 class="article-title">What is EasyGL?</h1>
+      <p class="article-description">EasyGL is a toolkit-independent C++20 graphics library built on top of OpenGL and OpenGL ES.</p>
+    </header>
+    <div class="article-body"><h2 id="what-is-easygl">What is EasyGL?</h2>
+<p><strong>EasyGL</strong> is a toolkit-independent C++20 graphics library built on top of OpenGL and OpenGL ES.</p>
+<p>It provides a more convenient object-oriented API for common graphics operations while deliberately leaving window creation, context creation, events, and presentation to the host application.</p>
+<p>EasyGL is also important to CNA.</p>
+<p>It forms the foundation of CNA&#39;s <strong>EasyGL renderer family</strong>, which currently powers several renderer identities including OpenGL ES, desktop OpenGL, and WebGL profiles.</p>
+<p>But EasyGL itself is an independent project.</p>
+<p>It does not know anything about XNA, <code>GraphicsDevice</code>, <code>SpriteBatch</code>, or the CNA Renderer API.</p>
+<p><strong>Github:</strong> <a href="https://github.com/libcna/easy-gl">https://github.com/libcna/easy-gl</a></p>
+<p><strong>Website:</strong> <a href="https://easygl.libcna.com">https://easygl.libcna.com</a></p>
+<h2 id="where-easygl-sits">Where EasyGL sits</h2>
+<p>The easiest way to understand EasyGL is to look at the stack:</p>
+<pre><code class="language-text">CNA / XNA API
+      ↓
+CNA EasyGL Renderer
+      ↓
+EasyGL
+      ↓
+MetaGL
+      ↓
+OpenGL / OpenGL ES / WebGL
+      ↓
+GPU driver</code></pre>
+<p>Each layer has a different responsibility.</p>
+<p><strong>CNA</strong> provides the XNA-style programming model.</p>
+<p><strong>EasyGL</strong> provides higher-level C++ graphics objects and commands.</p>
+<p><strong>MetaGL</strong> provides the low-level type-safe interface to OpenGL.</p>
+<p>The actual OpenGL implementation comes from the operating system, graphics driver, ANGLE, Emscripten, or another host environment.</p>
+<h2 id="why-does-easygl-exist">Why does EasyGL exist?</h2>
+<p>Raw OpenGL is powerful, but it is also very low-level.</p>
+<p>Creating a vertex buffer, shader program, texture, or vertex array requires managing integer handles, binding state, object lifetimes, and many related API calls.</p>
+<p>MetaGL makes those calls safer and more strongly typed, but deliberately keeps them close to OpenGL.</p>
+<p>EasyGL goes one step higher.</p>
+<p>Instead of working primarily with functions such as:</p>
+<pre><code class="language-cpp">metagl::glGenBuffers(...)
+metagl::glBindBuffer(...)
+metagl::glBufferData(...)</code></pre>
+<p>EasyGL can represent the resource as a C++ object:</p>
+<pre><code class="language-cpp">easygl::Buffer buffer;
+
+buffer.create();
+buffer.bind(easygl::BufferTarget::Array);
+buffer.set_data(vertices, vertices_size);</code></pre>
+<p>The same idea applies to shaders, programs, textures, vertex arrays, queries, and other GPU resources.</p>
+<p>The goal is not to hide OpenGL completely.</p>
+<p>The goal is to make common OpenGL programming more manageable in modern C++.</p>
+<h2 id="the-main-easygl-objects">The main EasyGL objects</h2>
+<p>The public API is centered around a relatively small set of classes.</p>
+<h3 id="device">Device</h3>
+<p><code>easygl::Device</code> represents the main interaction point with the active graphics context.</p>
+<p>It handles initialization, graphics state, capability queries, and drawing operations.</p>
+<p>For example:</p>
+<pre><code class="language-cpp">easygl::Device device;
+
+device.initialize(my_get_proc_address);
+
+device.set_clear_color(0.2f, 0.3f, 0.3f, 1.0f);
+device.clear(easygl::ClearFlags::Color);</code></pre>
+<p>The device does not create the OpenGL context.</p>
+<p>The host must already have created and activated one.</p>
+<h3 id="shader">Shader</h3>
+<p>Represents a programmable shader stage.</p>
+<p>For example:</p>
+<pre><code class="language-cpp">easygl::Shader vertexShader(easygl::ShaderStage::Vertex);
+
+vertexShader.compile_from_source(vertexSource);</code></pre>
+<h3 id="program">Program</h3>
+<p>Combines shaders into a linked GPU program:</p>
+<pre><code class="language-cpp">easygl::Program program;
+
+program.attach(vertexShader);
+program.attach(fragmentShader);
+program.link();
+program.use();</code></pre>
+<h3 id="buffer">Buffer</h3>
+<p>Wraps OpenGL buffer objects used for things such as vertex and index data.</p>
+<h3 id="vertexarray">VertexArray</h3>
+<p>Represents vertex-array state and vertex attribute layouts.</p>
+<h3 id="texture">Texture</h3>
+<p>Provides an object-oriented interface around OpenGL textures.</p>
+<p>These objects replace much of the repetitive lifetime and handle management that normally surrounds raw OpenGL.</p>
+<h2 id="easygl-does-not-create-windows">EasyGL does not create windows</h2>
+<p>This is one of the most important design decisions.</p>
+<p>EasyGL is <strong>not tied to SDL</strong>.</p>
+<p>It is also not tied to GLFW, Qt, Win32, X11, Wayland, Cocoa, or another windowing toolkit.</p>
+<p>The host application owns:</p>
+<ul><li>window creation</li><li>OpenGL context creation</li><li>context activation</li><li>event processing</li><li>buffer swapping</li><li>presentation</li></ul>
+<p>EasyGL only needs access to the active context and a function loader.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">SDL3 / GLFW / Win32 / X11 / ...
+              ↓
+     creates GL context
+              ↓
+          EasyGL
+              ↓
+           MetaGL
+              ↓
+        OpenGL driver</code></pre>
+<p>This is especially important for CNA because CNA already has its own Platform API.</p>
+<p>EasyGL does not need to duplicate that responsibility.</p>
+<h2 id="initialization">Initialization</h2>
+<p>After the host creates a context, EasyGL receives a <code>GetProcAddress</code> callback:</p>
+<pre><code class="language-cpp">easygl::Device device;
+
+device.initialize(my_get_proc_address);</code></pre>
+<p>That callback ultimately allows MetaGL underneath EasyGL to load the OpenGL functions provided by the current driver.</p>
+<p>The callback could come from SDL, GLFW, a native platform implementation, Emscripten, or another environment.</p>
+<p>This keeps the graphics library independent of the mechanism used to create the window.</p>
+<h2 id="easygl-and-metagl">EasyGL and MetaGL</h2>
+<p>The difference between the two projects can be summarized simply.</p>
+<h3 id="metagl">MetaGL</h3>
+<p>MetaGL answers:</p>
+<blockquote><p>How can I call OpenGL from modern C++ in a safer and more strongly typed way?</p></blockquote>
+<p>It provides thin wrappers such as:</p>
+<pre><code class="language-cpp">metagl::glBindBuffer(...)
+metagl::glCreateShader(...)
+metagl::glClear(...)</code></pre>
+<h3 id="easygl">EasyGL</h3>
+<p>EasyGL answers:</p>
+<blockquote><p>How can I build common rendering code without manually managing every OpenGL object and operation?</p></blockquote>
+<p>It provides objects such as:</p>
+<pre><code class="language-cpp">easygl::Buffer
+easygl::Shader
+easygl::Program
+easygl::Texture
+easygl::VertexArray
+easygl::Device</code></pre>
+<p>MetaGL stays close to OpenGL.</p>
+<p>EasyGL builds a more convenient graphics layer above it.</p>
+<p>The MetaGL project explicitly describes itself as the foundation used by EasyGL.</p>
+<h2 id="opengl-and-opengl-es">OpenGL and OpenGL ES</h2>
+<p>EasyGL is designed to work across the programmable OpenGL family.</p>
+<p>That includes desktop OpenGL and OpenGL ES.</p>
+<p>But these APIs do not support exactly the same features.</p>
+<p>For example, functionality available on desktop OpenGL may be missing or restricted on an OpenGL ES context.</p>
+<p>EasyGL therefore exposes runtime capability checking rather than assuming every context can do everything.</p>
+<p>The public API includes concepts such as:</p>
+<pre><code class="language-cpp">easygl::Capabilities
+easygl::ContextInfo
+easygl::Feature</code></pre>
+<p>Applications and higher layers can inspect the actual environment before using optional functionality.</p>
+<p>This becomes particularly important when the same code needs to run across desktop, mobile, and browser graphics environments.</p>
+<h2 id="easygl-inside-cna">EasyGL inside CNA</h2>
+<p>EasyGL has a much larger role inside CNA than a standalone hello-triangle example might suggest.</p>
+<p>CNA contains an <code>EasyGLRenderer</code> implementing its internal <code>IGraphicsRenderer</code> contract. Current CNA source uses EasyGL objects internally for resources and rendering operations.</p>
+<p>The same renderer family is used for multiple graphics profiles.</p>
+<p>Conceptually:</p>
+<pre><code class="language-text">                    ┌─ OpenGL ES 2
+                    ├─ OpenGL ES 3
+CNA → EasyGLRenderer├─ OpenGL 3.3
+                    ├─ WebGL 1
+                    └─ WebGL 2
+                         ↓
+                       EasyGL
+                         ↓
+                       MetaGL</code></pre>
+<p>These are separate CNA renderer identities because they have different capabilities and restrictions.</p>
+<p>But they can share a large part of the same implementation.</p>
+<p>That is one reason EasyGL became such an important reference renderer inside CNA.</p>
+<h2 id="why-not-use-raw-opengl-directly-in-cna">Why not use raw OpenGL directly in CNA?</h2>
+<p>CNA does have other OpenGL-family renderers that use their own implementations.</p>
+<p>For example, legacy OpenGL, OpenGL 2, and OpenGL 4 have reasons to remain distinct from EasyGL.</p>
+<p>But using EasyGL for the main portable programmable OpenGL family has several advantages.</p>
+<p>Resource management can be shared.</p>
+<p>Capability detection can be shared.</p>
+<p>Context-loss handling can be shared.</p>
+<p>Common OpenGL differences can be solved once instead of repeatedly inside the CNA renderer.</p>
+<p>And CNA&#39;s renderer code can focus more on translating XNA concepts into graphics operations rather than repeatedly rebuilding basic C++ OpenGL infrastructure.</p>
+<h2 id="a-cna-renderer-is-still-much-more-than-easygl">A CNA renderer is still much more than EasyGL</h2>
+<p>It is important not to confuse the two layers.</p>
+<p>EasyGL does not implement XNA.</p>
+<p>For example, EasyGL does not inherently know what these mean:</p>
+<pre><code class="language-text">SpriteBatch
+BasicEffect
+GraphicsDevice
+BlendState
+RasterizerState
+RenderTarget2D
+XNA compiled effects</code></pre>
+<p>That translation belongs to CNA&#39;s EasyGL renderer.</p>
+<p>The stack therefore looks more like:</p>
+<pre><code class="language-text">SpriteBatch
+   ↓
+CNA GraphicsDevice
+   ↓
+CNA EasyGLRenderer
+   ↓
+easygl::Program / Buffer / Texture / ...
+   ↓
+MetaGL
+   ↓
+OpenGL</code></pre>
+<p>The standalone EasyGL library stays much smaller and more general because it does not contain XNA-specific behavior.</p>
+<h2 id="context-loss-and-resource-lifetime">Context loss and resource lifetime</h2>
+<p>Graphics resources have another difficult problem: contexts can disappear.</p>
+<p>This is particularly relevant on WebGL, mobile systems, and environments where graphics devices may be recreated.</p>
+<p>CNA&#39;s EasyGL renderer uses EasyGL resource abstractions as part of its resource recovery architecture. The CNA codebase contains renderer resources built around EasyGL&#39;s recoverable-resource mechanisms.</p>
+<p>That allows the higher-level renderer to separate the logical resource from the native OpenGL handle that may need to be recreated.</p>
+<p>This is another example of work that is easier to solve once in a reusable graphics layer than independently for every CNA resource class.</p>
+<h2 id="easygl-is-not-an-engine">EasyGL is not an engine</h2>
+<p>EasyGL deliberately does not contain:</p>
+<ul><li>scene management</li><li>entities</li><li>physics</li><li>animation systems</li><li>asset pipelines</li><li>game loops</li><li>input</li><li>audio</li><li>windows</li><li>XNA compatibility</li></ul>
+<p>It is a graphics library.</p>
+<p>A standalone application can use it directly:</p>
+<pre><code class="language-text">Application
+    ↓
+ EasyGL
+    ↓
+ MetaGL
+    ↓
+ OpenGL</code></pre>
+<p>CNA is simply a much larger consumer:</p>
+<pre><code class="language-text">Game
+ ↓
+CNA
+ ↓
+EasyGL Renderer
+ ↓
+EasyGL
+ ↓
+MetaGL
+ ↓
+OpenGL</code></pre>
+<p>This separation lets EasyGL remain useful independently of CNA.</p>
+<h2 id="a-deliberately-replaceable-layer">A deliberately replaceable layer</h2>
+<p>There is also a broader architectural reason why EasyGL exists as its own project.</p>
+<p>CNA should not have to contain every low-level graphics utility directly inside the framework.</p>
+<p>EasyGL can evolve independently.</p>
+<p>MetaGL can evolve independently.</p>
+<p>CNA can depend on their public contracts.</p>
+<p>And other applications can use the same libraries without depending on CNA.</p>
+<p>This makes the layers easier to reason about:</p>
+<pre><code class="language-text">MetaGL  → safe low-level OpenGL access
+
+EasyGL  → convenient C++ graphics objects
+
+CNA     → XNA-compatible framework and renderer abstraction</code></pre>
+<p>Each project solves a different problem.</p>
+<h2 id="why-easygl-matters-to-cna">Why EasyGL matters to CNA</h2>
+<p>CNA has many renderer implementations, but EasyGL has historically been one of the most important ones for renderer development and comparison.</p>
+<p>Its OpenGL-family implementation is portable, relatively direct, and capable enough to exercise a large part of CNA&#39;s graphics API.</p>
+<p>That makes it useful as a reference when bringing other renderer implementations toward feature parity.</p>
+<p>At the same time, EasyGL itself remains independent of CNA.</p>
+<p>That is exactly how the layering is intended to work.</p>
+<h2 id="a-simpler-interface-to-the-opengl-family">A simpler interface to the OpenGL family</h2>
+<p>EasyGL does not try to replace OpenGL with a completely different graphics model.</p>
+<p>It remains recognizably OpenGL-based.</p>
+<p>But instead of requiring every application to manually manage raw handles, state, function pointers, shaders, buffers, and textures, it provides reusable modern C++ objects around those concepts.</p>
+<p>In short:</p>
+<p><strong>MetaGL makes OpenGL safer to call.</strong></p>
+<p><strong>EasyGL makes OpenGL easier to build with.</strong></p>
+<p><strong>CNA uses those layers to turn OpenGL into an implementation of the XNA graphics model.</strong></p></div>
+    <footer class="taxonomy-links"><a href="/category/graphics/">Graphics</a><a href="/tag/opengl/">#OpenGL</a><a href="/tag/c/">#C#</a><a href="/tag/metagl/">#MetaGL</a><a href="/tag/opengl-es/">#OpenGL ES</a><a href="/tag/webgl/">#WebGL</a><a href="/tag/easygl/">#EasyGL</a><a href="/tag/graphics/">#Graphics</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2026/10/22/what-is-easygl/">What is EasyGL?</a></li><li><a href="/2026/10/19/tamagotchi-cna/">Tamagotchi CNA</a></li><li><a href="/2026/10/18/what-is-meta-gl/">What is Meta GL?</a></li><li><a href="/2026/10/18/wolf-cna/">Wolf CNA</a></li><li><a href="/2026/10/17/cna-craft/">CNA Craft</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">11</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">4</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">3</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">9</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/audio/">Audio</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/craft/">Craft</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/games/">Games</a><a href="/tag/github/">GitHub</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/procedural-generation/">Procedural generation</a><a href="/tag/projects/">Projects</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xna/">XNA</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

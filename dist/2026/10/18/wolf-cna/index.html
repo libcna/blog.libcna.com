@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wolf CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="Wolf CNA is an original C++23 retro first-person shooter that renders a polygonal 3D world through CNA.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/10/18/wolf-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Wolf CNA">
+  <meta property="og:description" content="Wolf CNA is an original C++23 retro first-person shooter that renders a polygonal 3D world through CNA.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/10/18/wolf-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-10-18T12:00:00Z">October 18, 2026</time></span><span>Updated <time datetime="2026-10-17T14:06:31Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a>, <a href="/category/games/">Games</a></span></div>
+      <h1 class="article-title">Wolf CNA</h1>
+      <p class="article-description">Wolf CNA is an original C++23 retro first-person shooter that renders a polygonal 3D world through CNA.</p>
+    </header>
+    <div class="article-body"><p><strong>Wolf CNA</strong> is an original retro first-person shooter written in C++23 and built on CNA.</p>
+<p><strong>Source:</strong> <a href="https://github.com/libcnalab/wolf-cna">https://github.com/libcnalab/wolf-cna</a></p>
+<p><strong>Play the browser build:</strong> <a href="https://demos.libcna.com/wolf-cna/wolf-cna.html">https://demos.libcna.com/wolf-cna/wolf-cna.html</a></p>
+<p><img src="https://github.com/libcnalab/wolf-cna/raw/main/screenshot.png" alt="Wolf CNA gameplay" loading="lazy"></p>
+<p>The name signals its early-1990s design language, but the project is not a distribution of Wolfenstein 3D and contains no Wolfenstein game data.</p>
+<p>Its levels, enemies, weapons, textures, sounds and music are project-owned or provenance-documented assets.</p>
+<hr>
+<h2 id="real-polygonal-3d">Real polygonal 3D</h2>
+<p>Wolf CNA is not a software ray-caster.</p>
+<p>The world is rendered as ordinary 3D geometry through CNA:</p>
+<p>~<del>text level grid │ ▼ polygonal walls, floors, ceilings and doors │ ▼ VertexBuffer / IndexBuffer │ ▼ BasicEffect and depth testing │ ▼ CNA renderer </del>~</p>
+<p>Enemies, pickups and decorations are camera-facing textured polygons inside that world. Doors and secret walls have real interpolated positions that affect rendering, collision, navigation, hitscan and the automap.</p>
+<p>This choice makes the project visually retro while still exercising CNA&#39;s normal 3D API.</p>
+<hr>
+<h2 id="the-playable-campaign">The playable campaign</h2>
+<p>The current repository contains six authored sector files:</p>
+<p>~<del>text starter bunker sector 2 sector 3 sector 4 Hidden Reservoir Warden Core </del>~</p>
+<p>The normal route progressively unlocks sectors. A concealed elevator branches to the hidden area, and Warden Core supplies the boss encounter and campaign ending.</p>
+<p>Every shipping sector is a 64×64 grid built from rooms, corridors, doors, locks, patrol routes, secrets, pickups, landmarks and an elevator goal.</p>
+<p>The game audits those files rather than trusting them blindly. Invalid symbols, disconnected routes, blocked patrol arrows and malformed rows are rejected.</p>
+<p>Completion produces kill, treasure and secret percentages, target-time awards and score bonuses. High scores can enter a three-letter name in a validated top-eight table.</p>
+<hr>
+<h2 id="weapons-and-enemies">Weapons and enemies</h2>
+<p>The player can use:</p>
+<ul><li>a knife;</li><li>a sidearm;</li><li>a repeater;</li><li>a heavy automatic weapon.</li></ul>
+<p>Each weapon has its own range, damage, spread, cadence, first-person art and attack frame. Movement widens firearm spread, automatic weapons consume one round per emitted shot, and held bursts use deterministic shot sequences that can survive save/load.</p>
+<p>The current enemy roster includes:</p>
+<p>~<del>text security guard security hound rapid-fire trooper heavy unit Bunker Warden </del>~</p>
+<p>Enemies do more than move directly toward the player.</p>
+<p>They can follow authored patrol arrows, see in a direction, react after archetype-specific delays, hear weapons through connected rooms, remember the last known position, search, open ordinary doors and respect security locks.</p>
+<p>Difficulty changes enemy presence, health, speed, reaction, hearing, firing cadence, incoming damage, ammunition and the player&#39;s life allowance.</p>
+<hr>
+<h2 id="doors-locks-and-secrets">Doors, locks and secrets</h2>
+<p>Ordinary doors slide sideways into wall pockets and close only when the doorway is clear.</p>
+<p>Cyan and amber access cards open their matching security doors. Enemies may operate ordinary doors but cannot bypass those locks.</p>
+<p>Secret walls are full polygonal cells. Activating one pushes it one or two safe cells away from the player, permanently exposing the passage. Its moving position participates in collision and save data rather than being only a visual animation.</p>
+<p>Elevators are immediately usable goals. Optional power relays and terminals add exploration and score context without turning the exit into an artificial hard lock.</p>
+<hr>
+<h2 id="authored-and-procedural-play">Authored and procedural play</h2>
+<p>Wolf CNA supports two related structures.</p>
+<p>The campaign uses authored sectors and a fixed progression.</p>
+<p><strong>Procedural Run</strong> creates an endless sequence from a seed and depth:</p>
+<p>~<del>text seed + depth │ ▼ candidate sector │ ▼ connectivity, spacing, resource and goal audits │ ├── reject and generate another candidate └── accept and play </del>~</p>
+<p>Deeper floors add pressure through denser opposition and tighter ammunition. Five themes rotate, and every fifth depth becomes a Warden encounter.</p>
+<p>Procedural runs can be saved and resumed with their seed, depth and deterministic combat state intact.</p>
+<hr>
+<h2 id="hud-sound-and-music">HUD, sound and music</h2>
+<p>The full-width blue HUD shows:</p>
+<p>~<del>text level score lives status portrait health ammunition access cards current weapon </del>~</p>
+<p>The portrait changes with health, attacking, damage and defeat.</p>
+<p>World sounds use listener-relative stereo pan and distance attenuation. Weapons, enemy archetypes, doors, locks, pickups, impacts and objectives have distinct generated cues.</p>
+<p>Five original generated music tracks provide one sector theme each. They are sixteen-bar loops with their own tempo, harmony and lead figure rather than one short phrase repeated forever.</p>
+<p>All of this runs through CNA&#39;s audio and graphics APIs.</p>
+<hr>
+<h2 id="saving-and-long-running-state">Saving and long-running state</h2>
+<p>Wolf CNA maintains two kinds of files:</p>
+<ul><li>a versioned profile for unlocked sectors, settings and high scores;</li><li>three versioned run slots for the complete playable state.</li></ul>
+<p>Run saves retain the player, enemies, pickups, doors, push walls, objectives, automap, score checkpoints and deterministic shot sequence.</p>
+<p>Malformed or incompatible files are refused without replacing the active run. Older supported versions migrate forward, and writes use a recoverable temporary-file path.</p>
+<p>Losing a non-final life rebuilds the current sector from its authored state and rolls score back to the sector-entry checkpoint. Losing the final life returns to the title flow.</p>
+<hr>
+<h2 id="native-and-browser-builds">Native and browser builds</h2>
+<p>The native game uses CNA for its window, input, graphics, audio and game loop.</p>
+<p>The Emscripten target packages the levels, textures and sounds with the application and runs through CNA&#39;s <strong>WEBGL2</strong> renderer. The deployed set consists of HTML, JavaScript, WebAssembly and a preloaded data bundle.</p>
+<p>Browser work also exposed useful framework-level findings. Pointer lock works, but the project&#39;s recorded browser measurements show weaker relative mouse counts than the comparable desktop motion. Wolf CNA documents that as a backend finding instead of hiding it behind game-specific compensation.</p>
+<p>The current handoff says that <strong>OPENGLES3</strong> and <strong>WEBGL2</strong> are the renderer paths exercised so far. A wider current-CNA renderer compatibility campaign remains open.</p>
+<hr>
+<h2 id="current-status">Current status</h2>
+<p>The word “prototype” is still accurate, but it no longer means a single empty test room.</p>
+<p>The authored campaign, boss, procedural mode, AI, weapons, audio, persistence, menus, difficulty system and browser target are all real.</p>
+<p>The remaining work is mostly qualification and refinement:</p>
+<ul><li>play-testing the full six-sector route;</li><li>broadening CNA renderer coverage;</li><li>tuning mouse, audio, difficulty and procedural runs;</li><li>continuing the bounded classic-FPS feature campaign.</li></ul>
+<p>The project deliberately retired larger ideas that did not serve its focused scope.</p>
+<hr>
+<h2 id="why-wolf-cna-matters">Why Wolf CNA matters</h2>
+<p>Wolf CNA tests CNA as the foundation of a complete game rather than as an API demonstration.</p>
+<p>It combines:</p>
+<p>~<del>text continuous first-person input polygonal 3D animated billboards collision and navigation combat state spatial audio persistence procedural generation browser deployment </del>~</p>
+<p>The result has a classic visual vocabulary, but its implementation is a modern, original CNA application.</p>
+<p>That makes Wolf CNA both a playable project and a demanding integration test for the framework beneath it.</p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/category/games/">Games</a><a href="/tag/cna/">#CNA</a><a href="/tag/wolf-cna/">#Wolf CNA</a><a href="/tag/c-23/">#C++23</a><a href="/tag/first-person-shooter/">#First-person shooter</a><a href="/tag/3d/">#3D</a><a href="/tag/webassembly/">#WebAssembly</a><a href="/tag/procedural-generation/">#Procedural generation</a><a href="/tag/audio/">#Audio</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2026/10/22/what-is-easygl/">What is EasyGL?</a></li><li><a href="/2026/10/19/tamagotchi-cna/">Tamagotchi CNA</a></li><li><a href="/2026/10/18/what-is-meta-gl/">What is Meta GL?</a></li><li><a href="/2026/10/18/wolf-cna/">Wolf CNA</a></li><li><a href="/2026/10/17/cna-craft/">CNA Craft</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">11</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">4</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">3</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">9</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/audio/">Audio</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/craft/">Craft</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/games/">Games</a><a href="/tag/github/">GitHub</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/procedural-generation/">Procedural generation</a><a href="/tag/projects/">Projects</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xna/">XNA</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

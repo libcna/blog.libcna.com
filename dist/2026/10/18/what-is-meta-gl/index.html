@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>What is Meta GL? | CNA&#39;s Blog</title>
+  <meta name="description" content="MetaGL is a low-level, type-safe C++23 wrapper around the programmable OpenGL family.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/10/18/what-is-meta-gl/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="What is Meta GL?">
+  <meta property="og:description" content="MetaGL is a low-level, type-safe C++23 wrapper around the programmable OpenGL family.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/10/18/what-is-meta-gl/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-10-18T13:12:38Z">October 18, 2026</time></span><span>Updated <time datetime="2026-09-13T15:18:28Z">September 13, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/graphics/">Graphics</a></span></div>
+      <h1 class="article-title">What is Meta GL?</h1>
+      <p class="article-description">MetaGL is a low-level, type-safe C++23 wrapper around the programmable OpenGL family.</p>
+    </header>
+    <div class="article-body"><p><strong>MetaGL</strong> is a low-level, type-safe C++23 wrapper around the programmable OpenGL family.</p>
+<p>It targets:</p>
+<ul><li>OpenGL ES 2.0–3.2</li><li>the common programmable subset of desktop OpenGL 3.3+</li><li>WebGL through Emscripten</li></ul>
+<p>MetaGL does not create windows, does not create OpenGL contexts, and is not a rendering engine.</p>
+<p>Its job is much smaller and lower-level: <strong>provide a clean, type-safe C++ interface to OpenGL itself.</strong></p>
+<p><strong>Github:</strong> <a href="https://github.com/libcna/meta-gl">https://github.com/libcna/meta-gl</a></p>
+<p><strong>Website:</strong> <a href="https://metagl.libcna.com">https://metagl.libcna.com</a></p>
+<h2 id="why-does-metagl-exist">Why does MetaGL exist?</h2>
+<p>The traditional OpenGL API is fundamentally a C API.</p>
+<p>Operations commonly look like this:</p>
+<pre><code class="language-cpp">glBindBuffer(GL_ARRAY_BUFFER, buffer);
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+glCreateShader(GL_VERTEX_SHADER);</code></pre>
+<p>Many logically unrelated values are represented by the same primitive <code>GLenum</code> type.</p>
+<p>From the C++ compiler&#39;s point of view, a buffer target, texture target, shader type, blend factor, and many other OpenGL concepts can all look like integers.</p>
+<p>MetaGL gives these concepts distinct C++ types.</p>
+<p>Instead of exposing raw OpenGL constants throughout application code, it provides typed enums such as:</p>
+<pre><code class="language-cpp">metagl::BufferTarget
+metagl::ShaderType
+metagl::ClearBufferBit</code></pre>
+<p>and strongly typed resource handles such as:</p>
+<pre><code class="language-cpp">metagl::BufferId
+metagl::ShaderId
+metagl::VertexArrayId</code></pre>
+<p>The resulting code remains very close to OpenGL:</p>
+<pre><code class="language-cpp">metagl::glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+metagl::glClear(
+    metagl::ClearBufferBit::Color |
+    metagl::ClearBufferBit::Depth);
+
+metagl::ShaderId shader =
+    metagl::glCreateShader(metagl::ShaderType::Vertex);</code></pre>
+<p>MetaGL does not try to hide what OpenGL is doing.</p>
+<p>It tries to make it harder to use OpenGL incorrectly.</p>
+<h2 id="it-is-still-opengl">It is still OpenGL</h2>
+<p>This distinction is important.</p>
+<p>MetaGL is not an abstraction like CNA&#39;s Renderer API.</p>
+<p>It does not try to provide one API that can later become Vulkan, Direct3D, Metal, or software rendering.</p>
+<p>And it is not a higher-level graphics library like EasyGL.</p>
+<p>Calls such as:</p>
+<pre><code class="language-cpp">metagl::glBindBuffer(...)
+metagl::glDrawElements(...)
+metagl::glTexImage2D(...)</code></pre>
+<p>still correspond closely to real OpenGL operations.</p>
+<p>You still need to understand OpenGL state, shaders, buffers, textures, framebuffers, vertex arrays, and draw calls.</p>
+<p>MetaGL is therefore useful when I want <strong>OpenGL itself</strong>, but with a better C++ interface around it.</p>
+<h2 id="runtime-function-loading">Runtime function loading</h2>
+<p>Modern OpenGL applications cannot simply assume that every OpenGL function exists as an ordinary linked symbol.</p>
+<p>MetaGL contains its own runtime function loading.</p>
+<p>The host application provides a <code>GetProcAddress</code>-style callback:</p>
+<pre><code class="language-cpp">bool ok = metagl::Initialize(my_get_proc_address);</code></pre>
+<p>That callback can come from whatever platform integration the application uses.</p>
+<p>For example:</p>
+<pre><code class="language-text">SDL_GL_GetProcAddress
+glfwGetProcAddress
+wglGetProcAddress
+glXGetProcAddress
+emscripten_webgl_get_proc_address</code></pre>
+<p>MetaGL then loads the OpenGL entry points it needs.</p>
+<p>This means MetaGL itself is not tied to SDL, GLFW, Win32, X11, or another windowing system.</p>
+<h2 id="metagl-does-not-own-the-window">MetaGL does not own the window</h2>
+<p>The architecture deliberately looks like this:</p>
+<pre><code class="language-text">Host application
+      │
+      ├── creates window
+      ├── creates GL context
+      └── supplies GetProcAddress
+                │
+                ▼
+             EasyGL
+                │
+                ▼
+             MetaGL
+                │
+                ▼
+        OpenGL / OpenGL ES driver</code></pre>
+<p>The host owns:</p>
+<ul><li>window creation</li><li>OpenGL context creation</li><li>context activation</li><li>event processing</li><li>buffer swapping and presentation</li></ul>
+<p>MetaGL owns the low-level OpenGL API boundary.</p>
+<p>That separation is similar to a principle used elsewhere in CNA: <strong>windowing and rendering should not unnecessarily depend on each other</strong>.</p>
+<h2 id="metagl-and-easygl-are-different-layers">MetaGL and EasyGL are different layers</h2>
+<p>MetaGL and EasyGL may initially look like two libraries solving the same problem.</p>
+<p>They are not.</p>
+<h3 id="metagl">MetaGL</h3>
+<p>MetaGL is the low-level layer.</p>
+<p>It provides:</p>
+<ul><li>runtime OpenGL function loading</li><li>typed OpenGL enums</li><li>typed handles</li><li>thin <code>metagl::gl*</code> wrappers</li><li>context and capability information</li><li>extension detection</li><li>context-loss handling</li><li>optional debugging and validation</li></ul>
+<h3 id="easygl">EasyGL</h3>
+<p>EasyGL sits above MetaGL.</p>
+<p>It provides higher-level C++ objects such as:</p>
+<pre><code class="language-cpp">easygl::Device
+easygl::Shader
+easygl::Program
+easygl::Buffer
+easygl::VertexArray
+easygl::Texture</code></pre>
+<p>Instead of manually managing an OpenGL buffer through low-level calls, EasyGL can represent it as a C++ object.</p>
+<p>The relationship is approximately:</p>
+<pre><code class="language-text">CNA EasyGL renderer
+        ↓
+      EasyGL
+        ↓
+      MetaGL
+        ↓
+OpenGL / OpenGL ES / WebGL</code></pre>
+<p>EasyGL therefore builds a more convenient graphics API.</p>
+<p>MetaGL provides the OpenGL foundation underneath it.</p>
+<h2 id="one-api-across-gles-and-desktop-opengl">One API across GLES and desktop OpenGL</h2>
+<p>Another purpose of MetaGL is handling the common programmable OpenGL family in one place.</p>
+<p>The project supports OpenGL ES 2.0 through 3.2 and the common programmable subset of desktop OpenGL 3.3 and newer. Legacy OpenGL and OpenGL ES 1 are intentionally outside its scope.</p>
+<p>There are small differences between desktop OpenGL and OpenGL ES that MetaGL can normalize.</p>
+<p>For example, desktop OpenGL exposes:</p>
+<pre><code class="language-text">glDepthRange
+glClearDepth</code></pre>
+<p>using <code>double</code>, while OpenGL ES uses the <code>*f</code> variants.</p>
+<p>MetaGL adapts those differences while preserving one consistent API for its caller.</p>
+<p>The enum surface remains GLES-oriented, while desktop compatibility focuses on the functionality shared with the programmable OpenGL model.</p>
+<h2 id="webgl-support">WebGL support</h2>
+<p>The same architecture also works with Emscripten.</p>
+<p>A web application creates its WebGL context and initializes MetaGL with Emscripten&#39;s OpenGL function loader.</p>
+<p>MetaGL also provides support for browser context loss and restoration.</p>
+<p>This matters because WebGL contexts can disappear and later be recreated by the browser.</p>
+<p>MetaGL can track those events and reload its function table when a context is restored.</p>
+<p>That gives the stack:</p>
+<pre><code class="language-text">CNA
+ ↓
+EasyGL
+ ↓
+MetaGL
+ ↓
+Emscripten OpenGL layer
+ ↓
+WebGL</code></pre>
+<p>The same lower-level library can therefore participate in desktop OpenGL, OpenGL ES, and browser WebGL configurations.</p>
+<h2 id="runtime-capabilities">Runtime capabilities</h2>
+<p>OpenGL version numbers alone are often not enough to know whether a feature is actually available.</p>
+<p>MetaGL therefore tracks runtime context information and capabilities.</p>
+<p>It can answer questions such as:</p>
+<pre><code class="language-cpp">metagl::GetContextInfo();
+metagl::HasExtension(...);
+metagl::IsFunctionAvailable(...);
+metagl::IsAngle();</code></pre>
+<p>ANGLE-backed contexts can also be detected.</p>
+<p>This is especially useful because an ANGLE context may ultimately translate OpenGL ES into Direct3D, Vulkan, Metal, or another native API.</p>
+<p>MetaGL still treats actual extension and function availability as the source of truth rather than making assumptions based only on the backend name.</p>
+<h2 id="strict-input-validation">Strict input validation</h2>
+<p>MetaGL also deliberately validates inputs before they reach the driver.</p>
+<p>For example, it checks situations such as:</p>
+<ul><li>integer conversion overflow</li><li>invalid spans</li><li>incomplete matrix data</li><li>unsupported bit combinations</li><li>arguments that cannot be safely represented by the corresponding GL type</li></ul>
+<p>These checks remain active in Release builds.</p>
+<p>If an operation would violate the MetaGL contract, the library terminates rather than forwarding undefined or invalid data into the OpenGL driver.</p>
+<p>This is intentionally stricter than treating every OpenGL call as an unchecked C function.</p>
+<h2 id="debugging">Debugging</h2>
+<p>MetaGL can optionally compile in per-call debugging.</p>
+<p>With debug logging enabled, OpenGL operations can be recorded and checked for GL errors.</p>
+<p>This is useful when investigating renderer problems because the log exists at a lower level than EasyGL or CNA.</p>
+<p>The layers can therefore be debugged separately:</p>
+<pre><code class="language-text">CNA problem?
+   ↓
+EasyGL problem?
+   ↓
+MetaGL call problem?
+   ↓
+OpenGL driver problem?</code></pre>
+<p>That separation helps determine where an error actually originates.</p>
+<h2 id="the-api-is-already-substantial">The API is already substantial</h2>
+<p>MetaGL currently contains <strong>358 OpenGL wrapper functions</strong>.</p>
+<p>Its tests also verify the mandatory function sets associated with OpenGL ES 2.0, 3.0, 3.1, and 3.2.</p>
+<p>Testing can run against mocked function loading without requiring a GPU, while an optional GPU test creates a real headless EGL context and exercises MetaGL against an actual OpenGL implementation.</p>
+<p>The project also tests its installed CMake package so that MetaGL is usable as an independent library rather than only as a source-tree dependency of EasyGL.</p>
+<h2 id="metagl-is-not-cna-specific">MetaGL is not CNA-specific</h2>
+<p>Although MetaGL belongs to the CNA ecosystem and is the foundation underneath EasyGL, it is designed as an independent library.</p>
+<p>A normal C++ OpenGL application can use MetaGL without CNA.</p>
+<p>For example:</p>
+<pre><code class="language-text">My C++ application
+        ↓
+      MetaGL
+        ↓
+      OpenGL</code></pre>
+<p>or:</p>
+<pre><code class="language-text">My engine
+    ↓
+  EasyGL
+    ↓
+  MetaGL
+    ↓
+OpenGL ES</code></pre>
+<p>CNA is simply one important consumer of that stack.</p>
+<p>This separation is deliberate. A useful low-level OpenGL library should not need to know anything about <code>Game</code>, <code>GraphicsDevice</code>, XNA, or CNA&#39;s renderer architecture.</p>
+<h2 id="why-not-call-opengl-directly">Why not call OpenGL directly?</h2>
+<p>It is absolutely possible to do so.</p>
+<p>MetaGL is not required in order to use OpenGL.</p>
+<p>Its value is the additional structure it puts around the raw API:</p>
+<p><strong>raw OpenGL</strong></p>
+<pre><code class="language-text">integer-like enums
+raw GL object IDs
+manual function loading
+platform-specific loader choices
+minimal C++ type checking</code></pre>
+<p><strong>MetaGL</strong></p>
+<pre><code class="language-text">strong enum classes
+typed GL handles
+one runtime loader
+capability inspection
+context lifecycle tracking
+validation
+optional debugging</code></pre>
+<p>while still remaining close enough to OpenGL that someone who knows OpenGL can immediately understand what the code is doing.</p>
+<h2 id="a-small-foundation-with-an-important-role">A small foundation with an important role</h2>
+<p>MetaGL sits quite low in the CNA software stack:</p>
+<pre><code class="language-text">CNA / XNA API
+      ↓
+CNA EasyGL Renderer
+      ↓
+EasyGL
+      ↓
+MetaGL
+      ↓
+OpenGL / OpenGL ES / WebGL
+      ↓
+GPU driver</code></pre>
+<p>Each layer has a different responsibility.</p>
+<p>CNA provides the XNA-compatible programming model.</p>
+<p>EasyGL provides a convenient object-oriented graphics layer.</p>
+<p>MetaGL provides the type-safe low-level interface to the OpenGL family.</p>
+<p>And the operating system or browser ultimately provides the actual graphics implementation.</p>
+<p>MetaGL is therefore intentionally not a large game framework or universal renderer abstraction.</p>
+<p>It solves a smaller problem:</p>
+<p><strong>make modern OpenGL, OpenGL ES, and WebGL easier and safer to use from modern C++ without tying them to a particular windowing toolkit.</strong></p></div>
+    <footer class="taxonomy-links"><a href="/category/graphics/">Graphics</a><a href="/tag/opengl/">#OpenGL</a><a href="/tag/c/">#C#</a><a href="/tag/metagl/">#MetaGL</a><a href="/tag/opengl-es/">#OpenGL ES</a><a href="/tag/webgl/">#WebGL</a><a href="/tag/easygl/">#EasyGL</a><a href="/tag/graphics/">#Graphics</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2026/10/22/what-is-easygl/">What is EasyGL?</a></li><li><a href="/2026/10/19/tamagotchi-cna/">Tamagotchi CNA</a></li><li><a href="/2026/10/18/what-is-meta-gl/">What is Meta GL?</a></li><li><a href="/2026/10/18/wolf-cna/">Wolf CNA</a></li><li><a href="/2026/10/17/cna-craft/">CNA Craft</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">11</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">4</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">3</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">9</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/audio/">Audio</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/craft/">Craft</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/games/">Games</a><a href="/tag/github/">GitHub</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/procedural-generation/">Procedural generation</a><a href="/tag/projects/">Projects</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xna/">XNA</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

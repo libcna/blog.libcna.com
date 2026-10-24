@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tamagotchi CNA | CNA&#39;s Blog</title>
+  <meta name="description" content="Tamagotchi CNA is an unfinished, independent C++ reimplementation of the international 1997 P1 virtual-pet program, presented through CNA.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2026/10/19/tamagotchi-cna/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Tamagotchi CNA">
+  <meta property="og:description" content="Tamagotchi CNA is an unfinished, independent C++ reimplementation of the international 1997 P1 virtual-pet program, presented through CNA.">
+  <meta property="og:url" content="https://blog.libcna.com/2026/10/19/tamagotchi-cna/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2026-10-19T12:00:00Z">October 19, 2026</time></span><span>Updated <time datetime="2026-10-17T14:06:31Z">October 17, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/projects/">Projects</a>, <a href="/category/games/">Games</a></span></div>
+      <h1 class="article-title">Tamagotchi CNA</h1>
+      <p class="article-description">Tamagotchi CNA is an unfinished, independent C++ reimplementation of the international 1997 P1 virtual-pet program, presented through CNA.</p>
+    </header>
+    <div class="article-body"><p><strong>Tamagotchi CNA</strong> is an independent C++ fan reimplementation of the international 1997 Generation 1 virtual-pet program, commonly called <strong>P1</strong>.</p>
+<p><strong>Preserved source:</strong> <a href="https://github.com/libcna/cna-cemetery/tree/main/tamagotchi-cna">https://github.com/libcna/cna-cemetery/tree/main/tamagotchi-cna</a></p>
+<p><strong>Try the browser prototype:</strong> <a href="https://demos.libcna.com/tamagotchi-cna/TamagotchiCna.html">https://demos.libcna.com/tamagotchi-cna/TamagotchiCna.html</a></p>
+<p><img src="https://github.com/libcna/cna-cemetery/raw/main/tamagotchi-cna/screenshot.png" alt="Tamagotchi CNA device" loading="lazy"></p>
+<p>It is an unofficial preservation project. It is not made by, endorsed by or affiliated with Bandai.</p>
+<p>The repository is also explicit about status:</p>
+<blockquote><p>These systems are foundations, not a complete P1 implementation yet.</p></blockquote>
+<hr>
+<h2 id="one-deliberately-narrow-target">One deliberately narrow target</h2>
+<p>The project targets one historical program:</p>
+<p>~<del>text international P1 released in 1997 one creature at a time three buttons 32 × 16 monochrome game LCD eight care indicators </del>~</p>
+<p>It does not combine P1 with P2, later Connection devices, color models, online systems or the 2017 reissue.</p>
+<p>That narrow target matters because superficially similar Tamagotchi generations use different characters, food, games, evolution rules and timing.</p>
+<p>Tamagotchi CNA aims to reproduce one coherent program rather than inventing a hybrid.</p>
+<hr>
+<h2 id="not-a-rom-emulator">Not a ROM emulator</h2>
+<p>The project is a behavioral reimplementation.</p>
+<p>It does not:</p>
+<ul><li>embed an original ROM;</li><li>load or execute a ROM supplied by the player;</li><li>include TamaLIB or another emulation core;</li><li>translate original program code.</li></ul>
+<p>Instead it reconstructs behavior from public documentation, observed rules, deterministic traces and independently written tests.</p>
+<p>The architecture is:</p>
+<p>~<del>text CNA application, input and renderer │ ▼ session controller and event scheduler │ ├────────► JSON save repository │ ▼ CNA-independent P1 domain │ ▼ 32 × 16 one-bit display model </del>~</p>
+<p>Keeping the domain independent of CNA allows care rules and time progression to be tested without opening a window.</p>
+<hr>
+<h2 id="the-device-presentation">The device presentation</h2>
+<p>The application renders an egg-shaped virtual device with:</p>
+<ul><li>a permanent 32×16 logical game bitmap;</li><li>four icon cells above the game area;</li><li>four icon cells below it;</li><li>three physical A, B and C buttons;</li><li>a recessed reset control;</li><li>integer nearest-neighbor scaling;</li><li>one-bit LCD pixels with no gray anti-aliasing.</li></ul>
+<p>Five shell families can be selected as presentation-only variants. The chosen shell is saved independently from the pet state.</p>
+<p>Mouse and touch input press the same three virtual controls as the keyboard. Resizing the window does not change their logical hit areas.</p>
+<hr>
+<h2 id="the-three-button-model">The three-button model</h2>
+<p>The historical interaction is deliberately retained:</p>
+<div class="table-wrap"><table><thead><tr><th>Button</th><th>Role</th><th>Desktop input</th></tr></thead><tbody><tr><td>A</td><td>Move through icons or choices</td><td>A or Right</td></tr><tr><td>B</td><td>Open, confirm or perform</td><td>B, Enter or Space</td></tr><tr><td>C</td><td>Cancel or go back</td><td>C, Backspace or Escape</td></tr></tbody></table></div>
+<p>Button combinations also matter.</p>
+<p>On the clock screen, A+C enters time setting. On the home screen, A+C toggles sound. At the end screen, the same pair starts a new egg without resetting the established device clock.</p>
+<p>The clock&#39;s <strong>SET</strong> state implements the classic pause workaround. While it is active, needs, growth, calls, animation and device time remain frozen, including across application restarts.</p>
+<p>The reset pinhole requires a sustained press and a desktop confirmation before replacing the active pet.</p>
+<hr>
+<h2 id="the-eight-p1-functions">The eight P1 functions</h2>
+<p>The icon bands expose the original functional families:</p>
+<div class="table-wrap"><table><thead><tr><th>Function</th><th>Current intent</th></tr></thead><tbody><tr><td>Food</td><td>Bread for hunger, candy for happiness and weight</td></tr><tr><td>Light</td><td>Turn the light off after the creature sleeps</td></tr><tr><td>Game</td><td>Play the five-round Character guessing game</td></tr><tr><td>Medicine</td><td>Treat an ill creature</td></tr><tr><td>Clean</td><td>Remove waste</td></tr><tr><td>Status</td><td>Inspect age, weight, discipline and hearts</td></tr><tr><td>Discipline</td><td>Answer false attention calls</td></tr><tr><td>Attention</td><td>Automatic indicator, not a selectable action</td></tr></tbody></table></div>
+<p>Icons remain part of the LCD rather than becoming modern independent UI buttons.</p>
+<p>This constraint keeps the interaction close to the original device: the player navigates with A, confirms with B and cancels with C.</p>
+<hr>
+<h2 id="what-the-preserved-prototype-implements">What the preserved prototype implements</h2>
+<p>The imported CNA Cemetery snapshot includes a meaningful P1 foundation:</p>
+<ul><li>clock setup and a pulsating egg;</li><li>Babytchi and Marutchi states;</li><li>P1 bread and candy;</li><li>hunger, happiness, discipline, age and weight data;</li><li>waste and the Toilet action;</li><li>early illness and two-dose medicine;</li><li>sleep and lights-out behavior;</li><li>the five-round Character game;</li><li>attention windows for genuine needs and false discipline calls;</li><li>data-driven growth decisions for the documented teen and adult branches;</li><li>the qualified international Bill path;</li><li>the clock-based pause state;</li><li>an angel end-screen presentation;</li><li>versioned JSON persistence and offline catch-up.</li></ul>
+<p>Marutchi has measured waking, sleeping and medicine animations. Other characters still rely partly on provisional one-bit placeholders.</p>
+<hr>
+<h2 id="what-remains-unfinished">What remains unfinished</h2>
+<p>The prototype must not be described as a complete P1 recreation.</p>
+<p>Open work recorded in the repository includes:</p>
+<ul><li>final sprites and animations for later forms;</li><li>later illness behavior;</li><li>complete natural lifespan and death timing;</li><li>the transition that reaches the existing angel screen;</li><li>P1-faithful sound output;</li><li>save-slot selection and further schema migration;</li><li>broader play validation of the complete life cycle.</li></ul>
+<p>The current offline simulation also retains a twelve-hour development clamp. The intended final design is to jump efficiently between meaningful scheduled events rather than limiting long absences or iterating minute by minute.</p>
+<p>These gaps are visible project tasks, not silently filled with invented behavior.</p>
+<hr>
+<h2 id="time-and-persistence">Time and persistence</h2>
+<p>A virtual pet must continue to exist while the application is closed.</p>
+<p>Tamagotchi CNA stores a UTC simulation anchor and processes missed events when the save is loaded:</p>
+<p>~<del>text save closes at UTC time A │ ▼ application opens at UTC time B │ ▼ scheduled events between A and B are applied │ ▼ current P1 state is rendered </del>~</p>
+<p>Moving the computer clock backward does not create free care time. Sub-minute time is retained so quick restarts do not slowly alter the simulation.</p>
+<p>Writes use a temporary file and preserve a backup before replacing an existing save. If the active file is corrupt but the backup is readable, the LCD offers recovery. Beginning again archives the damaged file instead of silently destroying it.</p>
+<p>The application also prefers an existing historical save location, allowing upgrades to keep the current pet after the product-directory rename.</p>
+<hr>
+<h2 id="desktop-and-browser">Desktop and browser</h2>
+<p>The native application uses CNA for:</p>
+<p>~<del>text the Game lifecycle keyboard, mouse and touch input window presentation the scaled one-bit display future audio output platform data locations </del>~</p>
+<p>The repository also defines an Emscripten build that produces HTML, JavaScript, WebAssembly and preloaded assets.</p>
+<p>The browser demo is useful for exploring the device presentation and current care loop, but it should be read as a prototype snapshot rather than as an archivally exact finished P1.</p>
+<hr>
+<h2 id="legal-and-release-boundary">Legal and release boundary</h2>
+<p>P1 names, character designs, game rules and branding belong to their respective rightsholders.</p>
+<p>The source describes itself as an independent, unofficial fan project and says that public release of a faithful clone requires appropriate permission.</p>
+<p>The preserved snapshot also contains no license file yet.</p>
+<p>Those facts are as important as the technical progress. A working prototype does not automatically grant permission to redistribute protected characters or branding.</p>
+<hr>
+<h2 id="why-the-project-is-in-cna-cemetery">Why the project is in CNA Cemetery</h2>
+<p>Tamagotchi CNA is one of the five standalone projects preserved in CNA Cemetery.</p>
+<p>The subtree was imported with its source history rather than copied as a final directory. Its design decisions, implementation steps and unfinished backlog therefore remain available for study or possible continuation.</p>
+<p>The cemetery location should not be confused with completion.</p>
+<p>It means the project has a preserved home, with its actual status intact.</p>
+<hr>
+<h2 id="conclusion">Conclusion</h2>
+<p>Tamagotchi CNA explores a very different CNA workload from a renderer demo or action game.</p>
+<p>Its hard problems are long-running state, deterministic time, recoverable persistence, tiny one-bit presentation and the fidelity of many interacting care rules.</p>
+<p>The current prototype already demonstrates that architecture:</p>
+<p>~<del>text testable simulation + careful persistence + CNA presentation </del>~</p>
+<p>What it does not yet demonstrate is a complete, licensed P1 replacement.</p>
+<p>Keeping both sides of that statement visible is the most accurate way to present Tamagotchi CNA today.</p></div>
+    <footer class="taxonomy-links"><a href="/category/projects/">Projects</a><a href="/category/games/">Games</a><a href="/tag/cna/">#CNA</a><a href="/tag/tamagotchi-cna/">#Tamagotchi CNA</a><a href="/tag/c-23/">#C++23</a><a href="/tag/virtual-pet/">#Virtual pet</a><a href="/tag/simulation/">#Simulation</a><a href="/tag/persistence/">#Persistence</a><a href="/tag/webassembly/">#WebAssembly</a><a href="/tag/cna-cemetery/">#CNA Cemetery</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2026/10/22/what-is-easygl/">What is EasyGL?</a></li><li><a href="/2026/10/19/tamagotchi-cna/">Tamagotchi CNA</a></li><li><a href="/2026/10/18/what-is-meta-gl/">What is Meta GL?</a></li><li><a href="/2026/10/18/wolf-cna/">Wolf CNA</a></li><li><a href="/2026/10/17/cna-craft/">CNA Craft</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2026/10/"><span>October 2026</span><span class="count">11</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">4</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">3</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">9</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/3d/">3D</a><a href="/tag/architecture/">Architecture</a><a href="/tag/audio/">Audio</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/craft/">Craft</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/games/">Games</a><a href="/tag/github/">GitHub</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/java/">Java</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/portability/">Portability</a><a href="/tag/procedural-generation/">Procedural generation</a><a href="/tag/projects/">Projects</a><a href="/tag/python/">Python</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderers/">Renderers</a><a href="/tag/repositories/">Repositories</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xna/">XNA</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>

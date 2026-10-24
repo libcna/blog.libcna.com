@@ -10,6 +10,8 @@ const publicRoot = path.join(projectRoot, "public");
 const outputRoot = path.join(projectRoot, "dist");
 const includeDrafts = process.env.BUILD_DRAFTS === "1";
 const includeFuture = process.env.BUILD_FUTURE === "1";
+// Routes of articles omitted because their publication date has not arrived.
+const scheduledRoutes = new Set();
 
 const englishMonths = [
   "January",
@@ -227,7 +229,10 @@ async function loadPosts() {
     const defaultRoute = `/${year}/${month}/${day}/${slug}/`;
     const route = normalizeRoute(data.permalink ? String(data.permalink) : defaultRoute);
 
-    if (publicationDate > cutoff && !includeFuture) continue;
+    if (publicationDate > cutoff && !includeFuture) {
+      scheduledRoutes.add(route);
+      continue;
+    }
 
     const updatedSource = String(data.updated || data.date);
     const updatedDate = data.updated ? parseDate(updatedSource, "updated", relative) : date;
@@ -299,6 +304,14 @@ function safeUrl(value, image = false) {
   return "#";
 }
 
+// A link to a scheduled article is rendered as plain text until the article is
+// published, so a published article never links to a missing page.
+function linksToScheduledPost(url) {
+  const route = String(url).trim().split(/[?#]/)[0];
+  if (!route.startsWith("/")) return false;
+  return scheduledRoutes.has(path.posix.extname(route) ? route : `${route.replace(/\/$/, "")}/`);
+}
+
 function renderInline(source) {
   const tokens = [];
   const token = (html) => {
@@ -311,7 +324,9 @@ function renderInline(source) {
   value = value.replace(/!\[([^\]]*)\]\(([^\s)]+)(?:\s+["']([^"']*)["'])?\)/g,
     (_, alt, url, title) => token(`<img src="${safeUrl(url, true)}" alt="${escapeHtml(alt)}"${title ? ` title="${escapeHtml(title)}"` : ""} loading="lazy">`));
   value = value.replace(/\[([^\]]+)\]\(([^\s)]+)(?:\s+["']([^"']*)["'])?\)/g,
-    (_, label, url, title) => token(`<a href="${safeUrl(url)}"${title ? ` title="${escapeHtml(title)}"` : ""}>${escapeHtml(label)}</a>`));
+    (_, label, url, title) => token(linksToScheduledPost(url)
+      ? escapeHtml(label)
+      : `<a href="${safeUrl(url)}"${title ? ` title="${escapeHtml(title)}"` : ""}>${escapeHtml(label)}</a>`));
   value = escapeHtml(value);
   value = value.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   value = value.replace(/__([^_]+)__/g, "<strong>$1</strong>");
