@@ -247,6 +247,87 @@
   <url><loc>https://blog.libcna.com/2028/06/08/scripting-cna-games-safely/</loc></url>
   <url><loc>https://blog.libcna.com/2028/06/15/</loc></url>
   <url><loc>https://blog.libcna.com/2028/06/15/deterministic-replays-and-automated-gameplay-testing/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/06/22/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/06/22/collision-detection-and-spatial-queries-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/06/29/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/06/29/fixed-timestep-variable-timestep-and-deterministic-simulation/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/07/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/07/06/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/07/06/threading-and-main-thread-boundaries-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/07/13/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/07/13/building-user-interfaces-for-cna-games/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/07/20/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/07/20/tilemaps-and-large-2d-worlds-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/07/27/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/07/27/local-multiplayer-and-split-screen-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/08/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/08/03/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/08/03/terrain-rendering-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/08/10/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/08/10/water-rendering-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/08/17/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/08/17/stencil-buffer-techniques-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/08/24/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/08/24/transparency-alpha-testing-and-draw-order-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/08/31/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/08/31/designing-a-material-system-above-cna-effects/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/09/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/09/07/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/09/07/hot-reloading-shaders-and-game-content-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/09/14/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/09/14/memory-management-and-allocation-free-frames-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/09/21/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/09/21/frame-pacing-input-latency-and-present-modes-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/09/28/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/09/28/cpu-gpu-synchronization-and-hidden-rendering-stalls/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/10/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/10/05/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/10/05/character-controllers-and-movement-in-cna-games/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/10/12/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/10/12/cameras-for-real-games-follow-orbit-shake-and-split-screen/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/10/19/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/10/19/animation-blending-state-machines-and-root-motion-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/10/26/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/10/26/building-a-particle-editor-for-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/11/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/11/02/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/11/02/data-driven-scenes-and-prefabs-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/11/09/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/11/09/procedural-generation-with-reproducible-seeds/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/11/16/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/11/16/navigation-pathfinding-and-steering-in-cna-games/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/11/23/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/11/23/day-night-and-weather-systems-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/11/30/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/11/30/building-an-in-game-developer-console-in-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/12/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/12/07/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/12/07/client-prediction-interpolation-and-server-reconciliation/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/12/14/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/12/14/rollback-networking-for-cna-games/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/12/21/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/12/21/securing-an-authoritative-cna-game-server/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/12/28/</loc></url>
+  <url><loc>https://blog.libcna.com/2028/12/28/voice-chat-in-a-cna-game/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/01/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/01/04/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/01/04/downloadable-content-and-live-content-updates/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/01/11/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/01/11/continuous-integration-for-cna-on-six-platforms/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/01/18/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/01/18/building-a-small-2d-platformer-with-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/01/25/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/01/25/building-a-split-screen-racing-game-with-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/02/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/02/01/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/02/01/building-a-terrain-demo-with-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/02/08/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/02/08/building-a-deferred-renderer-with-cna/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/02/15/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/02/15/building-an-island-simulator-feature-from-start-to-finish/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/02/22/</loc></url>
+  <url><loc>https://blog.libcna.com/2029/02/22/recreating-classic-xna-sample-techniques-in-modern-cna/</loc></url>
   <url><loc>https://blog.libcna.com/about/</loc></url>
   <url><loc>https://blog.libcna.com/archive/</loc></url>
   <url><loc>https://blog.libcna.com/categories/</loc></url>
@@ -258,9 +339,12 @@
   <url><loc>https://blog.libcna.com/category/projects/</loc></url>
   <url><loc>https://blog.libcna.com/category/tooling/</loc></url>
   <url><loc>https://blog.libcna.com/tag/2d/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/3d-rendering/</loc></url>
   <url><loc>https://blog.libcna.com/tag/3d/</loc></url>
   <url><loc>https://blog.libcna.com/tag/abi/</loc></url>
   <url><loc>https://blog.libcna.com/tag/accessibility/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/ai/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/alpha-test/</loc></url>
   <url><loc>https://blog.libcna.com/tag/alsa/</loc></url>
   <url><loc>https://blog.libcna.com/tag/android/</loc></url>
   <url><loc>https://blog.libcna.com/tag/animation/</loc></url>
@@ -280,6 +364,7 @@
   <url><loc>https://blog.libcna.com/tag/basiceffect/</loc></url>
   <url><loc>https://blog.libcna.com/tag/batching/</loc></url>
   <url><loc>https://blog.libcna.com/tag/bindings/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/blending/</loc></url>
   <url><loc>https://blog.libcna.com/tag/build/</loc></url>
   <url><loc>https://blog.libcna.com/tag/c-23/</loc></url>
   <url><loc>https://blog.libcna.com/tag/c-api/</loc></url>
@@ -288,6 +373,8 @@
   <url><loc>https://blog.libcna.com/tag/camera/</loc></url>
   <url><loc>https://blog.libcna.com/tag/capabilities/</loc></url>
   <url><loc>https://blog.libcna.com/tag/car-simulator/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/case-study/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/character-controller/</loc></url>
   <url><loc>https://blog.libcna.com/tag/ci/</loc></url>
   <url><loc>https://blog.libcna.com/tag/clipboard/</loc></url>
   <url><loc>https://blog.libcna.com/tag/cmake/</loc></url>
@@ -306,6 +393,7 @@
   <url><loc>https://blog.libcna.com/tag/cnb/</loc></url>
   <url><loc>https://blog.libcna.com/tag/cnj/</loc></url>
   <url><loc>https://blog.libcna.com/tag/cocoa/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/collision-detection/</loc></url>
   <url><loc>https://blog.libcna.com/tag/collision/</loc></url>
   <url><loc>https://blog.libcna.com/tag/common-lisp/</loc></url>
   <url><loc>https://blog.libcna.com/tag/compatibility/</loc></url>
@@ -316,6 +404,7 @@
   <url><loc>https://blog.libcna.com/tag/content-pipeline/</loc></url>
   <url><loc>https://blog.libcna.com/tag/content/</loc></url>
   <url><loc>https://blog.libcna.com/tag/contentmanager/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/continuous-integration/</loc></url>
   <url><loc>https://blog.libcna.com/tag/controllers/</loc></url>
   <url><loc>https://blog.libcna.com/tag/coordinates/</loc></url>
   <url><loc>https://blog.libcna.com/tag/craft/</loc></url>
@@ -327,19 +416,23 @@
   <url><loc>https://blog.libcna.com/tag/custom-content/</loc></url>
   <url><loc>https://blog.libcna.com/tag/debugging/</loc></url>
   <url><loc>https://blog.libcna.com/tag/deferred-rendering/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/demo/</loc></url>
   <url><loc>https://blog.libcna.com/tag/dependencies/</loc></url>
   <url><loc>https://blog.libcna.com/tag/deployment/</loc></url>
   <url><loc>https://blog.libcna.com/tag/determinism/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/developer-console/</loc></url>
   <url><loc>https://blog.libcna.com/tag/developer-tools/</loc></url>
   <url><loc>https://blog.libcna.com/tag/device-loss/</loc></url>
   <url><loc>https://blog.libcna.com/tag/devices/</loc></url>
   <url><loc>https://blog.libcna.com/tag/diagnostics/</loc></url>
   <url><loc>https://blog.libcna.com/tag/directx/</loc></url>
   <url><loc>https://blog.libcna.com/tag/distribution/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/dlc/</loc></url>
   <url><loc>https://blog.libcna.com/tag/documentation/</loc></url>
   <url><loc>https://blog.libcna.com/tag/driving/</loc></url>
   <url><loc>https://blog.libcna.com/tag/easygl/</loc></url>
   <url><loc>https://blog.libcna.com/tag/ecs/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/editor/</loc></url>
   <url><loc>https://blog.libcna.com/tag/effect/</loc></url>
   <url><loc>https://blog.libcna.com/tag/effects/</loc></url>
   <url><loc>https://blog.libcna.com/tag/embedding/</loc></url>
@@ -352,6 +445,7 @@
   <url><loc>https://blog.libcna.com/tag/fallbacks/</loc></url>
   <url><loc>https://blog.libcna.com/tag/first-person-shooter/</loc></url>
   <url><loc>https://blog.libcna.com/tag/fna/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/frame-pacing/</loc></url>
   <url><loc>https://blog.libcna.com/tag/friends/</loc></url>
   <url><loc>https://blog.libcna.com/tag/frustum-culling/</loc></url>
   <url><loc>https://blog.libcna.com/tag/fullscreen/</loc></url>
@@ -364,8 +458,10 @@
   <url><loc>https://blog.libcna.com/tag/game-loop/</loc></url>
   <url><loc>https://blog.libcna.com/tag/gamecomponent/</loc></url>
   <url><loc>https://blog.libcna.com/tag/gamepad/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/gameplay/</loc></url>
   <url><loc>https://blog.libcna.com/tag/gamer-services/</loc></url>
   <url><loc>https://blog.libcna.com/tag/games/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/gametime/</loc></url>
   <url><loc>https://blog.libcna.com/tag/gestures/</loc></url>
   <url><loc>https://blog.libcna.com/tag/git/</loc></url>
   <url><loc>https://blog.libcna.com/tag/github/</loc></url>
@@ -375,6 +471,7 @@
   <url><loc>https://blog.libcna.com/tag/go/</loc></url>
   <url><loc>https://blog.libcna.com/tag/golden-images/</loc></url>
   <url><loc>https://blog.libcna.com/tag/googletest/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/gpu/</loc></url>
   <url><loc>https://blog.libcna.com/tag/graphics-apis/</loc></url>
   <url><loc>https://blog.libcna.com/tag/graphics-resources/</loc></url>
   <url><loc>https://blog.libcna.com/tag/graphics-testing/</loc></url>
@@ -383,9 +480,11 @@
   <url><loc>https://blog.libcna.com/tag/haptics/</loc></url>
   <url><loc>https://blog.libcna.com/tag/hdr/</loc></url>
   <url><loc>https://blog.libcna.com/tag/headless/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/heightmap/</loc></url>
   <url><loc>https://blog.libcna.com/tag/hidpi/</loc></url>
   <url><loc>https://blog.libcna.com/tag/hlsl/</loc></url>
   <url><loc>https://blog.libcna.com/tag/homebrew/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/hot-reload/</loc></url>
   <url><loc>https://blog.libcna.com/tag/ime/</loc></url>
   <url><loc>https://blog.libcna.com/tag/input/</loc></url>
   <url><loc>https://blog.libcna.com/tag/inspector/</loc></url>
@@ -395,20 +494,26 @@
   <url><loc>https://blog.libcna.com/tag/ipados/</loc></url>
   <url><loc>https://blog.libcna.com/tag/island-simulator/</loc></url>
   <url><loc>https://blog.libcna.com/tag/java/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/jobs/</loc></url>
   <url><loc>https://blog.libcna.com/tag/joystick/</loc></url>
   <url><loc>https://blog.libcna.com/tag/json/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/latency/</loc></url>
   <url><loc>https://blog.libcna.com/tag/lifecycle/</loc></url>
   <url><loc>https://blog.libcna.com/tag/lifetime/</loc></url>
   <url><loc>https://blog.libcna.com/tag/lighting/</loc></url>
   <url><loc>https://blog.libcna.com/tag/linux/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/local-multiplayer/</loc></url>
   <url><loc>https://blog.libcna.com/tag/localization/</loc></url>
   <url><loc>https://blog.libcna.com/tag/lod/</loc></url>
   <url><loc>https://blog.libcna.com/tag/logging/</loc></url>
   <url><loc>https://blog.libcna.com/tag/macos/</loc></url>
   <url><loc>https://blog.libcna.com/tag/matchmaking/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/materials/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/math/</loc></url>
   <url><loc>https://blog.libcna.com/tag/matrix/</loc></url>
   <url><loc>https://blog.libcna.com/tag/mc3/</loc></url>
   <url><loc>https://blog.libcna.com/tag/media/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/memory/</loc></url>
   <url><loc>https://blog.libcna.com/tag/meshcraft/</loc></url>
   <url><loc>https://blog.libcna.com/tag/meshes/</loc></url>
   <url><loc>https://blog.libcna.com/tag/metagl/</loc></url>
@@ -421,10 +526,13 @@
   <url><loc>https://blog.libcna.com/tag/mojoshader/</loc></url>
   <url><loc>https://blog.libcna.com/tag/monogame-extended/</loc></url>
   <url><loc>https://blog.libcna.com/tag/monogame/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/movement/</loc></url>
   <url><loc>https://blog.libcna.com/tag/mrt/</loc></url>
   <url><loc>https://blog.libcna.com/tag/multiplayer/</loc></url>
   <url><loc>https://blog.libcna.com/tag/multithreading/</loc></url>
   <url><loc>https://blog.libcna.com/tag/museum-simulator/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/native-c/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/navigation/</loc></url>
   <url><loc>https://blog.libcna.com/tag/net/</loc></url>
   <url><loc>https://blog.libcna.com/tag/networking/</loc></url>
   <url><loc>https://blog.libcna.com/tag/nintendo-switch/</loc></url>
@@ -437,8 +545,10 @@
   <url><loc>https://blog.libcna.com/tag/operating-systems/</loc></url>
   <url><loc>https://blog.libcna.com/tag/operations/</loc></url>
   <url><loc>https://blog.libcna.com/tag/optimization/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/outlines/</loc></url>
   <url><loc>https://blog.libcna.com/tag/packaging/</loc></url>
   <url><loc>https://blog.libcna.com/tag/particles/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/pathfinding/</loc></url>
   <url><loc>https://blog.libcna.com/tag/pbr/</loc></url>
   <url><loc>https://blog.libcna.com/tag/performance/</loc></url>
   <url><loc>https://blog.libcna.com/tag/persistence/</loc></url>
@@ -446,12 +556,16 @@
   <url><loc>https://blog.libcna.com/tag/pixel-tests/</loc></url>
   <url><loc>https://blog.libcna.com/tag/platform-api/</loc></url>
   <url><loc>https://blog.libcna.com/tag/platform/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/platformer/</loc></url>
   <url><loc>https://blog.libcna.com/tag/platforms/</loc></url>
   <url><loc>https://blog.libcna.com/tag/playstation-5/</loc></url>
   <url><loc>https://blog.libcna.com/tag/playstation/</loc></url>
   <url><loc>https://blog.libcna.com/tag/portability/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/portals/</loc></url>
   <url><loc>https://blog.libcna.com/tag/porting/</loc></url>
   <url><loc>https://blog.libcna.com/tag/post-processing/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/prediction/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/prefabs/</loc></url>
   <url><loc>https://blog.libcna.com/tag/presence/</loc></url>
   <url><loc>https://blog.libcna.com/tag/procedural-generation/</loc></url>
   <url><loc>https://blog.libcna.com/tag/procedural-geometry/</loc></url>
@@ -459,7 +573,10 @@
   <url><loc>https://blog.libcna.com/tag/projects/</loc></url>
   <url><loc>https://blog.libcna.com/tag/ps-vita/</loc></url>
   <url><loc>https://blog.libcna.com/tag/python/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/racing-game/</loc></url>
   <url><loc>https://blog.libcna.com/tag/railways/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/random/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/reconciliation/</loc></url>
   <url><loc>https://blog.libcna.com/tag/recovery/</loc></url>
   <url><loc>https://blog.libcna.com/tag/refactoring/</loc></url>
   <url><loc>https://blog.libcna.com/tag/reflections/</loc></url>
@@ -473,13 +590,16 @@
   <url><loc>https://blog.libcna.com/tag/replays/</loc></url>
   <url><loc>https://blog.libcna.com/tag/repositories/</loc></url>
   <url><loc>https://blog.libcna.com/tag/roadmap/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/rollback/</loc></url>
   <url><loc>https://blog.libcna.com/tag/room-simulator/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/root-motion/</loc></url>
   <url><loc>https://blog.libcna.com/tag/ruby/</loc></url>
   <url><loc>https://blog.libcna.com/tag/rust/</loc></url>
   <url><loc>https://blog.libcna.com/tag/samples/</loc></url>
   <url><loc>https://blog.libcna.com/tag/sanitizers/</loc></url>
   <url><loc>https://blog.libcna.com/tag/saves/</loc></url>
   <url><loc>https://blog.libcna.com/tag/scaling/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/scenes/</loc></url>
   <url><loc>https://blog.libcna.com/tag/school-simulator/</loc></url>
   <url><loc>https://blog.libcna.com/tag/screens/</loc></url>
   <url><loc>https://blog.libcna.com/tag/scripting/</loc></url>
@@ -500,36 +620,53 @@
   <url><loc>https://blog.libcna.com/tag/software-rendering/</loc></url>
   <url><loc>https://blog.libcna.com/tag/soundbank/</loc></url>
   <url><loc>https://blog.libcna.com/tag/spatial-partitioning/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/spatial-queries/</loc></url>
   <url><loc>https://blog.libcna.com/tag/specification/</loc></url>
   <url><loc>https://blog.libcna.com/tag/spir-v/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/split-screen/</loc></url>
   <url><loc>https://blog.libcna.com/tag/spritebatch/</loc></url>
   <url><loc>https://blog.libcna.com/tag/spritefont/</loc></url>
   <url><loc>https://blog.libcna.com/tag/sqlite/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/state-machines/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/steering/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/stencil-buffer/</loc></url>
   <url><loc>https://blog.libcna.com/tag/storage/</loc></url>
   <url><loc>https://blog.libcna.com/tag/streaming/</loc></url>
   <url><loc>https://blog.libcna.com/tag/street-simulator/</loc></url>
   <url><loc>https://blog.libcna.com/tag/surfaceformat/</loc></url>
   <url><loc>https://blog.libcna.com/tag/swift/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/synchronization/</loc></url>
   <url><loc>https://blog.libcna.com/tag/system/</loc></url>
   <url><loc>https://blog.libcna.com/tag/tamagotchi-cna/</loc></url>
   <url><loc>https://blog.libcna.com/tag/terminal/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/terrain/</loc></url>
   <url><loc>https://blog.libcna.com/tag/testing/</loc></url>
   <url><loc>https://blog.libcna.com/tag/text/</loc></url>
   <url><loc>https://blog.libcna.com/tag/texturecube/</loc></url>
   <url><loc>https://blog.libcna.com/tag/textures/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/threading/</loc></url>
   <url><loc>https://blog.libcna.com/tag/tilemaps/</loc></url>
   <url><loc>https://blog.libcna.com/tag/tooling/</loc></url>
   <url><loc>https://blog.libcna.com/tag/tools/</loc></url>
   <url><loc>https://blog.libcna.com/tag/touch/</loc></url>
   <url><loc>https://blog.libcna.com/tag/train-simulator/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/transparency/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/tutorial/</loc></url>
   <url><loc>https://blog.libcna.com/tag/typescript/</loc></url>
   <url><loc>https://blog.libcna.com/tag/ui/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/updates/</loc></url>
   <url><loc>https://blog.libcna.com/tag/user-content/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/user-interface/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/vehicles/</loc></url>
   <url><loc>https://blog.libcna.com/tag/vertex-buffers/</loc></url>
   <url><loc>https://blog.libcna.com/tag/video/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/viewport/</loc></url>
   <url><loc>https://blog.libcna.com/tag/virtual-pet/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/voice-chat/</loc></url>
   <url><loc>https://blog.libcna.com/tag/voxel/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/vsync/</loc></url>
   <url><loc>https://blog.libcna.com/tag/vulkan/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/water/</loc></url>
   <url><loc>https://blog.libcna.com/tag/wavebank/</loc></url>
   <url><loc>https://blog.libcna.com/tag/wayland/</loc></url>
   <url><loc>https://blog.libcna.com/tag/weather/</loc></url>
@@ -548,6 +685,7 @@
   <url><loc>https://blog.libcna.com/tag/xbox/</loc></url>
   <url><loc>https://blog.libcna.com/tag/xna-4-0/</loc></url>
   <url><loc>https://blog.libcna.com/tag/xna-content-pipeline/</loc></url>
+  <url><loc>https://blog.libcna.com/tag/xna-samples/</loc></url>
   <url><loc>https://blog.libcna.com/tag/xna/</loc></url>
   <url><loc>https://blog.libcna.com/tag/xna4-spec/</loc></url>
   <url><loc>https://blog.libcna.com/tag/xnb/</loc></url>
