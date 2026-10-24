@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CNA Engine | CNA&#39;s Blog</title>
+  <meta name="description" content="CNA Engine is a modular C++23 game-engine layer above CNA, providing reusable input, rendering, collision, animation, audio, UI and application facilities without hiding the XNA programming model.">
+
+  <link rel="canonical" href="https://blog.libcna.com/2027/03/11/cna-engine/">
+  <link rel="alternate" type="application/rss+xml" title="CNA&#39;s Blog" href="/feed.xml">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/assets/style.css">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="CNA Engine">
+  <meta property="og:description" content="CNA Engine is a modular C++23 game-engine layer above CNA, providing reusable input, rendering, collision, animation, audio, UI and application facilities without hiding the XNA programming model.">
+  <meta property="og:url" content="https://blog.libcna.com/2027/03/11/cna-engine/">
+  <meta property="og:site_name" content="CNA&#39;s Blog">
+
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-text">
+          <p class="site-title"><a href="/">CNA's Blog</a></p>
+          <p class="site-tagline">Blog for CNA – Reimplementation of XNA 4.0</p>
+        </div>
+      </div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="/">Articles</a>
+        <a href="/categories/">Categories</a>
+        <a href="/tags/">Tags</a>
+        <a href="/archive/">Archive</a>
+        <a href="/about/">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell single-layout">
+    <main class="main-content" id="content"><article class="article">
+    <header class="article-header">
+      <div class="meta"><span>Published <time datetime="2027-03-11T12:00:00Z">March 11, 2027</time></span><span>Updated <time datetime="2026-10-24T12:00:00Z">October 24, 2026</time></span><span>By Robert Vokac</span><span><a href="/category/development/">Development</a>, <a href="/category/projects/">Projects</a></span></div>
+      <h1 class="article-title">CNA Engine</h1>
+      <p class="article-description">CNA Engine is a modular C++23 game-engine layer above CNA, providing reusable input, rendering, collision, animation, audio, UI and application facilities without hiding the XNA programming model.</p>
+    </header>
+    <div class="article-body"><p><strong>CNA Engine</strong> is a modular C++23 game-engine layer built above CNA. It provides the reusable systems that many games need—input actions, cameras, meshes, render queues, collision, animation, audio, menus, saving and diagnostics—while keeping CNA and the familiar XNA <code>Game</code> model visible underneath.</p>
+<p>The project exists because several CNA games had independently implemented similar engine infrastructure. Car Simulator, Street Simulator, School Simulator, Backrooms Simulator, Train Simulator and other projects all needed variations of cameras, material binding, mesh ownership, culling, screenshot capture and settings. Copying another project-local renderer each time was no longer a sustainable answer.</p>
+<p><strong>Source:</strong> <a href="https://github.com/libcna/cna-engine">github.com/libcna/cna-engine</a></p>
+<p><strong>Current status:</strong> version <code>0.1.0</code>, experimental. APIs that have survived adoption by multiple real games are marked stable, but most of the broader engine remains free to change before its first stable release.</p>
+<h2 id="cna-is-the-runtime-cna-engine-is-the-reusable-game-layer">CNA is the runtime; CNA Engine is the reusable game layer</h2>
+<p>CNA implements the XNA 4.0 programming model in C++23. It owns the application lifecycle, platform abstraction, graphics resources, stock effects, input devices, audio, storage and content management. Those are the foundations on which an XNA-style game runs.</p>
+<p>CNA Engine deliberately sits one level higher:</p>
+<pre><code class="language-text">game or simulator
+        |
+        v
+    CNA Engine       reusable game, scene and rendering policies
+        |
+        v
+       CNA           XNA API, content, graphics, audio and platform layer
+        |
+        v
+ renderer / SDL / operating system</code></pre>
+<p>The engine does not replace <code>Microsoft::Xna::Framework::Game</code>, hide the <code>GraphicsDevice</code>, or introduce a compulsory editor and proprietary world format. A game can use a single engine module, adopt the ready-made <code>EngineGame</code> application layer, or continue to draw directly with CNA whenever a specialized pass needs it.</p>
+<p>This separation also keeps higher-level policy out of CNA itself. CNA remains focused on XNA compatibility and portable runtime services, while CNA Engine can offer opinionated facilities such as render queues, quality presets, collision and a first-person controller.</p>
+<h2 id="extracted-from-working-games-not-designed-in-isolation">Extracted from working games, not designed in isolation</h2>
+<p>Before implementation, the engine project reviewed the common systems in a broad set of CNA applications. The analysis covered hundreds of thousands of lines across car, street, house, island, school, museum, room, ship and train simulators.</p>
+<p>That review found repeated implementations of:</p>
+<ul><li>fixed-step simulation clocks;</li><li>named input actions and rebinding;</li><li>first-person, free, orbit and follow cameras;</li><li>CPU mesh builders and GPU mesh ownership;</li><li>materials, render queues and graphics-state restoration;</li><li>frustum culling, distance limits, LOD and instancing;</li><li>asset caches and quality settings;</li><li>deterministic screenshots, diagnostics and benchmarks;</li><li>positional audio, UI, save files and simple collision.</li></ul>
+<p>The engine was not created by copying one simulator wholesale. Its first APIs were tested against two deliberately different pilots: the strict-XNA Car Simulator and the PBR-based Street Simulator. Only abstractions that worked for real consumers were promoted toward stability.</p>
+<p><img src="/wp-content/uploads/2027/03/cna-engine-car-simulator-headlights.png" alt="Car Simulator rendered through CNA Engine, with the night lighting and headlights retained" loading="lazy"></p>
+<p>The result is an engine shaped by compatibility work. It can borrow buffers owned by an existing game, accept camera matrices calculated elsewhere, preserve explicit draw ordering and let a game supply its own material binder. Those may be less glamorous features than an editor screenshot, but they are what make gradual adoption possible without subtly changing a mature game&#39;s picture.</p>
+<h2 id="strict-and-enhanced-profiles">Strict and enhanced profiles</h2>
+<p>Not every CNA project uses the same compatibility policy. Some applications allow only the XNA 4.0 API, Sharp Runtime and the C++ standard library. Others use CNA extensions, physically based rendering and <code>cna-extended</code>.</p>
+<p>CNA Engine therefore has two architectural profiles.</p>
+<p>The <strong>strict profile</strong> is formed by <code>CnaEngine::Core</code>, <code>Graphics</code>, <code>App</code>, <code>Audio</code> and <code>UI</code>. Its public implementation stays on CNA&#39;s XNA-compatible surface. A boundary checker scans the strict headers and fails if an extension type leaks through. This makes the profile suitable for projects that want reusable infrastructure without abandoning an XNA-only code policy.</p>
+<p>The <strong>enhanced profile</strong> adds two optional targets:</p>
+<ul><li><code>CnaEngine::EnhancedGraphics</code> integrates CNA facilities such as <code>PbrEffect</code>, <code>SkinnedPbrEffect</code>, image-based lighting, reflection probes, shadow reception, local lights and browser pointer lock;</li><li><code>CnaEngine::ExtendedIntegration</code> adapts <code>cna-extended</code> screens, World3D cameras and 3D particles without duplicating that library.</li></ul>
+<p>This boundary matters. A strict game does not have to build or link <code>cna-extended</code>, while a more ambitious renderer can opt into the complete <code>CnaEngine::Engine</code> target.</p>
+<h2 id="the-module-map">The module map</h2>
+<p>The current project is split into focused CMake targets rather than one monolithic library.</p>
+<div class="table-wrap"><table><thead><tr><th>Module</th><th>Main responsibility</th></tr></thead><tbody><tr><td><code>CnaEngine::Core</code></td><td>Fixed-step clock, settings, save slots, input actions, profiling, static collision, character controller and animation data</td></tr><tr><td><code>CnaEngine::Graphics</code></td><td>Cameras, mesh data, GPU meshes, materials, render queues, culling, LOD, instancing, forward rendering, sky, shadows, post-processing and screenshots</td></tr><tr><td><code>CnaEngine::App</code></td><td>An XNA <code>Game</code> with the engine&#39;s common lifecycle, preferences, automated runs and renderer already wired</td></tr><tr><td><code>CnaEngine::Audio</code></td><td>Positional voices, mix categories, sound banks and a bounded voice budget</td></tr><tr><td><code>CnaEngine::UI</code></td><td>Built-in font, HUD drawing, notifications, menus, settings and rebinding rows</td></tr><tr><td><code>CnaEngine::EnhancedGraphics</code></td><td>PBR and other CNA graphics extensions</td></tr><tr><td><code>CnaEngine::ExtendedIntegration</code></td><td>Optional adapters to <code>cna-extended</code></td></tr><tr><td><code>CnaEngine::Engine</code></td><td>The complete enhanced set</td></tr></tbody></table></div>
+<p>Games select the smallest useful set. A custom XNA game can link only <code>Core</code> and <code>Graphics</code>; a new project that wants the supplied game loop and all enhanced features can link the umbrella target.</p>
+<h2 id="starting-a-new-game">Starting a new game</h2>
+<p>The repository includes a dependency fetcher and a project generator. A first-person game can be created with:</p>
+<pre><code class="language-bash">git clone https://github.com/libcna/cna-engine.git
+cna-engine/tools/fetch_dependencies.sh
+cna-engine/tools/new_game.sh my-game &quot;My Game&quot;
+
+cd my-game
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel 8
+./build/my-game</code></pre>
+<p>The generated project is intentionally small. Its CMake file uses <code>cna_engine_add_game()</code>, its <code>assets/</code> directory is copied or packaged for the target platform, and one game class contains the initial scene. The template already demonstrates first-person walking, stairs, jumping, crates, sunlight and shadows, a HUD, a pause menu and saved preferences.</p>
+<p>The same project can be built for the browser. Under Emscripten, the engine&#39;s CMake support creates a web package, preloads the assets and applies CNA&#39;s required WebAssembly settings. The template provides <code>tools/build_web.sh --serve</code> for the complete build-and-preview path.</p>
+<h2 id="enginegame-without-a-closed-framework">EngineGame without a closed framework</h2>
+<p>New games may derive from <code>CnaEngine::App::EngineGame</code>. It is still an XNA <code>Game</code>, but several repetitive pieces are ready:</p>
+<pre><code class="language-cpp">class MyGame final : public CnaEngine::App::EngineGame
+{
+    void LoadGame() override;
+    void FixedUpdate(double step) override;
+    void UpdateFrame(double seconds) override;
+    void Submit(CnaEngine::App::Frame&amp; frame) override;
+    void DrawOverlay(GraphicsDevice&amp; device) override;
+};
+
+int main(int argc, char** argv)
+{
+    return CnaEngine::App::RunGame&lt;MyGame&gt;(argc, argv);
+}</code></pre>
+<p><code>EngineGame</code> connects the action map, fixed-step clock, camera, forward renderer, frame statistics, screenshots, preferences, asset directory, mouse capture, optional shadows and post-processing. The game continues to decide what its simulation means and what appears in each frame.</p>
+<p>Common diagnostic command-line options are built in. For example:</p>
+<pre><code class="language-bash">./build/my-game --frames 120 --lockstep --screenshot shot.png</code></pre>
+<p>This runs a deterministic number of frames, captures the last one and exits. The engine examples use the same mechanism as automated visual tests.</p>
+<p>Projects that already own their <code>Game</code> subclass do not need <code>EngineGame</code>. They can instantiate an <code>ActionMap</code>, <code>Camera</code>, <code>GpuMesh</code>, <code>RenderQueue</code> or any other facility as an ordinary C++ member and integrate it into the existing update and draw sequence.</p>
+<h2 id="input-timing-and-player-movement">Input, timing and player movement</h2>
+<p>Input is expressed through named actions and axes rather than hard-coded key checks scattered through game logic. One action can have keyboard, mouse and gamepad bindings, can be rebound at runtime, can report press and release edges and can persist the player&#39;s overrides.</p>
+<pre><code class="language-cpp">Input::ActionMap actions;
+const auto forward = actions.AddAxis(&quot;MoveForward&quot;);
+actions.BindAxis(forward,
+    Input::AxisBinding::ForKeys(Keys::S, Keys::W));</code></pre>
+<p>The fixed-step clock separates deterministic simulation from presentation frames. It clamps unusual frame delays, limits catch-up work and exposes interpolation state. Automated runs can use lockstep mode so tests and captures are reproducible.</p>
+<p>For character-scale games, <code>StaticWorld</code> accepts boxes, triangles, vertical cylinders and a height field. Its uniform grid accelerates raycasts, overlap tests and capsule contacts. <code>CharacterController</code> adds gravity, slopes, steps, jumping, wall sliding, stride events and optional head bob without pretending to be a general rigid-body physics engine.</p>
+<h2 id="geometry-and-the-rendering-path">Geometry and the rendering path</h2>
+<p><code>MeshBuilder</code> produces CPU-side geometry for common primitives and game-generated shapes. <code>GpuMesh</code> uploads that data through an explicit vertex layout and owns the resulting buffers through RAII. Existing projects can instead use <code>GpuMesh::Borrow</code> to expose buffers they already own, avoiding a duplicate upload during migration.</p>
+<p>A normal frame follows a transparent sequence:</p>
+<pre><code class="language-text">RenderItem submissions
+        ↓
+visibility and LOD selection
+        ↓
+RenderQueue buckets and deterministic sorting
+        ↓
+ForwardRenderer
+        ↓
+stock XNA effects or an enhanced/custom material binder</code></pre>
+<p>Materials describe shading, textures, blending, alpha testing, face winding, fog and optional reflection data. The stock binder maps them to XNA effects. The enhanced PBR binder maps them to CNA&#39;s PBR effects, including normal and ORM textures, image-based lighting, exposure, skinned meshes and per-item reflection probes.</p>
+<p>The renderer supports opaque, alpha-tested, transparent, overlay and explicitly sequenced work. Custom passes can run around those buckets, so a specialized sky, mirror, depth pass or game-specific effect does not need to be forced into a generic material abstraction.</p>
+<p>Other graphics facilities include:</p>
+<ul><li>frustum and distance culling with LOD statistics;</li><li>hardware instancing with a per-instance fallback;</li><li>skinned vertex layouts and bone palettes;</li><li>sky colors and time-of-day lighting;</li><li>a directional sun shadow map and shadow reception;</li><li>local lights and light pools;</li><li>post-processing hooks for grading, fades and vignettes;</li><li>render statistics, GPU-memory estimates and deterministic screenshots.</li></ul>
+<p><img src="/wp-content/uploads/2027/03/cna-engine-street-simulator.png" alt="Street Simulator&#39;s PBR city scene rendered through CNA Engine" loading="lazy"></p>
+<p>The Street Simulator migration is an important test of this design. Its PBR materials, instancing, skinned figures, atmospheric pass and per-item reflection probes were submitted through the engine while remaining within the project&#39;s defined screenshot tolerances. Car Simulator exercised a different route based on strict XNA effects, mirrors, headlights and existing camera matrices.</p>
+<h2 id="models-animation-audio-and-ui">Models, animation, audio and UI</h2>
+<p>The engine can turn an XNA <code>Model</code> into render items while preserving its mesh parts and material information. The enhanced importer understands CNA&#39;s glTF material and skinning data. Skeletons, clips and an <code>Animator</code> provide playback and cross-fades, and the renderer accepts a borrowed palette of bone transforms for each skinned item.</p>
+<p>Audio is built around positional voices, sound banks, mix categories and a voice budget. The budget prevents a dense world from creating an unlimited number of active sources. A null audio device remains a supported test configuration, so game logic and the engine suite can run on headless machines.</p>
+<p>The UI module intentionally stays small. It provides a built-in bitmap font, virtual-screen HUD drawing, toasts, menus, a menu stack and reusable settings and rebinding rows. It is enough for a game&#39;s debug panel, pause menu and options screen without attempting to become a full desktop widget toolkit.</p>
+<p>Settings files support typed and clamped reads plus atomic saving. Save slots are versioned, checksummed and can recover from a backup. These systems are independent of a particular game&#39;s data schema: the engine provides safe storage mechanics, while the game defines the actual fields it saves.</p>
+<h2 id="proven-through-staged-adoption">Proven through staged adoption</h2>
+<p>CNA Engine&#39;s strongest claim is not the size of its feature list but the way those features are verified.</p>
+<p>Car Simulator and Street Simulator were the original pilots. The engine compared its cameras, meshes, rendering behavior, culling and materials against their project-owned implementations. Both later adopted the shared layer in their main development branches. The facilities used by both—camera matrices, GPU meshes, render statistics, materials, render queues, visibility and LOD, the forward renderer, quality schemas and the asset registry—are currently marked stable.</p>
+<p>The adoption then expanded:</p>
+<ul><li>Galaxy Eggbert replaced its <code>easy-3d</code> camera, geometry and drawing helpers while retaining byte-identical deterministic captures;</li><li>Backrooms Simulator moved streamed non-indexed world geometry, input, screenshots, statistics and camera handling to the engine;</li><li>School Simulator adopted camera, buffer borrowing, rendering, input, screenshots and asset caching while preserving its portal-culling and game-specific systems;</li><li>Train Simulator adopted facilities that could preserve its explicitly sequenced rendering;</li><li>shared image, noise, settings, automated-run and sun-position utilities were derived from repeated implementations across further simulators.</li></ul>
+<p>This staged approach is deliberate. Mature games keep their simulation, authored worlds and specialized systems. They replace one proven piece at a time, run their own tests and compare deterministic screenshots before moving to the next piece.</p>
+<h2 id="verification-and-compatibility">Verification and compatibility</h2>
+<p>The default configuration uses CNA&#39;s software renderer, headless platform and null audio device. That lets most of the suite run without a window, GPU or speakers. The recorded baseline reports hundreds of engine tests, the complete <code>cna-extended</code> suite, installed-package consumer probes and the pilot suites.</p>
+<p>Verification covers several different questions:</p>
+<ul><li>unit tests check each facility, including software-rendered pixel results;</li><li>boundary tests ensure strict headers do not expose enhanced APIs;</li><li>an API snapshot makes changes to pilot-validated headers explicit;</li><li>runnable examples render frames and assert their own invariants;</li><li>consumer probes install the package and build separate strict and enhanced applications;</li><li>pilot probes compare the engine with the original implementations on identical inputs;</li><li>visual comparisons enforce documented screenshot tolerances;</li><li>scaling tests check that culling, sorting, instancing and action updates do not grow unexpectedly;</li><li>pinned dependency revisions make a qualified CNA baseline reproducible.</li></ul>
+<p>Linux is the main verified development environment. The engine suite uses headless software rendering, while pilot adoption has also exercised OpenGL 3.3 and OpenGL ES 3 through Mesa software rendering and an AMD Radeon GPU. Browser paths have been built with Emscripten and exercised through WebGL 2 in selected games and examples. Other CNA platforms are expected architectural targets, but they should not be described as qualified until their own evidence exists.</p>
+<h2 id="what-cna-engine-does-not-try-to-own">What CNA Engine does not try to own</h2>
+<p>The project intentionally leaves several responsibilities to games or specialized libraries:</p>
+<ul><li>vehicle, train, ship and aircraft physics;</li><li>traffic logic, passengers, wildlife and game-specific NPC behavior;</li><li>authored city, island, school or route formats;</li><li>a universal weather policy;</li><li>a comprehensive ECS, editor or asset database;</li><li>a full rigid-body physics and navigation stack;</li><li>renderer-backend implementation details owned by CNA.</li></ul>
+<p>It also reuses <code>cna-extended</code> for facilities that already belong there, including screens, ECS, World3D, fonts, particles and tilemaps. CNA Engine adds adapters rather than maintaining competing copies.</p>
+<p>That restraint is central to the design. CNA Engine should make ordinary game code shorter and more consistent without turning every CNA application into the same game.</p>
+<h2 id="building-the-engine-itself">Building the engine itself</h2>
+<p>The repository uses CMake 3.20 or newer and C++23. With CNA, Sharp Runtime and the optional sibling dependencies available beside it, a normal development build is:</p>
+<pre><code class="language-bash">cmake -S . -B build -G Ninja \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+  -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+cmake --build build --parallel 3
+ctest --test-dir build --parallel 3</code></pre>
+<p>Important options can disable the enhanced modules, enforce the exact pinned dependency baseline, enable pilot suites or add AddressSanitizer and UndefinedBehaviorSanitizer to the engine targets.</p>
+<p>The project can also be installed. Its package exports components such as <code>Core</code> and <code>Graphics</code>, while CNA and <code>cna-extended</code> are supplied either as packages or source targets according to the consumer setup.</p>
+<h2 id="present-scope">Present scope</h2>
+<p>CNA Engine has already moved beyond a speculative framework: multiple games run on parts of it, stable APIs are defined by real shared use, new projects can be generated from a working template, and the repository contains executable examples and extensive verification.</p>
+<p>It is nevertheless a pre-1.0 engine. Many facilities are still marked experimental, the compatibility baseline is pinned, and platform claims remain narrower than CNA&#39;s complete target list. Applications should select modules deliberately and expect migration work when following development revisions.</p>
+<p>The project&#39;s value is the middle ground it occupies. CNA continues to offer a recognizable, portable XNA runtime. Individual games keep their identity and specialized systems. CNA Engine provides the tested layer of shared machinery between them.</p></div>
+    <footer class="taxonomy-links"><a href="/category/development/">Development</a><a href="/category/projects/">Projects</a><a href="/tag/cna/">#CNA</a><a href="/tag/cna-engine/">#CNA Engine</a><a href="/tag/c-23/">#C++23</a><a href="/tag/game-engine/">#Game Engine</a><a href="/tag/xna-4-0/">#XNA 4.0</a><a href="/tag/cmake/">#CMake</a><a href="/tag/3d/">#3D</a><a href="/tag/rendering/">#Rendering</a><a href="/tag/animation/">#Animation</a><a href="/tag/audio/">#Audio</a><a href="/tag/collision/">#Collision</a><a href="/tag/webassembly/">#WebAssembly</a></footer>
+  </article></main>
+    <aside class="sidebar" aria-label="Additional information">
+    <section class="sidebar-card">
+      <h2>Recent Posts</h2>
+      <ul><li><a href="/2027/03/11/cna-engine/">CNA Engine</a></li><li><a href="/2027/03/04/how-to-build-and-use-cna/">How to Build CNA and Use It in Your Own Projects</a></li><li><a href="/2027/02/25/91-xna-samples-ported-to-cpp-with-cna/">91 XNA Samples Ported to C++ with CNA</a></li><li><a href="/2027/02/18/island-simulator/">Island Simulator</a></li><li><a href="/2027/02/11/train-simulator/">Train Simulator</a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Archives</h2>
+      <ul><li><a href="/2027/03/"><span>March 2027</span><span class="count">2</span></a></li><li><a href="/2027/02/"><span>February 2027</span><span class="count">4</span></a></li><li><a href="/2027/01/"><span>January 2027</span><span class="count">4</span></a></li><li><a href="/2026/12/"><span>December 2026</span><span class="count">7</span></a></li><li><a href="/2026/11/"><span>November 2026</span><span class="count">8</span></a></li><li><a href="/2026/10/"><span>October 2026</span><span class="count">13</span></a></li><li><a href="/2026/09/"><span>September 2026</span><span class="count">7</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Categories</h2>
+      <ul><li><a href="/category/about/"><span>About</span><span class="count">2</span></a></li><li><a href="/category/c/"><span>C#</span><span class="count">1</span></a></li><li><a href="/category/development/"><span>Development</span><span class="count">18</span></a></li><li><a href="/category/games/"><span>Games</span><span class="count">7</span></a></li><li><a href="/category/graphics/"><span>Graphics</span><span class="count">4</span></a></li><li><a href="/category/projects/"><span>Projects</span><span class="count">23</span></a></li><li><a href="/category/tooling/"><span>Tooling</span><span class="count">1</span></a></li></ul>
+    </section>
+    <section class="sidebar-card">
+      <h2>Tags</h2>
+      <div class="tag-cloud"><a href="/tag/net/">.NET</a><a href="/tag/2d/">2D</a><a href="/tag/3d/">3D</a><a href="/tag/android/">Android</a><a href="/tag/animation/">Animation</a><a href="/tag/api/">API</a><a href="/tag/architecture/">Architecture</a><a href="/tag/archives/">Archives</a><a href="/tag/assets/">Assets</a><a href="/tag/audio/">Audio</a><a href="/tag/avatars/">Avatars</a><a href="/tag/backrooms-simulator/">Backrooms Simulator</a><a href="/tag/bindings/">Bindings</a><a href="/tag/c-api/">C API</a><a href="/tag/c/">C#</a><a href="/tag/c-23/">C++23</a><a href="/tag/capabilities/">Capabilities</a><a href="/tag/car-simulator/">Car Simulator</a><a href="/tag/ci/">CI</a><a href="/tag/cmake/">CMake</a><a href="/tag/cna/">CNA</a><a href="/tag/cna-cemetery/">CNA Cemetery</a><a href="/tag/cna-content-json/">CNA Content JSON</a><a href="/tag/cna-craft/">CNA Craft</a><a href="/tag/cna-demos/">CNA Demos</a><a href="/tag/cna-ecosystem/">CNA Ecosystem</a><a href="/tag/cna-engine/">CNA Engine</a><a href="/tag/cna-examples/">CNA Examples</a><a href="/tag/cna-extended/">CNA Extended</a><a href="/tag/cna-gltf-viewer/">cna-gltf-viewer</a><a href="/tag/cna-net/">CNA.NET</a><a href="/tag/cnaext/">CNAEXT</a><a href="/tag/cnb/">CNB</a><a href="/tag/cnj/">CNJ</a><a href="/tag/cocoa/">Cocoa</a><a href="/tag/collision/">Collision</a><a href="/tag/common-lisp/">Common Lisp</a><a href="/tag/compatibility/">Compatibility</a><a href="/tag/conformance/">Conformance</a><a href="/tag/consoles/">Consoles</a><a href="/tag/content/">Content</a><a href="/tag/content-pipeline/">Content Pipeline</a><a href="/tag/contentmanager/">ContentManager</a><a href="/tag/craft/">Craft</a><a href="/tag/cross-platform/">Cross-platform</a><a href="/tag/ctest/">CTest</a><a href="/tag/dependencies/">Dependencies</a><a href="/tag/directx/">DirectX</a><a href="/tag/documentation/">Documentation</a><a href="/tag/driving/">Driving</a><a href="/tag/easygl/">EasyGL</a><a href="/tag/ecs/">ECS</a><a href="/tag/effect/">Effect</a><a href="/tag/emscripten/">Emscripten</a><a href="/tag/examples/">Examples</a><a href="/tag/exploration/">Exploration</a><a href="/tag/first-person-shooter/">First-person shooter</a><a href="/tag/fna/">FNA</a><a href="/tag/fuzzing/">Fuzzing</a><a href="/tag/fx/">FX</a><a href="/tag/fxb/">FXB</a><a href="/tag/game-development/">Game Development</a><a href="/tag/game-engine/">Game Engine</a><a href="/tag/game-framework/">Game Framework</a><a href="/tag/games/">Games</a><a href="/tag/git/">Git</a><a href="/tag/github/">GitHub</a><a href="/tag/glb/">GLB</a><a href="/tag/gltf/">glTF</a><a href="/tag/go/">Go</a><a href="/tag/golden-images/">Golden Images</a><a href="/tag/googletest/">GoogleTest</a><a href="/tag/graphics/">Graphics</a><a href="/tag/graphics-apis/">Graphics APIs</a><a href="/tag/graphics-testing/">Graphics Testing</a><a href="/tag/graphicsdevice/">GraphicsDevice</a><a href="/tag/hdr/">HDR</a><a href="/tag/hlsl/">HLSL</a><a href="/tag/homebrew/">Homebrew</a><a href="/tag/interactive-documentation/">Interactive Documentation</a><a href="/tag/ios/">iOS</a><a href="/tag/ipados/">iPadOS</a><a href="/tag/island-simulator/">Island Simulator</a><a href="/tag/java/">Java</a><a href="/tag/json/">JSON</a><a href="/tag/lighting/">Lighting</a><a href="/tag/linux/">Linux</a><a href="/tag/macos/">macOS</a><a href="/tag/mc3/">MC3</a><a href="/tag/meshcraft/">MeshCraft</a><a href="/tag/metagl/">MetaGL</a><a href="/tag/models/">Models</a><a href="/tag/modularization/">Modularization</a><a href="/tag/modules/">Modules</a><a href="/tag/mojoshader/">MojoShader</a><a href="/tag/monogame/">MonoGame</a><a href="/tag/monogame-extended/">MonoGame.Extended</a><a href="/tag/multiplayer/">Multiplayer</a><a href="/tag/museum-simulator/">Museum Simulator</a><a href="/tag/nintendo/">Nintendo</a><a href="/tag/nintendo-switch/">Nintendo Switch</a><a href="/tag/npcs/">NPCs</a><a href="/tag/online-demo/">Online Demo</a><a href="/tag/opengl/">OpenGL</a><a href="/tag/opengl-es/">OpenGL ES</a><a href="/tag/operating-systems/">Operating Systems</a><a href="/tag/particles/">Particles</a><a href="/tag/pbr/">PBR</a><a href="/tag/persistence/">Persistence</a><a href="/tag/pixel-tests/">Pixel Tests</a><a href="/tag/platform-api/">Platform API</a><a href="/tag/platforms/">Platforms</a><a href="/tag/playstation/">PlayStation</a><a href="/tag/playstation-5/">PlayStation 5</a><a href="/tag/portability/">Portability</a><a href="/tag/porting/">Porting</a><a href="/tag/procedural-generation/">Procedural Generation</a><a href="/tag/projects/">Projects</a><a href="/tag/ps-vita/">PS Vita</a><a href="/tag/python/">Python</a><a href="/tag/railways/">Railways</a><a href="/tag/refactoring/">Refactoring</a><a href="/tag/reflections/">Reflections</a><a href="/tag/release/">Release</a><a href="/tag/renderer-api/">Renderer API</a><a href="/tag/renderer-testing/">Renderer Testing</a><a href="/tag/renderers/">Renderers</a><a href="/tag/rendering/">Rendering</a><a href="/tag/repositories/">Repositories</a><a href="/tag/room-simulator/">Room Simulator</a><a href="/tag/ruby/">Ruby</a><a href="/tag/rust/">Rust</a><a href="/tag/samples/">Samples</a><a href="/tag/sanitizers/">Sanitizers</a><a href="/tag/school-simulator/">School Simulator</a><a href="/tag/sdl/">SDL</a><a href="/tag/sdl-gpu/">SDL GPU</a><a href="/tag/sdl3/">SDL3</a><a href="/tag/shadereffect/">ShaderEffect</a><a href="/tag/sharp-runtime/">Sharp Runtime</a><a href="/tag/simulation/">Simulation</a><a href="/tag/software-preservation/">Software Preservation</a><a href="/tag/software-rendering/">Software Rendering</a><a href="/tag/specification/">Specification</a><a href="/tag/sqlite/">SQLite</a><a href="/tag/streaming/">Streaming</a><a href="/tag/street-simulator/">street-simulator</a><a href="/tag/swift/">Swift</a><a href="/tag/system/">System</a><a href="/tag/tamagotchi-cna/">Tamagotchi CNA</a><a href="/tag/testing/">Testing</a><a href="/tag/tilemaps/">Tilemaps</a><a href="/tag/tooling/">Tooling</a><a href="/tag/tools/">Tools</a><a href="/tag/train-simulator/">Train Simulator</a><a href="/tag/typescript/">TypeScript</a><a href="/tag/virtual-pet/">Virtual pet</a><a href="/tag/voxel/">Voxel</a><a href="/tag/vulkan/">Vulkan</a><a href="/tag/wayland/">Wayland</a><a href="/tag/weather/">Weather</a><a href="/tag/webassembly/">WebAssembly</a><a href="/tag/webgl/">WebGL</a><a href="/tag/webgl2/">WebGL2</a><a href="/tag/webgpu/">WebGPU</a><a href="/tag/win32/">Win32</a><a href="/tag/windows/">Windows</a><a href="/tag/wolf-cna/">Wolf CNA</a><a href="/tag/x11/">X11</a><a href="/tag/xbox/">Xbox</a><a href="/tag/xbox-series/">Xbox Series</a><a href="/tag/xna/">XNA</a><a href="/tag/xna-4-0/">XNA 4.0</a><a href="/tag/xna-content-pipeline/">XNA Content Pipeline</a><a href="/tag/xna4-spec/">xna4-spec</a><a href="/tag/xnb/">XNB</a></div>
+    </section>
+  </aside>
+  </div>
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <p>© 2026 CNA&#39;s Blog.</p>
+      <p><a href="https://libcna.com/">libcna.com</a> · <a href="https://github.com/libcna">GitHub</a> · <a href="/feed.xml">RSS</a></p>
+    </div>
+  </footer>
+</body>
+</html>
