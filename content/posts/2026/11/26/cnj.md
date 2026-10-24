@@ -1,5 +1,5 @@
 ---
-title: What is CNJ?
+title: CNJ
 date: 2026-11-26T16:39:25Z
 updated: 2026-09-13T17:28:16Z
 description: |

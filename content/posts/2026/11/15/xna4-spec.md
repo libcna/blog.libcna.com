@@ -1,5 +1,5 @@
 ---
-title: What is xna4-spec?
+title: xna4-spec
 date: 2026-11-15T15:54:03Z
 updated: 2026-09-13T16:11:01Z
 description: |

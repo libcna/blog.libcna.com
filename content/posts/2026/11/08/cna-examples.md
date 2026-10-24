@@ -1,5 +1,5 @@
 ---
-title: What is Cna Examples?
+title: CNA Examples
 date: 2026-11-08T15:33:13Z
 updated: 2026-09-13T15:49:38Z
 description: |
@@ -21,7 +21,7 @@ classicpressStatus: future
 draft: false
 ---
 
-## What is CNA Examples?
+## CNA Examples
 
 **CNA Examples** is an interactive catalog of demonstrations covering the CNA framework.
 

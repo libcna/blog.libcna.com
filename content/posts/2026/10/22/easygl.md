@@ -1,5 +1,5 @@
 ---
-title: What is EasyGL?
+title: EasyGL
 date: 2026-10-22T13:20:47Z
 updated: 2026-09-13T15:18:40Z
 description: |
@@ -21,7 +21,7 @@ classicpressStatus: future
 draft: false
 ---
 
-## What is EasyGL?
+## EasyGL
 
 **EasyGL** is a toolkit-independent C++20 graphics library built on top of OpenGL and OpenGL ES.
 

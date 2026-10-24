@@ -7,9 +7,9 @@
     <language>en</language>
     <lastBuildDate>Thu, 22 Oct 2026 13:20:47 GMT</lastBuildDate>
     <item>
-      <title>What is EasyGL?</title>
-      <link>https://blog.libcna.com/2026/10/22/what-is-easygl/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2026/10/22/what-is-easygl/</guid>
+      <title>EasyGL</title>
+      <link>https://blog.libcna.com/2026/10/22/easygl/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2026/10/22/easygl/</guid>
       <pubDate>Thu, 22 Oct 2026 13:20:47 GMT</pubDate>
       <description>EasyGL is a toolkit-independent C++20 graphics library built on top of OpenGL and OpenGL ES.</description>
     </item>
@@ -21,9 +21,9 @@
       <description>Tamagotchi CNA is an unfinished, independent C++ reimplementation of the international 1997 P1 virtual-pet program, presented through CNA.</description>
     </item>
     <item>
-      <title>What is Meta GL?</title>
-      <link>https://blog.libcna.com/2026/10/18/what-is-meta-gl/</link>
-      <guid isPermaLink="true">https://blog.libcna.com/2026/10/18/what-is-meta-gl/</guid>
+      <title>Meta GL</title>
+      <link>https://blog.libcna.com/2026/10/18/meta-gl/</link>
+      <guid isPermaLink="true">https://blog.libcna.com/2026/10/18/meta-gl/</guid>
       <pubDate>Sun, 18 Oct 2026 13:12:38 GMT</pubDate>
       <description>MetaGL is a low-level, type-safe C++23 wrapper around the programmable OpenGL family.</description>
     </item>

@@ -1,5 +1,5 @@
 ---
-title: What is CNA Extended?
+title: CNA Extended
 date: 2026-11-12T15:50:02Z
 updated: 2026-09-13T15:55:19Z
 description: |

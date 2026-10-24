@@ -1,5 +1,5 @@
 ---
-title: What is Meta GL?
+title: Meta GL
 date: 2026-10-18T13:12:38Z
 updated: 2026-09-13T15:18:28Z
 description: |

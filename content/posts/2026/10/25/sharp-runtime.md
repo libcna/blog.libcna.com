@@ -1,5 +1,5 @@
 ---
-title: What is Sharp Runtime?
+title: Sharp Runtime
 date: 2026-10-25T13:25:19Z
 updated: 2026-09-19T16:15:07Z
 description: |

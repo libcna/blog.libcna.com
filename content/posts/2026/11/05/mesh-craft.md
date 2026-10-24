@@ -1,5 +1,5 @@
 ---
-title: What is Mesh Craft?
+title: Mesh Craft
 date: 2026-11-05T15:09:09Z
 updated: 2026-10-17T15:08:11Z
 description: |
